@@ -79,6 +79,28 @@
   margin-top: 10px;
 }
 
+.tool-progress.tool-complete {
+  border-color: #cfe4d8;
+  background: #f4faf6;
+}
+.tool-progress.tool-complete strong,
+.tool-progress.tool-complete .tool-progress-copy span {
+  color: #287a57;
+}
+.complete-check {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #287a57;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 /* Baseline now has its own workspace section above Discovery. */
 #pricing-content .pricing-result-summary .baseline-card {
   display: none;
