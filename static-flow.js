@@ -5,6 +5,7 @@
     selectedHubIds: [],
     strategy: null,
     currency: null,
+    intentInput: null,
     baselineId: null,
     baselinePhase: null,
     baselineMessage: null,
@@ -34,6 +35,29 @@
     if (!hub) return id;
     const airports = Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : "";
     return `${hub.city ?? id}${airports}`;
+  }
+
+  function renderIntent() {
+    const input = flowState.intentInput;
+    if (!input) return;
+
+    const origin = document.getElementById("intent-origin");
+    const destination = document.getElementById("intent-destination");
+    const dates = document.getElementById("intent-dates");
+    const stay = document.getElementById("intent-stay");
+    const route = document.getElementById("workspace-route");
+
+    if (origin && input.origin) origin.textContent = input.origin;
+    if (destination && input.destination) destination.textContent = input.destination;
+    if (route && input.origin && input.destination) route.textContent = `${input.origin} → ${input.destination}`;
+
+    if (dates && input.departureWindow?.from && input.departureWindow?.to) {
+      dates.textContent = `${input.departureWindow.from} → ${input.departureWindow.to}`;
+    }
+
+    if (stay && input.destinationStay?.minNights != null && input.destinationStay?.maxNights != null) {
+      stay.textContent = `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights`;
+    }
   }
 
   function renderBaseline() {
@@ -107,16 +131,24 @@
   }
 
   function renderFlow() {
+    renderIntent();
     renderBaseline();
     renderSelectedHubs();
   }
 
   function captureEvent(event) {
     if (event?.type === "tool-input-available" && event.toolName === "baseline" && event.input) {
+      flowState.intentInput = event.input;
       flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
       flowState.baselinePhase = "starting";
       flowState.baselineMessage = "Preparing the standard-trip baseline first. Hub discovery will start after it completes.";
       renderFlow();
+      return;
+    }
+
+    if (event?.type === "tool-input-available" && event.toolName === "discovery" && event.input) {
+      flowState.intentInput = event.input;
+      renderIntent();
       return;
     }
 
@@ -138,13 +170,13 @@
       flowState.baselineMessage = output.message ?? flowState.baselineMessage;
       if (Array.isArray(output.warnings)) flowState.baselineWarnings = output.warnings;
       if (output.baseline) flowState.baseline = output.baseline;
-      renderBaseline();
+      renderFlow();
       return;
     }
 
     if (output.phase === "completed" && output.discoveryId && Array.isArray(output.hubs)) {
       flowState.hubs = output.hubs;
-      renderSelectedHubs();
+      renderFlow();
       return;
     }
 
@@ -207,6 +239,26 @@
     }
   }
 
+  function decorateCompletedBaseline() {
+    const conversation = document.getElementById("conversation");
+    if (!conversation) return;
+    for (const box of conversation.querySelectorAll(".tool-progress")) {
+      const copy = box.querySelector(".tool-progress-copy");
+      const label = copy?.querySelector("strong");
+      const detail = copy?.querySelector("span");
+      if (!label || !detail) continue;
+      if (label.textContent !== "Baseline" || !/baseline complete/i.test(detail.textContent ?? "")) continue;
+
+      if (!box.classList.contains("tool-complete")) box.classList.add("tool-complete");
+      const pulse = box.querySelector(".pulse-dot");
+      if (pulse) {
+        pulse.className = "complete-check";
+        pulse.textContent = "✓";
+        pulse.setAttribute("aria-label", "Completed");
+      }
+    }
+  }
+
   globalThis.fetch = async (...args) => {
     const response = await previousFetch(...args);
     if (isChatRequest(args[0]) && response.body) inspectStream(response.clone()).catch(() => {});
@@ -218,8 +270,10 @@
     const conversation = document.getElementById("conversation");
     if (conversation) {
       new MutationObserver(() => queueMicrotask(() => {
+        renderIntent();
         cleanRawBoldMarkers();
         relabelBaselineProgress();
+        decorateCompletedBaseline();
       })).observe(conversation, { childList: true, subtree: true, characterData: true });
     }
   };
