@@ -8,6 +8,8 @@ on:
       - static-app.css
       - static-markdown.js
       - static-markdown.css
+      - static-pricing-summary.js
+      - static-pricing-summary.css
       - .github/workflows/static-ui-ci.yml
 
 permissions:
@@ -25,12 +27,17 @@ jobs:
         run: |
           node --check static-app.js
           node --check static-markdown.js
+          node --check static-pricing-summary.js
       - name: Check required live UI files
         run: |
           test -s index.html
           test -s static-app.css
           test -s static-markdown.js
           test -s static-markdown.css
+          test -s static-pricing-summary.js
+          test -s static-pricing-summary.css
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
           grep -q "static-markdown.js" index.html
           grep -q "static-markdown.css" index.html
+          grep -q "static-pricing-summary.js" index.html
+          grep -q "static-pricing-summary.css" index.html
