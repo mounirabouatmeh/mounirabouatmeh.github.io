@@ -13,7 +13,7 @@ const inputSchema = z.object({
     infants: z.number().int().min(0).default(0),
   }).default({ adults: 1, children: 0, infants: 0 }),
   cabin: z.enum(["ECONOMY", "PREMIUM_ECONOMY", "BUSINESS", "FIRST"]).default("ECONOMY"),
-  currency: z.string().length(3).default("USD"),
+  currency: z.string().length(3).describe("Explicit three-letter pricing currency supplied by the advisor"),
 });
 
 type PricingJob = {
@@ -52,7 +52,7 @@ function progressMessage(job: PricingJob) {
 }
 
 export const pricingTool = tool({
-  description: "Price one or more hubs from a completed Cuberence discovery. Requires the discoveryId, selected hub ids, and exactly one strategy: SPLIT or PROTECTED_STOPOVER. Use only hub ids actually returned by discovery.",
+  description: "Price one or more hubs from a completed Cuberence discovery. Requires the discoveryId, selected hub ids, exactly one strategy, and an explicit three-letter pricing currency. Use only hub ids actually returned by discovery.",
   inputSchema,
   execute: async function* (input, { abortSignal }) {
     yield { phase: "starting" as const, message: "Starting Cuberence pricing…" };

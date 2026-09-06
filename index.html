@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./static-app.css">
   <link rel="stylesheet" href="./static-markdown.css">
   <link rel="stylesheet" href="./static-pricing-summary.css">
+  <link rel="stylesheet" href="./static-flow.css">
 </head>
 <body>
   <main class="app-page">
@@ -69,6 +70,19 @@
 
         <section class="workspace-section">
           <div class="section-title-row">
+            <h3>Baseline</h3>
+            <span class="muted-badge">Cheapest trip</span>
+          </div>
+          <div id="baseline-content">
+            <div class="empty-workspace compact-empty">
+              <strong>Baseline not priced yet</strong>
+              <p>The cheapest standard trip will appear here when the first pricing run establishes the baseline.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace-section">
+          <div class="section-title-row">
             <h3>Discovery</h3>
             <span id="discovery-badge" class="muted-badge">Not run</span>
           </div>
@@ -76,6 +90,19 @@
             <div class="empty-workspace">
               <strong>No hub results yet</strong>
               <p>Live Cuberence discovery results will appear here as the conversation continues.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="workspace-section">
+          <div class="section-title-row">
+            <h3>Selected hubs</h3>
+            <span class="muted-badge">For pricing</span>
+          </div>
+          <div id="selected-hubs-content">
+            <div class="empty-workspace compact-empty">
+              <strong>No hubs selected yet</strong>
+              <p>The hub or hubs chosen in the conversation will appear here before pricing results.</p>
             </div>
           </div>
         </section>
@@ -97,7 +124,8 @@
   </main>
 
   <script src="./static-pricing-summary.js" defer></script>
-  <script src="./static-app.js" defer></script>
   <script src="./static-markdown.js" defer></script>
+  <script src="./static-flow.js" defer></script>
+  <script src="./static-app.js" defer></script>
 </body>
 </html>

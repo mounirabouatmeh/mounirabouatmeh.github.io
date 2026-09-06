@@ -1,0 +1,103 @@
+.hub-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.baseline-overview-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #dfe4e1;
+  border-radius: 12px;
+  background: #fff;
+}
+.baseline-overview-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.baseline-overview-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.baseline-kicker,
+.baseline-provider {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.baseline-price {
+  font-size: 18px;
+  line-height: 1.15;
+}
+.baseline-provider {
+  padding-top: 2px;
+  white-space: nowrap;
+}
+.baseline-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.baseline-facts span,
+.selection-meta span {
+  padding: 5px 7px;
+  border-radius: 6px;
+  background: #f1f4f2;
+  color: #536166;
+  font-size: 10px;
+}
+
+.compact-empty {
+  padding: 14px 16px;
+}
+
+.selected-hub-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.selected-hub-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid #cfd8d3;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.selection-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* Baseline now has its own workspace section above Discovery. */
+#pricing-content .pricing-result-summary .baseline-card {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .hub-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .hub-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .hub-list {
+    grid-template-columns: 1fr;
+  }
+}
