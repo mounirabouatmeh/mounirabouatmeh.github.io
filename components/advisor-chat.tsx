@@ -41,7 +41,7 @@ export function AdvisorChat() {
       <section className="chat-panel">
         <div className="chat-header"><div><p className="eyebrow dark">Cuberence advisor</p><h1>What trip are we solving?</h1></div><span className="model-chip">Luna</span></div>
         <div className="conversation" role="log" aria-live="polite">
-          {messages.length === 0 ? <div className="welcome-card"><span className="assistant-mark">C</span><div><h2>Start with the client's travel intent.</h2><p>For example: “My clients are flying from YUL to BEY October 10–20, staying 7–10 nights, and are open to a short European stopover.”</p></div></div> : messages.map((message) => {
+          {messages.length === 0 ? <div className="welcome-card"><span className="assistant-mark">C</span><div><h2>Start with the client's travel intent.</h2><p>For example: “My clients are flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and are open to a short European stopover.”</p></div></div> : messages.map((message) => {
             const text = textFromParts(message.parts);
             return <div key={message.id}>{text && <div className={`message-row ${message.role}`}>{message.role === "assistant" && <span className="assistant-mark small">C</span>}<div className="message-bubble">{message.role === "assistant" ? <AIMessage>{text}</AIMessage> : text}</div></div>}<ToolProgress message={message} /></div>;
           })}
