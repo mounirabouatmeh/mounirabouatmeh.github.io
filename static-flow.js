@@ -46,14 +46,14 @@
       const empty = node("div", "empty-workspace compact-empty");
       if (["starting", "queued", "running"].includes(flowState.baselinePhase)) {
         empty.append(node("strong", null, "Pricing baseline…"));
-        empty.append(node("p", null, flowState.baselineMessage ?? "Finding the cheapest standard trip while hub discovery runs."));
+        empty.append(node("p", null, flowState.baselineMessage ?? "Finding the cheapest standard trip. Hub discovery will start after the baseline completes."));
       } else if (flowState.baselinePhase === "completed") {
         empty.append(node("strong", null, "No valid baseline found"));
         const warning = flowState.baselineWarnings[0];
         empty.append(node("p", null, warning ?? "The baseline search completed without a valid standard round trip for the requested window and stay."));
       } else {
         empty.append(node("strong", null, "Baseline not priced yet"));
-        empty.append(node("p", null, "After trip intent and currency are confirmed, the cheapest standard trip will be priced alongside hub discovery."));
+        empty.append(node("p", null, "After trip intent and currency are confirmed, Cuberence prices the cheapest standard trip first, then starts hub discovery."));
       }
       target.append(empty);
       return;
@@ -115,7 +115,7 @@
     if (event?.type === "tool-input-available" && event.toolName === "baseline" && event.input) {
       flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
       flowState.baselinePhase = "starting";
-      flowState.baselineMessage = "Preparing the standard-trip baseline while hub discovery runs.";
+      flowState.baselineMessage = "Preparing the standard-trip baseline first. Hub discovery will start after it completes.";
       renderFlow();
       return;
     }
