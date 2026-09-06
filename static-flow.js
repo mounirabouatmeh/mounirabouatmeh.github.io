@@ -201,7 +201,9 @@
       const label = copy.querySelector("strong");
       const detail = copy.querySelector("span");
       if (!label || !detail) continue;
-      if (/baseline|standard round-trip|standard trip/i.test(detail.textContent ?? "")) label.textContent = "Baseline";
+      if (/baseline|standard round-trip|standard trip/i.test(detail.textContent ?? "") && label.textContent !== "Baseline") {
+        label.textContent = "Baseline";
+      }
     }
   }
 
