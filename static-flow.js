@@ -5,6 +5,10 @@
     selectedHubIds: [],
     strategy: null,
     currency: null,
+    baselineId: null,
+    baselinePhase: null,
+    baselineMessage: null,
+    baselineWarnings: [],
     baseline: null,
   };
 
@@ -40,8 +44,17 @@
     const baseline = flowState.baseline;
     if (!baseline?.price) {
       const empty = node("div", "empty-workspace compact-empty");
-      empty.append(node("strong", null, "Baseline not priced yet"));
-      empty.append(node("p", null, "The cheapest standard trip will appear here when the first pricing run establishes the baseline."));
+      if (["starting", "queued", "running"].includes(flowState.baselinePhase)) {
+        empty.append(node("strong", null, "Pricing baseline…"));
+        empty.append(node("p", null, flowState.baselineMessage ?? "Finding the cheapest standard trip while hub discovery runs."));
+      } else if (flowState.baselinePhase === "completed") {
+        empty.append(node("strong", null, "No valid baseline found"));
+        const warning = flowState.baselineWarnings[0];
+        empty.append(node("p", null, warning ?? "The baseline search completed without a valid standard round trip for the requested window and stay."));
+      } else {
+        empty.append(node("strong", null, "Baseline not priced yet"));
+        empty.append(node("p", null, "After trip intent and currency are confirmed, the cheapest standard trip will be priced alongside hub discovery."));
+      }
       target.append(empty);
       return;
     }
@@ -99,24 +112,46 @@
   }
 
   function captureEvent(event) {
+    if (event?.type === "tool-input-available" && event.toolName === "baseline" && event.input) {
+      flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
+      flowState.baselinePhase = "starting";
+      flowState.baselineMessage = "Preparing the standard-trip baseline while hub discovery runs.";
+      renderFlow();
+      return;
+    }
+
     if (event?.type === "tool-input-available" && event.toolName === "pricing" && event.input) {
       flowState.selectedHubIds = Array.isArray(event.input.selectedHubs) ? event.input.selectedHubs : [];
       flowState.strategy = event.input.strategy ?? null;
-      flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : null;
+      flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
+      flowState.baselineId = event.input.baselineId ?? flowState.baselineId;
       renderFlow();
       return;
     }
 
     if (event?.type !== "tool-output-available" || !event.output) return;
     const output = event.output;
+
+    if (output.baselineId && !output.pricingId) {
+      flowState.baselineId = output.baselineId;
+      flowState.baselinePhase = output.phase ?? flowState.baselinePhase;
+      flowState.baselineMessage = output.message ?? flowState.baselineMessage;
+      if (Array.isArray(output.warnings)) flowState.baselineWarnings = output.warnings;
+      if (output.baseline) flowState.baseline = output.baseline;
+      renderBaseline();
+      return;
+    }
+
     if (output.phase === "completed" && output.discoveryId && Array.isArray(output.hubs)) {
       flowState.hubs = output.hubs;
       renderSelectedHubs();
       return;
     }
-    if (output.phase === "completed" && output.pricingId) {
+
+    if (output.pricingId) {
       flowState.selectedHubIds = Array.isArray(output.selectedHubs) ? output.selectedHubs : flowState.selectedHubIds;
       flowState.strategy = output.strategy ?? flowState.strategy;
+      flowState.baselineId = output.baselineId ?? flowState.baselineId;
       if (output.baseline) flowState.baseline = output.baseline;
       renderFlow();
     }
@@ -159,6 +194,17 @@
     }
   }
 
+  function relabelBaselineProgress() {
+    const conversation = document.getElementById("conversation");
+    if (!conversation) return;
+    for (const copy of conversation.querySelectorAll(".tool-progress-copy")) {
+      const label = copy.querySelector("strong");
+      const detail = copy.querySelector("span");
+      if (!label || !detail) continue;
+      if (/baseline|standard round-trip|standard trip/i.test(detail.textContent ?? "")) label.textContent = "Baseline";
+    }
+  }
+
   globalThis.fetch = async (...args) => {
     const response = await previousFetch(...args);
     if (isChatRequest(args[0]) && response.body) inspectStream(response.clone()).catch(() => {});
@@ -168,7 +214,12 @@
   const start = () => {
     renderFlow();
     const conversation = document.getElementById("conversation");
-    if (conversation) new MutationObserver(() => queueMicrotask(cleanRawBoldMarkers)).observe(conversation, { childList: true, subtree: true, characterData: true });
+    if (conversation) {
+      new MutationObserver(() => queueMicrotask(() => {
+        cleanRawBoldMarkers();
+        relabelBaselineProgress();
+      })).observe(conversation, { childList: true, subtree: true, characterData: true });
+    }
   };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
