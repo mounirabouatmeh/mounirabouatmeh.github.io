@@ -56,6 +56,6 @@ jobs:
           grep -q "selected-hubs-content" index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
-          grep -q "priced alongside hub discovery" index.html
+          grep -q "prices the cheapest standard trip first, then starts hub discovery" index.html
           grep -q "2026 October 10–15" static-welcome-copy.js
           grep -q "20–22 nights" static-welcome-copy.js
