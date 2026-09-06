@@ -1,0 +1,28 @@
+name: Static UI CI
+
+on:
+  pull_request:
+    paths:
+      - index.html
+      - static-app.js
+      - static-app.css
+      - .github/workflows/static-ui-ci.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check browser JavaScript syntax
+        run: node --check static-app.js
+      - name: Check required live UI files
+        run: |
+          test -s index.html
+          test -s static-app.css
+          grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
