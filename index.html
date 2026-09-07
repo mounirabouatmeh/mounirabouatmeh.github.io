@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./static-workspace-enhancements.css?v=1">
   <link rel="stylesheet" href="./static-issue14.css?v=1">
   <link rel="stylesheet" href="./static-issue16.css?v=1">
+  <link rel="stylesheet" href="./static-issue20.css?v=1">
 </head>
 <body>
   <main class="app-page">
@@ -28,15 +29,6 @@
 
     <div class="advisor-shell">
       <section class="chat-panel" aria-label="Cuberence advisor conversation">
-        <header class="chat-header">
-          <div>
-            <p class="eyebrow">Cuberence advisor</p>
-            <h1>What trip are we solving?</h1>
-            <span class="live-indicator" id="live-status">Ready</span>
-          </div>
-          <span class="model-chip">Luna</span>
-        </header>
-
         <div id="trip-progress" class="trip-progress" aria-label="Trip progress">
           <div class="trip-progress-step is-waiting" data-stage="baseline">
             <span class="trip-progress-icon" aria-hidden="true">1</span>
@@ -67,17 +59,19 @@
         <div id="conversation" class="conversation" role="log" aria-live="polite"></div>
 
         <form id="composer" class="composer">
-          <textarea
-            id="message-input"
-            aria-label="Message Cuberence"
-            placeholder="Describe the client’s trip, constraints, or what you want to compare…"
-            rows="3"
-            autocomplete="off"
-          ></textarea>
-          <div class="composer-footer">
-            <span id="composer-guidance" class="composer-guidance">Start with the client’s origin, destination, departure window, and destination stay.</span>
-            <button id="send-button" class="send-button" type="submit">Send</button>
-            <button id="stop-button" class="send-button stop-button" type="button" hidden>Stop</button>
+          <span id="composer-guidance" class="composer-guidance">Start with the client’s origin, destination, departure window, and destination stay.</span>
+          <div class="composer-input-row">
+            <textarea
+              id="message-input"
+              aria-label="Message Cuberence"
+              placeholder="Describe the client’s trip, constraints, or what you want to compare…"
+              rows="2"
+              autocomplete="off"
+            ></textarea>
+            <div class="composer-actions">
+              <button id="send-button" class="send-button" type="submit">Send</button>
+              <button id="stop-button" class="send-button stop-button" type="button" hidden>Stop</button>
+            </div>
           </div>
         </form>
       </section>
@@ -168,5 +162,6 @@
   <script src="./static-sticky-progress.js?v=4" defer></script>
   <script src="./static-issue14.js?v=1" defer></script>
   <script src="./static-issue16.js?v=1" defer></script>
+  <script src="./static-issue20.js?v=1" defer></script>
 </body>
 </html>
