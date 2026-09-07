@@ -39,7 +39,9 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+}
 
+@media (min-width: 981px) {
   .trip-progress {
     grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1.2fr);
   }
