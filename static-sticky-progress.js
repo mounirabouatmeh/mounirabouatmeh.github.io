@@ -1,6 +1,6 @@
 (() => {
-  const stageOrder = ["baseline", "discovery", "pricing", "summary"];
-  const stageNumbers = { baseline: "1", discovery: "2", pricing: "3", summary: "4" };
+  const stageOrder = ["baseline", "discovery", "hubselected", "pricing", "summary"];
+  const stageNumbers = { baseline: "1", discovery: "2", hubselected: "3", pricing: "4", summary: "5" };
 
   function stageForBox(box) {
     const label = box.querySelector(".tool-progress-copy strong")?.textContent ?? "";
@@ -48,17 +48,28 @@
     return [...new Set(terms)];
   }
 
+  function mentionsHubSelection(text) {
+    const normalized = (text ?? "").trim().toLowerCase();
+    if (!normalized) return false;
+
+    const hasHub = discoveredHubTerms().some((term) => normalized.includes(term));
+    if (!hasHub) return false;
+
+    return /\b(price|try|check|use|switch|change|select|choose|test|run)\b/.test(normalized)
+      || /\bwhat about\b/.test(normalized);
+  }
+
   function asksToRevisitHubs(text) {
     const normalized = (text ?? "").trim().toLowerCase();
     if (!normalized) return false;
 
     if (/\b(another|different|other)\s+(hub|stopover|city)\b/.test(normalized)) return true;
+    return mentionsHubSelection(normalized);
+  }
 
-    const hasHub = discoveredHubTerms().some((term) => normalized.includes(term));
-    if (!hasHub) return false;
-
-    return /\b(price|try|check|use|switch|change|select|choose|test|run|instead)\b/.test(normalized)
-      || /\bwhat about\b/.test(normalized);
+  function hasSelectedHub() {
+    if (document.querySelector("#selected-hubs-content .selected-hub-chip")) return true;
+    return Boolean(latestStageBox("pricing"));
   }
 
   function setStep(stage, state, statusOverride = null) {
@@ -75,10 +86,18 @@
     const display = {
       waiting: { icon: stageNumbers[stage], status: "Waiting" },
       running: { icon: "•", status: stage === "summary" ? "Summarizing" : "Running" },
-      complete: { icon: "✓", status: "Complete" },
+      complete: { icon: "✓", status: stage === "hubselected" ? "Selected" : "Complete" },
       ready: {
         icon: "→",
-        status: stage === "discovery" ? "Review hubs" : stage === "pricing" ? "Select hub" : stage === "summary" ? "Summarize" : "Next",
+        status: stage === "discovery"
+          ? "Review hubs"
+          : stage === "hubselected"
+            ? "Select hub"
+            : stage === "pricing"
+              ? "Ready to price"
+              : stage === "summary"
+                ? "Summarize"
+                : "Next",
       },
       error: { icon: "!", status: "Needs attention" },
     }[state];
@@ -100,7 +119,14 @@
     const conversation = document.getElementById("conversation");
     if (!conversation) return;
 
-    const states = { baseline: "waiting", discovery: "waiting", pricing: "waiting", summary: "waiting" };
+    const states = {
+      baseline: "waiting",
+      discovery: "waiting",
+      hubselected: "waiting",
+      pricing: "waiting",
+      summary: "waiting",
+    };
+
     for (const stage of ["baseline", "discovery", "pricing"]) {
       const box = latestStageBox(stage);
       if (box) states[stage] = stateForBox(box, stage);
@@ -111,33 +137,42 @@
     const pricingBox = latestStageBox("pricing");
 
     // A new upstream run invalidates the visible downstream workflow position,
-    // even though previous completed results remain in conversation history.
+    // while historical results remain available in the conversation/workspace.
     if (baselineBox && discoveryBox && appearsAfter(baselineBox, discoveryBox) && states.baseline !== "complete") {
       states.discovery = "waiting";
+      states.hubselected = "waiting";
       states.pricing = "waiting";
     }
     if (discoveryBox && pricingBox && appearsAfter(discoveryBox, pricingBox) && states.discovery !== "complete") {
+      states.hubselected = "waiting";
       states.pricing = "waiting";
     }
 
     if (states.baseline === "complete" && states.discovery === "waiting") states.discovery = "ready";
-    if (states.discovery === "complete" && states.pricing === "waiting") states.pricing = "ready";
 
     const latestUser = latestUserBubble();
+    const userAfterDiscovery = discoveryBox && latestUser && appearsAfter(latestUser, discoveryBox);
     const userAfterPricing = pricingBox && latestUser && appearsAfter(latestUser, pricingBox);
     const revisitingHubs = Boolean(userAfterPricing && asksToRevisitHubs(latestUser.textContent));
+    const currentSelectionRequest = Boolean(userAfterDiscovery && !userAfterPricing && mentionsHubSelection(latestUser.textContent));
 
     if (revisitingHubs) {
-      // Returning to a different hub is a workflow step back to Discovery/review,
-      // not a new API discovery unless the agent determines one is required.
+      // A request for another hub intentionally moves the workflow back to Discovery.
       states.discovery = "ready";
+      states.hubselected = "waiting";
       states.pricing = "waiting";
       states.summary = "waiting";
-    } else if (states.pricing === "complete") {
-      // Summary is the agent's interpretation after deterministic pricing.
-      // While the response is still streaming, Summary is actively running.
-      const agentWorking = Boolean(conversation.querySelector(".live-status-inline"));
-      states.summary = agentWorking ? "running" : "complete";
+    } else {
+      if (states.discovery === "complete") {
+        states.hubselected = hasSelectedHub() || currentSelectionRequest ? "complete" : "ready";
+      }
+
+      if (states.hubselected === "complete" && states.pricing === "waiting") states.pricing = "ready";
+
+      if (states.pricing === "complete") {
+        const agentWorking = Boolean(conversation.querySelector(".live-status-inline"));
+        states.summary = agentWorking ? "running" : "complete";
+      }
     }
 
     if (states.pricing === "running" || states.pricing === "error") states.summary = "waiting";
@@ -150,6 +185,7 @@
     }
 
     setStep("discovery", states.discovery, revisitingHubs ? "Review hubs" : null);
+    setStep("hubselected", states.hubselected);
     setStep("pricing", states.pricing);
     setStep("summary", states.summary);
     updateConnectors(states);
@@ -159,6 +195,7 @@
     updateProgress();
     const conversation = document.getElementById("conversation");
     const discovery = document.getElementById("discovery-content");
+    const selectedHubs = document.getElementById("selected-hubs-content");
 
     const observer = new MutationObserver(() => queueMicrotask(updateProgress));
     if (conversation) {
@@ -171,6 +208,7 @@
       });
     }
     if (discovery) observer.observe(discovery, { childList: true, subtree: true, characterData: true });
+    if (selectedHubs) observer.observe(selectedHubs, { childList: true, subtree: true, characterData: true });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
