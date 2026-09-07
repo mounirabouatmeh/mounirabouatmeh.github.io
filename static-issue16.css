@@ -60,12 +60,18 @@
 .interactive-candidate:not(.is-itinerary-selected) .result-value,
 .interactive-candidate:not(.is-itinerary-selected) .candidate-price,
 .interactive-candidate:not(.is-itinerary-selected) .candidate-expand-hint,
-.interactive-candidate:not(.is-itinerary-selected) .flight-segment-row strong {
+.interactive-candidate:not(.is-itinerary-selected) .flight-segment-row strong,
+.interactive-candidate:not(.is-itinerary-selected) .candidate-evaluation-heading strong {
   color: #23352e !important;
 }
 
 .interactive-candidate:not(.is-itinerary-selected) .candidate-facts .result-value {
   color: #536166 !important;
+}
+
+.interactive-candidate:not(.is-itinerary-selected) .candidate-evaluation {
+  border-color: #dfe4e1;
+  background: #f7f8f7;
 }
 
 .interactive-candidate.is-itinerary-selected {
@@ -77,7 +83,8 @@
 .interactive-candidate.is-itinerary-selected .result-value,
 .interactive-candidate.is-itinerary-selected .candidate-price,
 .interactive-candidate.is-itinerary-selected .candidate-expand-hint,
-.interactive-candidate.is-itinerary-selected .flight-segment-row strong {
+.interactive-candidate.is-itinerary-selected .flight-segment-row strong,
+.interactive-candidate.is-itinerary-selected .candidate-evaluation-heading strong {
   color: #287a57 !important;
 }
 
