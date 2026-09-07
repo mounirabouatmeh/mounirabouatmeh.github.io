@@ -1,0 +1,82 @@
+/* Issue #20: compact chat hierarchy, top tracker, and smaller composer. */
+.chat-panel {
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+.trip-progress {
+  top: 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.composer {
+  margin: 0 28px 18px;
+  padding: 10px 12px 12px;
+}
+
+.composer-guidance {
+  display: block;
+  padding: 0 4px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.composer-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.composer textarea {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  min-height: 52px;
+  max-height: 120px;
+  height: 52px;
+  padding: 10px 12px;
+  border: 1px solid #d5ddde;
+  border-radius: 12px;
+  background: #fff;
+  line-height: 1.45;
+  overflow-y: hidden;
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer .send-button {
+  height: 42px;
+  min-width: 82px;
+}
+
+@media (min-width: 921px) {
+  .conversation {
+    padding-top: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .composer {
+    margin: 0 14px 14px;
+    padding: 9px 10px 10px;
+  }
+
+  .composer-guidance {
+    padding-bottom: 7px;
+    font-size: 10px;
+  }
+
+  .composer-input-row {
+    gap: 8px;
+  }
+
+  .composer .send-button {
+    min-width: 68px;
+    padding-inline: 12px;
+  }
+}
