@@ -7,9 +7,9 @@
   top: 64px;
   z-index: 8;
   display: grid;
-  grid-template-columns: max-content minmax(20px, 1fr) max-content minmax(20px, 1fr) max-content;
+  grid-template-columns: max-content minmax(16px, 1fr) max-content minmax(16px, 1fr) max-content minmax(16px, 1fr) max-content;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   padding: 10px 36px;
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.96);
@@ -116,14 +116,19 @@
   font-weight: 820;
 }
 
+/* Progress is represented by the sticky tracker, not by large cards in chat. */
+#conversation .tool-progress {
+  display: none !important;
+}
+
 @keyframes progressPulse {
   0%, 100% { opacity: 0.45; transform: scale(0.82); }
   50% { opacity: 1; transform: scale(1); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 760px) {
   .trip-progress {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     padding: 9px 14px;
   }
@@ -139,5 +144,15 @@
   .trip-progress-status {
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 480px) {
+  .trip-progress-copy strong { font-size: 10px; }
+  .trip-progress-status { font-size: 8px; }
+  .trip-progress-icon {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
   }
 }
