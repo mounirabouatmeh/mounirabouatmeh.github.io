@@ -1,0 +1,178 @@
+/* Issue #14: replace the original hand-drawn map/list with the improved synchronized versions. */
+#discovery-content > .discovery-map-card:not(.issue14-map-card),
+#discovery-content > .hub-list:not(.issue14-hub-list) {
+  display: none !important;
+}
+
+.issue14-map-card {
+  margin-top: 14px;
+  overflow: hidden;
+  border: 1px solid #d8e2dd;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(27, 64, 49, 0.06);
+}
+
+.issue14-map-heading {
+  padding: 12px 14px 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+}
+
+.issue14-map-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.issue14-map-heading strong {
+  color: #173d31;
+  font-size: 12px;
+}
+
+.issue14-map-heading small {
+  color: #7a8781;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.issue14-leaflet-map {
+  width: 100%;
+  height: 250px;
+  background: #eef3f0;
+}
+
+.issue14-leaflet-map .leaflet-control-zoom a {
+  color: #29483c;
+}
+
+.issue14-leaflet-map .leaflet-control-attribution {
+  font-size: 8px;
+}
+
+.issue14-map-marker-shell {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.issue14-map-marker {
+  display: block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(17, 44, 34, 0.32);
+}
+
+.issue14-origin {
+  background: #173f58;
+}
+
+.issue14-destination {
+  background: #9b7044;
+}
+
+.issue14-hub {
+  background: #71807a;
+}
+
+.issue14-hub.is-selected {
+  background: #287a57;
+  box-shadow: 0 0 0 4px rgba(40, 122, 87, 0.18), 0 2px 5px rgba(17, 44, 34, 0.28);
+}
+
+.issue14-map-tooltip {
+  border: 1px solid #d5dfda;
+  border-radius: 7px;
+  box-shadow: 0 3px 12px rgba(19, 49, 38, 0.1);
+  color: #42534b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.issue14-map-tooltip.selected {
+  border-color: #9fc8b3;
+  color: #287a57;
+}
+
+.issue14-map-legend {
+  gap: 11px;
+  padding: 9px 14px 11px;
+}
+
+.issue14-map-legend span::before {
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 1px rgba(49, 74, 65, 0.12);
+}
+
+.issue14-legend-origin::before { background: #173f58; }
+.issue14-legend-feasible::before { background: #71807a; }
+.issue14-legend-selected::before { background: #287a57; }
+.issue14-legend-destination::before { background: #9b7044; }
+
+.issue14-map-fallback {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  padding: 20px;
+  color: #68766f;
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.issue14-hub-list {
+  margin-top: 12px;
+}
+
+.issue14-hub-card {
+  position: relative;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.issue14-hub-card.is-selected {
+  border-color: #8fbea6;
+  background: #f2faf5;
+  box-shadow: inset 3px 0 0 #287a57;
+}
+
+.issue14-hub-card.is-selected .hub-card-top strong {
+  color: #287a57 !important;
+}
+
+.issue14-selected-label {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 7px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #287a57;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Luna's new Markdown emphasis should be easy to scan without becoming loud. */
+.assistant-bubble.markdown-body strong {
+  color: #173f58;
+  font-weight: 820;
+}
+
+.assistant-bubble.markdown-body p,
+.assistant-bubble.markdown-body li {
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .issue14-leaflet-map { height: 230px; }
+}
+
+@media (max-width: 600px) {
+  .issue14-leaflet-map { height: 215px; }
+  .issue14-map-heading { align-items: flex-start; }
+  .issue14-map-heading > span { white-space: normal; text-align: right; }
+}
