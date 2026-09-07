@@ -12,7 +12,11 @@ on:
       - static-pricing-summary.css
       - static-flow.js
       - static-flow.css
+      - static-sticky-progress.js
+      - static-sticky-progress.css
+      - static-workspace-enhancements.css
       - static-welcome-copy.js
+      - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
 
 permissions:
@@ -32,7 +36,9 @@ jobs:
           node --check static-markdown.js
           node --check static-pricing-summary.js
           node --check static-flow.js
+          node --check static-sticky-progress.js
           node --check static-welcome-copy.js
+          node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
           test -s index.html
@@ -43,19 +49,28 @@ jobs:
           test -s static-pricing-summary.css
           test -s static-flow.js
           test -s static-flow.css
+          test -s static-sticky-progress.js
+          test -s static-sticky-progress.css
+          test -s static-workspace-enhancements.css
           test -s static-welcome-copy.js
+          test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
           grep -q "static-markdown.js" index.html
-          grep -q "static-markdown.css" index.html
           grep -q "static-pricing-summary.js" index.html
-          grep -q "static-pricing-summary.css" index.html
           grep -q "static-flow.js" index.html
-          grep -q "static-flow.css" index.html
+          grep -q "static-sticky-progress.js" index.html
+          grep -q "static-workspace-enhancements.css" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
           grep -q "selected-hubs-content" index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
           grep -q "prices the cheapest standard trip first, then starts hub discovery" index.html
-          grep -q "2026 October 10–15" static-welcome-copy.js
-          grep -q "20–22 nights" static-welcome-copy.js
+          grep -q "2026 October 10–15" static-app.js
+          grep -q "20–22 nights" static-app.js
+          grep -q "pricingNightFilter" static-app.js
+          grep -q "renderCandidateDetails" static-app.js
+          grep -q "renderDiscoveryMap" static-app.js
+          grep -q "confirmed-value" static-workspace-enhancements.css
+          grep -q "pricing-filter" static-workspace-enhancements.css
+          grep -q "discovery-world-map" static-workspace-enhancements.css
