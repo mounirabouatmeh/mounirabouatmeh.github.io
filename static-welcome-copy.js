@@ -1,29 +1,19 @@
 (() => {
-  const SAMPLE_PROMPT = "My clients are flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and are open to a short European stopover.";
-
   function applyWelcomeCopy() {
     const card = document.querySelector(".welcome-card");
     if (!card) return;
 
     const heading = card.querySelector("h2");
-    const example = card.querySelector("p");
     const button = card.querySelector(".sample-prompt");
 
-    if (heading) heading.textContent = "Start with the client’s travel intent.";
-    if (example) example.textContent = `For example: “${SAMPLE_PROMPT}”`;
-
-    if (button) {
+    // Issue #16 owns the sample prompt text and click behavior. This helper only
+    // owns the stable heading/button labels so multiple MutationObservers never
+    // compete over the same DOM content.
+    if (heading && heading.textContent !== "Start with the client’s travel intent.") {
+      heading.textContent = "Start with the client’s travel intent.";
+    }
+    if (button && button.textContent !== "Use this example") {
       button.textContent = "Use this example";
-      if (!button.dataset.welcomeCopyBound) {
-        button.dataset.welcomeCopyBound = "true";
-        button.addEventListener("click", () => {
-          const input = document.getElementById("message-input");
-          if (!input) return;
-          input.value = SAMPLE_PROMPT;
-          input.dispatchEvent(new Event("input", { bubbles: true }));
-          input.focus();
-        });
-      }
     }
   }
 
