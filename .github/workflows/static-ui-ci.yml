@@ -15,6 +15,8 @@ on:
       - static-sticky-progress.js
       - static-sticky-progress.css
       - static-workspace-enhancements.css
+      - static-issue14.js
+      - static-issue14.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -37,6 +39,7 @@ jobs:
           node --check static-pricing-summary.js
           node --check static-flow.js
           node --check static-sticky-progress.js
+          node --check static-issue14.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Check required live UI files
@@ -52,6 +55,8 @@ jobs:
           test -s static-sticky-progress.js
           test -s static-sticky-progress.css
           test -s static-workspace-enhancements.css
+          test -s static-issue14.js
+          test -s static-issue14.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -60,6 +65,9 @@ jobs:
           grep -q "static-flow.js" index.html
           grep -q "static-sticky-progress.js" index.html
           grep -q "static-workspace-enhancements.css" index.html
+          grep -q "static-issue14.js" index.html
+          grep -q "static-issue14.css" index.html
+          grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
           grep -q "selected-hubs-content" index.html
@@ -74,3 +82,6 @@ jobs:
           grep -q "confirmed-value" static-workspace-enhancements.css
           grep -q "pricing-filter" static-workspace-enhancements.css
           grep -q "discovery-world-map" static-workspace-enhancements.css
+          grep -q "OpenStreetMap contributors" static-issue14.js
+          grep -q "All feasible hubs remain visible" static-issue14.js
+          grep -q "Summary complete" static-issue14.js
