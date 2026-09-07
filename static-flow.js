@@ -11,6 +11,8 @@
     baselineMessage: null,
     baselineWarnings: [],
     baseline: null,
+    discoveryPhase: null,
+    pricingPhase: null,
   };
 
   function isChatRequest(input) {
@@ -30,6 +32,25 @@
     return `${price.currency ?? ""} ${price.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.trim();
   }
 
+  function addDays(isoDate, days) {
+    if (typeof isoDate !== "string" || !Number.isFinite(days)) return null;
+    const date = new Date(`${isoDate}T00:00:00Z`);
+    if (Number.isNaN(date.getTime())) return null;
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+
+  function returnWindow(input) {
+    const from = input?.departureWindow?.from;
+    const to = input?.departureWindow?.to;
+    const minNights = Number(input?.destinationStay?.minNights);
+    const maxNights = Number(input?.destinationStay?.maxNights);
+    if (!from || !to || !Number.isFinite(minNights) || !Number.isFinite(maxNights)) return null;
+    const earliest = addDays(from, minNights);
+    const latest = addDays(to, maxNights);
+    return earliest && latest ? `${earliest} → ${latest}` : null;
+  }
+
   function selectedHubLabel(id) {
     const hub = flowState.hubs.find((item) => item?.id === id);
     if (!hub) return id;
@@ -45,6 +66,7 @@
     const destination = document.getElementById("intent-destination");
     const dates = document.getElementById("intent-dates");
     const stay = document.getElementById("intent-stay");
+    const returns = document.getElementById("intent-return");
     const route = document.getElementById("workspace-route");
 
     if (origin && input.origin) origin.textContent = input.origin;
@@ -58,6 +80,9 @@
     if (stay && input.destinationStay?.minNights != null && input.destinationStay?.maxNights != null) {
       stay.textContent = `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights`;
     }
+
+    const derivedReturn = returnWindow(input);
+    if (returns && derivedReturn) returns.textContent = derivedReturn;
   }
 
   function renderBaseline() {
@@ -113,10 +138,17 @@
     target.replaceChildren();
 
     if (!flowState.selectedHubIds.length) {
-      const empty = node("div", "empty-workspace compact-empty");
-      empty.append(node("strong", null, "No hubs selected yet"));
-      empty.append(node("p", null, "The hub or hubs chosen in the conversation will appear here before pricing results."));
-      target.append(empty);
+      if (flowState.discoveryPhase === "completed" && flowState.hubs.length) {
+        const next = node("div", "next-step-callout");
+        next.append(node("strong", null, "Next step"));
+        next.append(node("p", null, "Select one or more hubs for SPLIT pricing. Tell Cuberence which hub or hubs you want to price."));
+        target.append(next);
+      } else {
+        const empty = node("div", "empty-workspace compact-empty");
+        empty.append(node("strong", null, "No hubs selected yet"));
+        empty.append(node("p", null, "The hub or hubs chosen in the conversation will appear here before pricing results."));
+        target.append(empty);
+      }
       return;
     }
 
@@ -130,10 +162,57 @@
     if (meta.childNodes.length) target.append(meta);
   }
 
+  function latestAssistantText() {
+    const conversation = document.getElementById("conversation");
+    if (!conversation) return "";
+    const bubbles = conversation.querySelectorAll(".assistant-bubble");
+    return bubbles.length ? bubbles[bubbles.length - 1].textContent ?? "" : "";
+  }
+
+  function updateComposerGuidance() {
+    const input = document.getElementById("message-input");
+    const guidance = document.getElementById("composer-guidance");
+    if (!input || !guidance) return;
+
+    let placeholder = "Describe the client’s trip, constraints, or what you want to compare…";
+    let message = "Start with the client’s origin, destination, departure window, and destination stay.";
+    let isNextStep = false;
+
+    if (flowState.pricingPhase === "completed") {
+      placeholder = "Ask to compare the results, explain a trade-off, or price another hub…";
+      message = "Pricing is complete. Review the results or select another hub to compare.";
+    } else if (["starting", "queued", "running"].includes(flowState.pricingPhase)) {
+      placeholder = "SPLIT pricing is running…";
+      message = "Cuberence is pricing the selected hub or hubs.";
+    } else if (flowState.discoveryPhase === "completed" && flowState.hubs.length && !flowState.selectedHubIds.length) {
+      placeholder = "Select hubs to price, for example: Milan and Rome…";
+      message = "Next step: Select one or more hubs for SPLIT pricing.";
+      isNextStep = true;
+    } else if (["starting", "queued", "running"].includes(flowState.discoveryPhase)) {
+      placeholder = "Hub discovery is running…";
+      message = "Cuberence is finding feasible stayover hubs. Hub selection comes next.";
+    } else if (flowState.baselinePhase === "completed") {
+      placeholder = "Discovery will start automatically…";
+      message = "Baseline is complete. Cuberence is moving to hub discovery next.";
+    } else if (["starting", "queued", "running"].includes(flowState.baselinePhase)) {
+      placeholder = "Baseline pricing is running…";
+      message = "Cuberence is pricing the cheapest standard trip first. Discovery will start automatically afterward.";
+    } else if (/currency/i.test(latestAssistantText())) {
+      placeholder = "Enter the pricing currency, for example CAD or USD…";
+      message = "Next step: Choose the currency to use for Baseline and SPLIT pricing.";
+      isNextStep = true;
+    }
+
+    if (input.placeholder !== placeholder) input.placeholder = placeholder;
+    if (guidance.textContent !== message) guidance.textContent = message;
+    guidance.classList.toggle("stage-next", isNextStep);
+  }
+
   function renderFlow() {
     renderIntent();
     renderBaseline();
     renderSelectedHubs();
+    updateComposerGuidance();
   }
 
   function captureEvent(event) {
@@ -148,7 +227,8 @@
 
     if (event?.type === "tool-input-available" && event.toolName === "discovery" && event.input) {
       flowState.intentInput = event.input;
-      renderIntent();
+      flowState.discoveryPhase = "starting";
+      renderFlow();
       return;
     }
 
@@ -157,6 +237,7 @@
       flowState.strategy = event.input.strategy ?? null;
       flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
       flowState.baselineId = event.input.baselineId ?? flowState.baselineId;
+      flowState.pricingPhase = "starting";
       renderFlow();
       return;
     }
@@ -174,13 +255,15 @@
       return;
     }
 
-    if (output.phase === "completed" && output.discoveryId && Array.isArray(output.hubs)) {
-      flowState.hubs = output.hubs;
+    if (output.discoveryId) {
+      flowState.discoveryPhase = output.phase ?? flowState.discoveryPhase;
+      if (Array.isArray(output.hubs)) flowState.hubs = output.hubs;
       renderFlow();
       return;
     }
 
     if (output.pricingId) {
+      flowState.pricingPhase = output.phase ?? flowState.pricingPhase;
       flowState.selectedHubIds = Array.isArray(output.selectedHubs) ? output.selectedHubs : flowState.selectedHubIds;
       flowState.strategy = output.strategy ?? flowState.strategy;
       flowState.baselineId = output.baselineId ?? flowState.baselineId;
@@ -210,44 +293,23 @@
     }
   }
 
-  function cleanRawBoldMarkers() {
+  function decorateCompletedProgress() {
     const conversation = document.getElementById("conversation");
     if (!conversation) return;
-    for (const bubble of conversation.querySelectorAll(".assistant-bubble:not(.markdown-body):not([data-clean-bold])")) {
-      const raw = bubble.textContent ?? "";
-      if (!raw.includes("**")) continue;
-      const parts = raw.split(/(\*\*[^*]+\*\*)/g);
-      bubble.replaceChildren();
-      for (const part of parts) {
-        if (part.startsWith("**") && part.endsWith("**") && part.length > 4) bubble.append(node("strong", null, part.slice(2, -2)));
-        else bubble.append(document.createTextNode(part));
-      }
-      bubble.dataset.cleanBold = "true";
-    }
-  }
 
-  function relabelBaselineProgress() {
-    const conversation = document.getElementById("conversation");
-    if (!conversation) return;
-    for (const copy of conversation.querySelectorAll(".tool-progress-copy")) {
-      const label = copy.querySelector("strong");
-      const detail = copy.querySelector("span");
-      if (!label || !detail) continue;
-      if (/baseline|standard round-trip|standard trip/i.test(detail.textContent ?? "") && label.textContent !== "Baseline") {
-        label.textContent = "Baseline";
-      }
-    }
-  }
-
-  function decorateCompletedBaseline() {
-    const conversation = document.getElementById("conversation");
-    if (!conversation) return;
     for (const box of conversation.querySelectorAll(".tool-progress")) {
       const copy = box.querySelector(".tool-progress-copy");
       const label = copy?.querySelector("strong");
       const detail = copy?.querySelector("span");
       if (!label || !detail) continue;
-      if (label.textContent !== "Baseline" || !/baseline complete/i.test(detail.textContent ?? "")) continue;
+
+      const detailText = detail.textContent ?? "";
+      if (/baseline|standard round-trip|standard trip/i.test(detailText) && label.textContent !== "Baseline") {
+        label.textContent = "Baseline";
+      }
+
+      const completed = /baseline complete|discovery complete/i.test(detailText);
+      if (!completed) continue;
 
       if (!box.classList.contains("tool-complete")) box.classList.add("tool-complete");
       const pulse = box.querySelector(".pulse-dot");
@@ -270,10 +332,8 @@
     const conversation = document.getElementById("conversation");
     if (conversation) {
       new MutationObserver(() => queueMicrotask(() => {
-        renderIntent();
-        cleanRawBoldMarkers();
-        relabelBaselineProgress();
-        decorateCompletedBaseline();
+        decorateCompletedProgress();
+        updateComposerGuidance();
       })).observe(conversation, { childList: true, subtree: true, characterData: true });
     }
   };
