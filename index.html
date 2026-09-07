@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./static-markdown.css">
   <link rel="stylesheet" href="./static-pricing-summary.css">
   <link rel="stylesheet" href="./static-flow.css">
+  <link rel="stylesheet" href="./static-sticky-progress.css">
 </head>
 <body>
   <main class="app-page">
@@ -31,6 +32,23 @@
           </div>
           <span class="model-chip">Luna</span>
         </header>
+
+        <div id="trip-progress" class="trip-progress" aria-label="Trip progress">
+          <div class="trip-progress-step is-waiting" data-stage="baseline">
+            <span class="trip-progress-icon" aria-hidden="true">1</span>
+            <span class="trip-progress-copy"><strong>Baseline</strong><span class="trip-progress-status">Waiting</span></span>
+          </div>
+          <span class="trip-progress-connector" aria-hidden="true"></span>
+          <div class="trip-progress-step is-waiting" data-stage="discovery">
+            <span class="trip-progress-icon" aria-hidden="true">2</span>
+            <span class="trip-progress-copy"><strong>Discovery</strong><span class="trip-progress-status">Waiting</span></span>
+          </div>
+          <span class="trip-progress-connector" aria-hidden="true"></span>
+          <div class="trip-progress-step is-waiting" data-stage="pricing">
+            <span class="trip-progress-icon" aria-hidden="true">3</span>
+            <span class="trip-progress-copy"><strong>Pricing</strong><span class="trip-progress-status">Waiting</span></span>
+          </div>
+        </div>
 
         <div id="conversation" class="conversation" role="log" aria-live="polite"></div>
 
@@ -132,5 +150,6 @@
   <script src="./static-welcome-copy.js" defer></script>
   <script src="./static-intent-sync.js" defer></script>
   <script src="./static-pricing-complete.js?v=2" defer></script>
+  <script src="./static-sticky-progress.js?v=1" defer></script>
 </body>
 </html>
