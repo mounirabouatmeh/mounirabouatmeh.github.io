@@ -102,3 +102,8 @@ jobs:
           grep -q "Candidate ID:" static-issue16.js
           grep -q "isItineraryDrilldown" static-sticky-progress.js
           grep -q "grid-template-rows: auto auto minmax(0, 1fr) auto" static-issue16.css
+          grep -q "Issue #16 owns the sample prompt text and click behavior" static-welcome-copy.js
+          if grep -q "SAMPLE_PROMPT\|example.textContent\|input.value" static-welcome-copy.js; then
+            echo "static-welcome-copy.js must not write or inject the Issue #16 sample prompt"
+            exit 1
+          fi
