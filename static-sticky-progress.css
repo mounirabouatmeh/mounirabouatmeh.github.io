@@ -1,3 +1,7 @@
+.chat-panel {
+  grid-template-rows: auto auto 1fr auto;
+}
+
 .trip-progress {
   position: sticky;
   top: 64px;
