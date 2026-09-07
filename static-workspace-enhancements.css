@@ -1,0 +1,330 @@
+.confirmed-value,
+.result-value,
+.baseline-price,
+.selected-hub-chip {
+  color: #287a57 !important;
+}
+
+.trip-fields dd.confirmed-value {
+  font-weight: 760;
+}
+
+.baseline-price {
+  font-weight: 820;
+}
+
+.selected-hub-chip {
+  border-color: #bad8c8;
+  background: #f3faf6;
+}
+
+.selected-hub-card {
+  border-color: #bad8c8;
+  background: #f7fbf8;
+}
+
+/* Discovery map */
+.discovery-map-card {
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #d9e3df;
+  border-radius: 14px;
+  background: #fff;
+}
+.discovery-map-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px 9px;
+}
+.discovery-map-heading strong {
+  font-size: 12px;
+}
+.discovery-map-heading span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+.discovery-world-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  background: #f8faf9;
+}
+.world-land {
+  fill: #e8eeeb;
+  stroke: #ccd7d2;
+  stroke-width: 1.2;
+}
+.world-grid {
+  stroke: #e6ebe8;
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+.map-direct-route {
+  stroke: #aebbb6;
+  stroke-width: 1.2;
+  stroke-dasharray: 5 5;
+  opacity: 0.7;
+}
+.map-hub-route {
+  stroke: #6fa68b;
+  stroke-width: 1;
+  opacity: 0.22;
+}
+.map-point circle {
+  stroke: #fff;
+  stroke-width: 2;
+}
+.hub-point circle {
+  fill: #4f8f70;
+}
+.selected-hub-point circle {
+  fill: #287a57;
+}
+.origin-point circle {
+  fill: #183b52;
+}
+.destination-point circle {
+  fill: #9b7044;
+}
+.map-label {
+  fill: #314a45;
+  font-size: 11px;
+  font-weight: 760;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.endpoint-label {
+  font-size: 10px;
+}
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 14px 11px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.map-legend span::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: 0;
+}
+.map-legend-origin::before { background: #183b52; }
+.map-legend-hub::before { background: #287a57; }
+.map-legend-destination::before { background: #9b7044; }
+.map-unavailable {
+  padding: 20px 16px;
+  background: #f8faf9;
+}
+.map-unavailable strong { font-size: 12px; }
+.map-unavailable p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Pricing filters */
+.interactive-pricing {
+  margin-top: 14px;
+}
+.pricing-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.pricing-filter {
+  border: 1px solid #ccd7d2;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #58665f;
+  font-size: 10px;
+  font-weight: 740;
+  cursor: pointer;
+}
+.pricing-filter:hover:not(:disabled) {
+  border-color: #8db8a3;
+  background: #f5faf7;
+}
+.pricing-filter.active {
+  border-color: #287a57;
+  background: #287a57;
+  color: #fff;
+}
+.pricing-filter:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+/* Click-to-expand candidate cards */
+.enhanced-candidate-list {
+  gap: 10px;
+}
+.interactive-candidate {
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.interactive-candidate:hover,
+.interactive-candidate:focus-visible {
+  border-color: #a9c9b9;
+  box-shadow: 0 5px 16px rgba(32, 80, 61, 0.07);
+  outline: none;
+}
+.interactive-candidate.expanded {
+  border-color: #89b79f;
+  background: #fcfefd;
+}
+.candidate-price {
+  white-space: nowrap;
+}
+.candidate-expand-hint {
+  display: block;
+  margin-top: 10px;
+  color: #287a57;
+  font-size: 10px;
+  font-weight: 760;
+}
+.candidate-detail {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #dfe6e2;
+  cursor: default;
+}
+.candidate-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.candidate-detail-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  background: #f2f5f3;
+}
+.candidate-detail-fact span {
+  color: var(--muted);
+  font-size: 9px;
+}
+.candidate-detail-fact strong {
+  font-size: 11px;
+}
+.candidate-evaluation {
+  margin-top: 11px;
+  padding: 11px;
+  border: 1px solid #d6e7dd;
+  border-radius: 9px;
+  background: #f5faf7;
+}
+.candidate-evaluation-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.candidate-evaluation-heading strong {
+  color: #287a57;
+  font-size: 11px;
+}
+.candidate-evaluation-heading span {
+  color: var(--muted);
+  font-size: 9px;
+}
+.candidate-evaluation p {
+  margin: 7px 0 0;
+  color: #4e5c55;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.candidate-evaluation .candidate-tradeoff {
+  color: #7b5c3f;
+}
+.ticket-detail {
+  margin-top: 11px;
+  padding: 11px;
+  border: 1px solid #dfe4e1;
+  border-radius: 9px;
+  background: #fff;
+}
+.ticket-detail-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #edf0ee;
+}
+.ticket-detail-heading strong,
+.ticket-detail-heading span {
+  font-size: 11px;
+}
+.flight-leg-block {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+.flight-leg-block > b {
+  color: #42524a;
+  font-size: 10px;
+}
+.flight-segment-row {
+  display: grid;
+  grid-template-columns: 60px 78px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: #f5f7f6;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.flight-segment-row strong {
+  color: #287a57;
+}
+.flight-segment-row span:last-child {
+  color: var(--muted);
+}
+.candidate-risk-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 11px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: #faf6f1;
+}
+.candidate-risk-block strong {
+  color: #7b5c3f;
+  font-size: 10px;
+}
+.candidate-risk-block span {
+  color: #77685a;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+@media (max-width: 1100px) {
+  .discovery-world-map { max-height: 230px; }
+  .flight-segment-row { grid-template-columns: 55px 70px minmax(0, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .discovery-world-map { max-height: 220px; }
+  .candidate-detail-grid { grid-template-columns: 1fr; }
+  .flight-segment-row { grid-template-columns: 1fr; }
+  .pricing-filter { padding: 6px 9px; }
+}
