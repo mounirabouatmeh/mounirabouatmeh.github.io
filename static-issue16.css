@@ -1,0 +1,130 @@
+/* Issue #16: independent panes, clearer spacing, and explicit itinerary selection. */
+@media (min-width: 921px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-page {
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .advisor-shell {
+    height: calc(100vh - 64px);
+    min-height: 0;
+    column-gap: 22px;
+    background: #edf1ef;
+  }
+
+  .chat-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    border-right: 0;
+  }
+
+  .conversation {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .workspace-panel {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Pricing candidates are neutral until the advisor explicitly selects one. */
+.interactive-candidate:not(.is-itinerary-selected),
+.interactive-candidate.expanded:not(.is-itinerary-selected) {
+  border-color: #d7dfdb;
+  background: #fff;
+  box-shadow: none;
+}
+
+.interactive-candidate:not(.is-itinerary-selected) .result-value,
+.interactive-candidate:not(.is-itinerary-selected) .candidate-price,
+.interactive-candidate:not(.is-itinerary-selected) .candidate-expand-hint,
+.interactive-candidate:not(.is-itinerary-selected) .flight-segment-row strong {
+  color: #23352e !important;
+}
+
+.interactive-candidate:not(.is-itinerary-selected) .candidate-facts .result-value {
+  color: #536166 !important;
+}
+
+.interactive-candidate.is-itinerary-selected {
+  border-color: #6fa989;
+  background: #f1faf5;
+  box-shadow: inset 4px 0 0 #287a57, 0 5px 18px rgba(40, 122, 87, 0.08);
+}
+
+.interactive-candidate.is-itinerary-selected .result-value,
+.interactive-candidate.is-itinerary-selected .candidate-price,
+.interactive-candidate.is-itinerary-selected .candidate-expand-hint,
+.interactive-candidate.is-itinerary-selected .flight-segment-row strong {
+  color: #287a57 !important;
+}
+
+.issue16-selection-control {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 11px;
+  border: 1px solid #d4ded9;
+  border-radius: 9px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.issue16-selection-control:hover {
+  border-color: #9fc3b1;
+  background: #f8fbf9;
+}
+
+.issue16-itinerary-checkbox {
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: #287a57;
+  cursor: pointer;
+}
+
+.issue16-selection-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.issue16-selection-copy strong {
+  color: #263a31;
+  font-size: 10px;
+}
+
+.issue16-selection-copy small {
+  color: #718078;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.interactive-candidate.is-itinerary-selected .issue16-selection-control {
+  border-color: #8fbea6;
+  background: #f5fbf7;
+}
+
+.interactive-candidate.is-itinerary-selected .issue16-selection-copy strong {
+  color: #287a57;
+}
+
+@media (max-width: 920px) {
+  .advisor-shell { gap: 0; }
+}
