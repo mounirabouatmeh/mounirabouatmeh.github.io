@@ -1,6 +1,6 @@
 (() => {
-  const stageOrder = ["baseline", "discovery", "pricing"];
-  const stageNumbers = { baseline: "1", discovery: "2", pricing: "3" };
+  const stageOrder = ["baseline", "discovery", "pricing", "summary"];
+  const stageNumbers = { baseline: "1", discovery: "2", pricing: "3", summary: "4" };
 
   function stageForBox(box) {
     const label = box.querySelector(".tool-progress-copy strong")?.textContent ?? "";
@@ -20,6 +20,47 @@
     return "running";
   }
 
+  function latestStageBox(stage) {
+    const boxes = [...document.querySelectorAll("#conversation .tool-progress")]
+      .filter((box) => stageForBox(box) === stage);
+    return boxes.length ? boxes[boxes.length - 1] : null;
+  }
+
+  function latestUserBubble() {
+    const bubbles = document.querySelectorAll("#conversation .message-row.user .user-bubble");
+    return bubbles.length ? bubbles[bubbles.length - 1] : null;
+  }
+
+  function appearsAfter(node, reference) {
+    if (!node || !reference) return false;
+    return Boolean(reference.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }
+
+  function discoveredHubTerms() {
+    const terms = [];
+    for (const card of document.querySelectorAll("#discovery-content .hub-card")) {
+      const city = card.querySelector("strong")?.textContent?.trim().toLowerCase();
+      if (city) terms.push(city);
+
+      const detail = card.querySelector("small")?.textContent ?? "";
+      for (const code of detail.match(/\b[A-Z]{3}\b/g) ?? []) terms.push(code.toLowerCase());
+    }
+    return [...new Set(terms)];
+  }
+
+  function asksToRevisitHubs(text) {
+    const normalized = (text ?? "").trim().toLowerCase();
+    if (!normalized) return false;
+
+    if (/\b(another|different|other)\s+(hub|stopover|city)\b/.test(normalized)) return true;
+
+    const hasHub = discoveredHubTerms().some((term) => normalized.includes(term));
+    if (!hasHub) return false;
+
+    return /\b(price|try|check|use|switch|change|select|choose|test|run|instead)\b/.test(normalized)
+      || /\bwhat about\b/.test(normalized);
+  }
+
   function setStep(stage, state, statusOverride = null) {
     const step = document.querySelector(`.trip-progress-step[data-stage="${stage}"]`);
     if (!step) return;
@@ -33,9 +74,12 @@
 
     const display = {
       waiting: { icon: stageNumbers[stage], status: "Waiting" },
-      running: { icon: "•", status: "Running" },
+      running: { icon: "•", status: stage === "summary" ? "Summarizing" : "Running" },
       complete: { icon: "✓", status: "Complete" },
-      ready: { icon: "→", status: stage === "pricing" ? "Select hub" : "Next" },
+      ready: {
+        icon: "→",
+        status: stage === "discovery" ? "Review hubs" : stage === "pricing" ? "Select hub" : stage === "summary" ? "Summarize" : "Next",
+      },
       error: { icon: "!", status: "Needs attention" },
     }[state];
 
@@ -56,15 +100,47 @@
     const conversation = document.getElementById("conversation");
     if (!conversation) return;
 
-    const states = { baseline: "waiting", discovery: "waiting", pricing: "waiting" };
-    for (const box of conversation.querySelectorAll(".tool-progress")) {
-      const stage = stageForBox(box);
-      if (!stage) continue;
-      states[stage] = stateForBox(box, stage);
+    const states = { baseline: "waiting", discovery: "waiting", pricing: "waiting", summary: "waiting" };
+    for (const stage of ["baseline", "discovery", "pricing"]) {
+      const box = latestStageBox(stage);
+      if (box) states[stage] = stateForBox(box, stage);
+    }
+
+    const baselineBox = latestStageBox("baseline");
+    const discoveryBox = latestStageBox("discovery");
+    const pricingBox = latestStageBox("pricing");
+
+    // A new upstream run invalidates the visible downstream workflow position,
+    // even though previous completed results remain in conversation history.
+    if (baselineBox && discoveryBox && appearsAfter(baselineBox, discoveryBox) && states.baseline !== "complete") {
+      states.discovery = "waiting";
+      states.pricing = "waiting";
+    }
+    if (discoveryBox && pricingBox && appearsAfter(discoveryBox, pricingBox) && states.discovery !== "complete") {
+      states.pricing = "waiting";
     }
 
     if (states.baseline === "complete" && states.discovery === "waiting") states.discovery = "ready";
     if (states.discovery === "complete" && states.pricing === "waiting") states.pricing = "ready";
+
+    const latestUser = latestUserBubble();
+    const userAfterPricing = pricingBox && latestUser && appearsAfter(latestUser, pricingBox);
+    const revisitingHubs = Boolean(userAfterPricing && asksToRevisitHubs(latestUser.textContent));
+
+    if (revisitingHubs) {
+      // Returning to a different hub is a workflow step back to Discovery/review,
+      // not a new API discovery unless the agent determines one is required.
+      states.discovery = "ready";
+      states.pricing = "waiting";
+      states.summary = "waiting";
+    } else if (states.pricing === "complete") {
+      // Summary is the agent's interpretation after deterministic pricing.
+      // While the response is still streaming, Summary is actively running.
+      const agentWorking = Boolean(conversation.querySelector(".live-status-inline"));
+      states.summary = agentWorking ? "running" : "complete";
+    }
+
+    if (states.pricing === "running" || states.pricing === "error") states.summary = "waiting";
 
     const guidance = document.getElementById("composer-guidance")?.textContent ?? "";
     if (states.baseline === "waiting" && /currency/i.test(guidance)) {
@@ -72,17 +148,29 @@
     } else {
       setStep("baseline", states.baseline);
     }
-    setStep("discovery", states.discovery);
+
+    setStep("discovery", states.discovery, revisitingHubs ? "Review hubs" : null);
     setStep("pricing", states.pricing);
+    setStep("summary", states.summary);
     updateConnectors(states);
   }
 
   function start() {
     updateProgress();
     const conversation = document.getElementById("conversation");
-    if (!conversation) return;
-    new MutationObserver(() => queueMicrotask(updateProgress))
-      .observe(conversation, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["class"] });
+    const discovery = document.getElementById("discovery-content");
+
+    const observer = new MutationObserver(() => queueMicrotask(updateProgress));
+    if (conversation) {
+      observer.observe(conversation, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    }
+    if (discovery) observer.observe(discovery, { childList: true, subtree: true, characterData: true });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
