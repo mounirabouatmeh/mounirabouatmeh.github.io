@@ -42,7 +42,7 @@
             autocomplete="off"
           ></textarea>
           <div class="composer-footer">
-            <span>Baseline, discovery, and pricing are controlled by the Cuberence agent.</span>
+            <span id="composer-guidance" class="composer-guidance">Start with the client’s origin, destination, departure window, and destination stay.</span>
             <button id="send-button" class="send-button" type="submit">Send</button>
             <button id="stop-button" class="send-button stop-button" type="button" hidden>Stop</button>
           </div>
@@ -65,6 +65,7 @@
             <div><dt>Destination</dt><dd id="intent-destination">Not set</dd></div>
             <div><dt>Departure window</dt><dd id="intent-dates">Conversation context</dd></div>
             <div><dt>Destination stay</dt><dd id="intent-stay">Conversation context</dd></div>
+            <div><dt>Return window</dt><dd id="intent-return">Conversation context</dd></div>
           </dl>
         </section>
 
