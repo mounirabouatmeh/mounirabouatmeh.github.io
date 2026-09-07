@@ -19,6 +19,8 @@ on:
       - static-issue14.css
       - static-issue16.js
       - static-issue16.css
+      - static-issue20.js
+      - static-issue20.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -43,6 +45,7 @@ jobs:
           node --check static-sticky-progress.js
           node --check static-issue14.js
           node --check static-issue16.js
+          node --check static-issue20.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Check required live UI files
@@ -62,6 +65,8 @@ jobs:
           test -s static-issue14.css
           test -s static-issue16.js
           test -s static-issue16.css
+          test -s static-issue20.js
+          test -s static-issue20.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -74,6 +79,8 @@ jobs:
           grep -q "static-issue14.css" index.html
           grep -q "static-issue16.js" index.html
           grep -q "static-issue16.css" index.html
+          grep -q "static-issue20.js" index.html
+          grep -q "static-issue20.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -107,3 +114,14 @@ jobs:
             echo "static-welcome-copy.js must not write or inject the Issue #16 sample prompt"
             exit 1
           fi
+          if grep -q 'class="chat-header"' index.html; then
+            echo "Issue #20 requires the oversized chat header to remain removed"
+            exit 1
+          fi
+          grep -q 'id="trip-progress"' index.html
+          grep -q 'id="composer-guidance"' index.html
+          grep -q 'class="composer-input-row"' index.html
+          grep -q 'rows="2"' index.html
+          grep -q "grid-template-rows: auto minmax(0, 1fr) auto" static-issue20.css
+          grep -q "max-height: 120px" static-issue20.css
+          grep -q "MAX_HEIGHT = 120" static-issue20.js
