@@ -17,6 +17,8 @@ on:
       - static-workspace-enhancements.css
       - static-issue14.js
       - static-issue14.css
+      - static-issue16.js
+      - static-issue16.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -40,6 +42,7 @@ jobs:
           node --check static-flow.js
           node --check static-sticky-progress.js
           node --check static-issue14.js
+          node --check static-issue16.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Check required live UI files
@@ -57,6 +60,8 @@ jobs:
           test -s static-workspace-enhancements.css
           test -s static-issue14.js
           test -s static-issue14.css
+          test -s static-issue16.js
+          test -s static-issue16.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -67,6 +72,8 @@ jobs:
           grep -q "static-workspace-enhancements.css" index.html
           grep -q "static-issue14.js" index.html
           grep -q "static-issue14.css" index.html
+          grep -q "static-issue16.js" index.html
+          grep -q "static-issue16.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -85,3 +92,13 @@ jobs:
           grep -q "OpenStreetMap contributors" static-issue14.js
           grep -q "All feasible hubs remain visible" static-issue14.js
           grep -q "Summary complete" static-issue14.js
+          grep -q "Hub discovery" index.html
+          grep -q "Hub selection" index.html
+          grep -q "Stayover pricing" index.html
+          grep -q "Analysis &amp; recommendation" index.html
+          grep -q "1 adult flying from YUL to BEY" static-issue16.js
+          grep -q "pricing in CAD" static-issue16.js
+          grep -q "issue16-itinerary-checkbox" static-issue16.js
+          grep -q "Candidate ID:" static-issue16.js
+          grep -q "isItineraryDrilldown" static-sticky-progress.js
+          grep -q "grid-template-rows: auto auto minmax(0, 1fr) auto" static-issue16.css

@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./static-sticky-progress.css?v=3">
   <link rel="stylesheet" href="./static-workspace-enhancements.css?v=1">
   <link rel="stylesheet" href="./static-issue14.css?v=1">
+  <link rel="stylesheet" href="./static-issue16.css?v=1">
 </head>
 <body>
   <main class="app-page">
@@ -44,22 +45,22 @@
           <span class="trip-progress-connector" aria-hidden="true"></span>
           <div class="trip-progress-step is-waiting" data-stage="discovery">
             <span class="trip-progress-icon" aria-hidden="true">2</span>
-            <span class="trip-progress-copy"><strong>Discovery</strong><span class="trip-progress-status">Waiting</span></span>
+            <span class="trip-progress-copy"><strong>Hub discovery</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
           <span class="trip-progress-connector" aria-hidden="true"></span>
           <div class="trip-progress-step is-waiting" data-stage="hubselected">
             <span class="trip-progress-icon" aria-hidden="true">3</span>
-            <span class="trip-progress-copy"><strong>Hub selected</strong><span class="trip-progress-status">Waiting</span></span>
+            <span class="trip-progress-copy"><strong>Hub selection</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
           <span class="trip-progress-connector" aria-hidden="true"></span>
           <div class="trip-progress-step is-waiting" data-stage="pricing">
             <span class="trip-progress-icon" aria-hidden="true">4</span>
-            <span class="trip-progress-copy"><strong>Pricing</strong><span class="trip-progress-status">Waiting</span></span>
+            <span class="trip-progress-copy"><strong>Stayover pricing</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
           <span class="trip-progress-connector" aria-hidden="true"></span>
           <div class="trip-progress-step is-waiting" data-stage="summary">
             <span class="trip-progress-icon" aria-hidden="true">5</span>
-            <span class="trip-progress-copy"><strong>Summary</strong><span class="trip-progress-status">Waiting</span></span>
+            <span class="trip-progress-copy"><strong>Analysis &amp; recommendation</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
         </div>
 
@@ -116,39 +117,39 @@
 
         <section class="workspace-section">
           <div class="section-title-row">
-            <h3>Discovery</h3>
+            <h3>Hub discovery</h3>
             <span id="discovery-badge" class="muted-badge">Not run</span>
           </div>
           <div id="discovery-content">
             <div class="empty-workspace">
               <strong>No hub results yet</strong>
-              <p>Live Cuberence discovery results will appear here as the conversation continues.</p>
+              <p>Live Cuberence hub discovery results will appear here as the conversation continues.</p>
             </div>
           </div>
         </section>
 
         <section class="workspace-section">
           <div class="section-title-row">
-            <h3>Selected hubs</h3>
-            <span class="muted-badge">For pricing</span>
+            <h3>Hub selection</h3>
+            <span class="muted-badge">For stayover pricing</span>
           </div>
           <div id="selected-hubs-content">
             <div class="empty-workspace compact-empty">
               <strong>No hubs selected yet</strong>
-              <p>The hub or hubs chosen in the conversation will appear here before pricing results.</p>
+              <p>The hub or hubs chosen in the conversation will appear here before Stayover pricing.</p>
             </div>
           </div>
         </section>
 
         <section class="workspace-section">
           <div class="section-title-row">
-            <h3>Pricing</h3>
+            <h3>Stayover pricing</h3>
             <span id="pricing-badge" class="muted-badge">Not run</span>
           </div>
           <div id="pricing-content">
             <div class="empty-workspace">
-              <strong>No pricing results yet</strong>
-              <p>Choose one or more discovered hubs in the conversation to run SPLIT pricing.</p>
+              <strong>No stayover pricing results yet</strong>
+              <p>Choose one or more discovered hubs in the conversation to run SPLIT Stayover pricing.</p>
             </div>
           </div>
         </section>
@@ -164,7 +165,8 @@
   <script src="./static-welcome-copy.js" defer></script>
   <script src="./static-intent-sync.js" defer></script>
   <script src="./static-pricing-complete.js?v=2" defer></script>
-  <script src="./static-sticky-progress.js?v=3" defer></script>
+  <script src="./static-sticky-progress.js?v=4" defer></script>
   <script src="./static-issue14.js?v=1" defer></script>
+  <script src="./static-issue16.js?v=1" defer></script>
 </body>
 </html>

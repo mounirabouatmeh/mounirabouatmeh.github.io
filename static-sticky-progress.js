@@ -67,6 +67,12 @@
     return mentionsHubSelection(normalized);
   }
 
+  function isItineraryDrilldown(text) {
+    const normalized = (text ?? "").trim().toLowerCase();
+    return normalized.includes("selected the following exact stayover pricing itinerary")
+      && normalized.includes("candidate id:");
+  }
+
   function hasSelectedHub() {
     if (document.querySelector("#selected-hubs-content .selected-hub-chip")) return true;
     return Boolean(latestStageBox("pricing"));
@@ -85,7 +91,7 @@
 
     const display = {
       waiting: { icon: stageNumbers[stage], status: "Waiting" },
-      running: { icon: "•", status: stage === "summary" ? "Summarizing" : "Running" },
+      running: { icon: "•", status: stage === "summary" ? "Analyzing" : "Running" },
       complete: { icon: "✓", status: stage === "hubselected" ? "Selected" : "Complete" },
       ready: {
         icon: "→",
@@ -96,7 +102,7 @@
             : stage === "pricing"
               ? "Ready to price"
               : stage === "summary"
-                ? "Summarize"
+                ? "Analyze"
                 : "Next",
       },
       error: { icon: "!", status: "Needs attention" },
@@ -153,11 +159,12 @@
     const latestUser = latestUserBubble();
     const userAfterDiscovery = discoveryBox && latestUser && appearsAfter(latestUser, discoveryBox);
     const userAfterPricing = pricingBox && latestUser && appearsAfter(latestUser, pricingBox);
-    const revisitingHubs = Boolean(userAfterPricing && asksToRevisitHubs(latestUser.textContent));
+    const itineraryDrilldown = Boolean(userAfterPricing && isItineraryDrilldown(latestUser.textContent));
+    const revisitingHubs = Boolean(userAfterPricing && !itineraryDrilldown && asksToRevisitHubs(latestUser.textContent));
     const currentSelectionRequest = Boolean(userAfterDiscovery && !userAfterPricing && mentionsHubSelection(latestUser.textContent));
 
     if (revisitingHubs) {
-      // A request for another hub intentionally moves the workflow back to Discovery.
+      // A request for another hub intentionally moves the workflow back to Hub discovery.
       states.discovery = "ready";
       states.hubselected = "waiting";
       states.pricing = "waiting";
@@ -171,7 +178,7 @@
 
       if (states.pricing === "complete") {
         const agentWorking = Boolean(conversation.querySelector(".live-status-inline"));
-        states.summary = agentWorking ? "running" : "complete";
+        states.summary = agentWorking && !itineraryDrilldown ? "running" : "complete";
       }
     }
 
