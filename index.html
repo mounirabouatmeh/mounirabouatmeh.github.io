@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="./static-markdown.css">
   <link rel="stylesheet" href="./static-pricing-summary.css">
   <link rel="stylesheet" href="./static-flow.css">
-  <link rel="stylesheet" href="./static-sticky-progress.css">
+  <link rel="stylesheet" href="./static-sticky-progress.css?v=2">
 </head>
 <body>
   <main class="app-page">
@@ -47,6 +47,11 @@
           <div class="trip-progress-step is-waiting" data-stage="pricing">
             <span class="trip-progress-icon" aria-hidden="true">3</span>
             <span class="trip-progress-copy"><strong>Pricing</strong><span class="trip-progress-status">Waiting</span></span>
+          </div>
+          <span class="trip-progress-connector" aria-hidden="true"></span>
+          <div class="trip-progress-step is-waiting" data-stage="summary">
+            <span class="trip-progress-icon" aria-hidden="true">4</span>
+            <span class="trip-progress-copy"><strong>Summary</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
         </div>
 
@@ -150,6 +155,6 @@
   <script src="./static-welcome-copy.js" defer></script>
   <script src="./static-intent-sync.js" defer></script>
   <script src="./static-pricing-complete.js?v=2" defer></script>
-  <script src="./static-sticky-progress.js?v=1" defer></script>
+  <script src="./static-sticky-progress.js?v=2" defer></script>
 </body>
 </html>
