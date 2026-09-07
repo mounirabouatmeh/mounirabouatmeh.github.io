@@ -39,6 +39,14 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+
+  .trip-progress {
+    grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1.2fr);
+  }
+
+  .trip-progress-copy strong {
+    white-space: normal;
+  }
 }
 
 /* Pricing candidates are neutral until the advisor explicitly selects one. */
