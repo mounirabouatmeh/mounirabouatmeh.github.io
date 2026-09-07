@@ -142,7 +142,8 @@
     const welcome = document.querySelector("#conversation .welcome-card");
     if (!welcome) return;
     const paragraph = welcome.querySelector("p");
-    if (paragraph) paragraph.textContent = `For example: “${SAMPLE_PROMPT}”`;
+    const welcomeText = `For example: “${SAMPLE_PROMPT}”`;
+    if (paragraph && paragraph.textContent !== welcomeText) paragraph.textContent = welcomeText;
 
     const sample = welcome.querySelector(".sample-prompt");
     if (!sample || sample.dataset.issue16Bound === "true") return;
