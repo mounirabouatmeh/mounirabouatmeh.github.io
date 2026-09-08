@@ -118,6 +118,7 @@ jobs:
             echo "Issue #20 requires the oversized chat header to remain removed"
             exit 1
           fi
+          grep -q 'id="live-status" hidden' index.html
           grep -q 'id="trip-progress"' index.html
           grep -q 'id="composer-guidance"' index.html
           grep -q 'class="composer-input-row"' index.html
