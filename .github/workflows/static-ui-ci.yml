@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - index.html
+      - cuberence-logo.png
       - static-app.js
       - static-app.css
       - static-markdown.js
@@ -63,6 +64,7 @@ jobs:
       - name: Check required live UI files
         run: |
           test -s index.html
+          test -s cuberence-logo.png
           test -s static-app.css
           test -s static-markdown.js
           test -s static-markdown.css
@@ -157,7 +159,7 @@ jobs:
           grep -q "Confirming the exact selected flights and fare" static-issue23-workflow.js
           grep -q "Final recommendation complete" static-issue23-workflow.js
 
-          # Issue #25: user-gated confirmation, candidate numbers, Luna font controls.
+          # Issue #25: user-gated confirmation, candidate numbers, Luna font controls, approved logo.
           grep -q 'id="luna-font-controls"' index.html
           grep -q 'id="luna-font-decrease"' index.html
           grep -q 'id="luna-font-increase"' index.html
@@ -170,6 +172,9 @@ jobs:
           grep -q "confirmationAuthorizedPending" static-issue23-state.js
           grep -q "Waiting for advisor selection" static-issue23-workflow.js
           grep -q "Select candidate" static-issue23-workflow.js
+          grep -q 'rel="icon" href="./cuberence-logo.png" type="image/png"' index.html
+          grep -q 'class="brand-logo" src="./cuberence-logo.png"' index.html
+          grep -q "brand-logo" static-issue25.css
           if grep -q "Select this trip for Luna analysis" static-issue23-candidates.js static-issue23-selection.js; then
             echo "Issue #25 removes candidate-checkbox-driven provisional analysis; confirmation selection must be user-gated after Luna analysis"
             exit 1
