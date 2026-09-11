@@ -21,6 +21,11 @@ on:
       - static-issue16.css
       - static-issue20.js
       - static-issue20.css
+      - static-issue23-state.js
+      - static-issue23-workflow.js
+      - static-issue23-candidates.js
+      - static-issue23-selection.js
+      - static-issue23.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -46,6 +51,10 @@ jobs:
           node --check static-issue14.js
           node --check static-issue16.js
           node --check static-issue20.js
+          node --check static-issue23-state.js
+          node --check static-issue23-workflow.js
+          node --check static-issue23-candidates.js
+          node --check static-issue23-selection.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Check required live UI files
@@ -58,29 +67,35 @@ jobs:
           test -s static-pricing-summary.css
           test -s static-flow.js
           test -s static-flow.css
-          test -s static-sticky-progress.js
           test -s static-sticky-progress.css
           test -s static-workspace-enhancements.css
           test -s static-issue14.js
           test -s static-issue14.css
-          test -s static-issue16.js
           test -s static-issue16.css
           test -s static-issue20.js
           test -s static-issue20.css
+          test -s static-issue23-state.js
+          test -s static-issue23-workflow.js
+          test -s static-issue23-candidates.js
+          test -s static-issue23-selection.js
+          test -s static-issue23.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
           grep -q "static-markdown.js" index.html
           grep -q "static-pricing-summary.js" index.html
           grep -q "static-flow.js" index.html
-          grep -q "static-sticky-progress.js" index.html
           grep -q "static-workspace-enhancements.css" index.html
           grep -q "static-issue14.js" index.html
           grep -q "static-issue14.css" index.html
-          grep -q "static-issue16.js" index.html
           grep -q "static-issue16.css" index.html
           grep -q "static-issue20.js" index.html
           grep -q "static-issue20.css" index.html
+          grep -q "static-issue23-state.js" index.html
+          grep -q "static-issue23-workflow.js" index.html
+          grep -q "static-issue23-candidates.js" index.html
+          grep -q "static-issue23-selection.js" index.html
+          grep -q "static-issue23.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -98,20 +113,10 @@ jobs:
           grep -q "discovery-world-map" static-workspace-enhancements.css
           grep -q "OpenStreetMap contributors" static-issue14.js
           grep -q "All feasible hubs remain visible" static-issue14.js
-          grep -q "Summary complete" static-issue14.js
-          grep -q "Hub discovery" index.html
-          grep -q "Hub selection" index.html
-          grep -q "Stayover pricing" index.html
-          grep -q "Analysis &amp; recommendation" index.html
-          grep -q "1 adult flying from YUL to BEY" static-issue16.js
-          grep -q "pricing in CAD" static-issue16.js
-          grep -q "issue16-itinerary-checkbox" static-issue16.js
-          grep -q "Candidate ID:" static-issue16.js
-          grep -q "isItineraryDrilldown" static-sticky-progress.js
           grep -q "grid-template-rows: auto auto minmax(0, 1fr) auto" static-issue16.css
           grep -q "Issue #16 owns the sample prompt text and click behavior" static-welcome-copy.js
           if grep -q "SAMPLE_PROMPT\|example.textContent\|input.value" static-welcome-copy.js; then
-            echo "static-welcome-copy.js must not write or inject the Issue #16 sample prompt"
+            echo "static-welcome-copy.js must not write or inject the sample prompt"
             exit 1
           fi
           if grep -q 'class="chat-header"' index.html; then
@@ -123,6 +128,36 @@ jobs:
           grep -q 'id="composer-guidance"' index.html
           grep -q 'class="composer-input-row"' index.html
           grep -q 'rows="2"' index.html
-          grep -q "grid-template-rows: auto minmax(0, 1fr) auto" static-issue20.css
           grep -q "max-height: 120px" static-issue20.css
           grep -q "MAX_HEIGHT = 120" static-issue20.js
+
+          # Issue #23 owns the live workflow and selection lifecycle.
+          grep -q 'data-stage="intent"' index.html
+          grep -q 'data-stage="baseline"' index.html
+          grep -q 'data-stage="discovery"' index.html
+          grep -q 'data-stage="pricing"' index.html
+          grep -q 'data-stage="summary"' index.html
+          grep -q 'data-stage="confirmation"' index.html
+          grep -q 'data-stage="final"' index.html
+          grep -q "Indicative pricing" index.html
+          grep -q "Exact flight &amp; fare confirmation" index.html
+          grep -q "Final recommendation" index.html
+          grep -q 'id="processing-status"' index.html
+          grep -q "prefers-reduced-motion" static-issue23.css
+          grep -q "issue23-status-cloud" static-issue23.css
+          grep -q "pricingStatus" static-issue23-state.js
+          grep -q "EXACT_CHECK_PENDING" static-issue23-candidates.js
+          grep -q "Select this trip for Luna analysis" static-issue23-selection.js
+          grep -q "Recommended by Luna — exact fare confirmation required" static-issue23-candidates.js
+          grep -q "Confirming the exact selected flights and fare" static-issue23-workflow.js
+          grep -q "Final recommendation complete" static-issue23-workflow.js
+
+          # The old observer-driven tracker/selection runtimes must not compete with Issue #23.
+          if grep -q '<script src="./static-sticky-progress.js' index.html; then
+            echo "Issue #23 requires static-sticky-progress.js to remain out of the live runtime"
+            exit 1
+          fi
+          if grep -q '<script src="./static-issue16.js' index.html; then
+            echo "Issue #23 requires static-issue16.js to remain out of the live runtime"
+            exit 1
+          fi
