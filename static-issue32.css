@@ -1,0 +1,16 @@
+/* Issue #32: explanatory copy for candidate city-time calculations. */
+
+.city-time-explanation {
+  margin: 10px 0 0;
+  padding: 9px 10px;
+  border-left: 3px solid #90bfa7;
+  border-radius: 0 8px 8px 0;
+  background: #f4f8f6;
+  color: #596861;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.city-time-fact {
+  cursor: help;
+}
