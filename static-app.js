@@ -113,7 +113,12 @@ function renderConversation() {
 
   if (state.messages.length === 0) {
     const welcome = createNode("div", "welcome-card");
-    welcome.append(createNode("div", "assistant-mark", "C"));
+    const welcomeLogo = createNode("img", "assistant-mark welcome-logo");
+    welcomeLogo.src = "./cuberence-logo-v2.png";
+    welcomeLogo.alt = "Cuberence";
+    welcomeLogo.width = 40;
+    welcomeLogo.height = 40;
+    welcome.append(welcomeLogo);
     const copy = createNode("div");
     copy.append(createNode("h2", null, "Start with the client’s travel intent."));
     copy.append(createNode("p", null, "For example: “My clients are flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and are open to a short European stopover.”"));
