@@ -59,7 +59,6 @@ jobs:
           node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
-          set -x
           test -s index.html
           test -s static-app.css
           test -s static-markdown.js
@@ -148,7 +147,7 @@ jobs:
           grep -q "issue23-status-cloud" static-issue23.css
           grep -q "pricingStatus" static-issue23-state.js
           grep -q "EXACT_CHECK_PENDING" static-issue23-candidates.js
-          grep -q "Select this trip for Luna analysis" static-issue23-selection.js
+          grep -q "Select this trip for Luna analysis" static-issue23-candidates.js
           grep -q "Recommended by Luna — exact fare confirmation required" static-issue23-candidates.js
           grep -q "Confirming the exact selected flights and fare" static-issue23-workflow.js
           grep -q "Final recommendation complete" static-issue23-workflow.js
