@@ -12,6 +12,9 @@
   flex: 0 0 36px;
   display: block;
   object-fit: contain;
+  object-position: center;
+  box-sizing: border-box;
+  padding: 2px;
   aspect-ratio: 1 / 1;
 }
 
