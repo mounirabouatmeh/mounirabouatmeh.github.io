@@ -162,7 +162,7 @@ jobs:
           grep -q 'id="luna-font-decrease"' index.html
           grep -q 'id="luna-font-increase"' index.html
           grep -q "cuberence-luna-font-size" static-issue25.js
-          grep -q "--luna-response-font-size" static-issue25.css
+          grep -q -- "--luna-response-font-size" static-issue25.css
           grep -q "issue25-candidate-number" static-issue23-candidates.js
           grep -q "candidateNumber" static-issue23-state.js
           grep -q "Select for Luna to confirm pricing" static-issue23-candidates.js
