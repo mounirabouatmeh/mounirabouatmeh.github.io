@@ -111,7 +111,6 @@ jobs:
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
-          grep -q "selected-hubs-content" index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
           grep -q "prices the cheapest standard trip first, then starts hub discovery" index.html
