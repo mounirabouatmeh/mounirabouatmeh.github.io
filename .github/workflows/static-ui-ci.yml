@@ -29,6 +29,7 @@ on:
       - static-issue23.css
       - static-issue25.js
       - static-issue25.css
+      - static-issue30.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -86,6 +87,7 @@ jobs:
           test -s static-issue23.css
           test -s static-issue25.js
           test -s static-issue25.css
+          test -s static-issue30.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -105,6 +107,7 @@ jobs:
           grep -q "static-issue23.css" index.html
           grep -q "static-issue25.js" index.html
           grep -q "static-issue25.css" index.html
+          grep -q "static-issue30.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -177,6 +180,23 @@ jobs:
           grep -q "brand-logo" static-issue25.css
           if grep -q "Select this trip for Luna analysis" static-issue23-candidates.js static-issue23-selection.js; then
             echo "Issue #25 removes candidate-checkbox-driven provisional analysis; confirmation selection must be user-gated after Luna analysis"
+            exit 1
+          fi
+
+          # Issue #30: current welcome logo and numbered, consolidated workspace.
+          grep -q 'welcomeLogo.src = "./cuberence-logo-v2.png"' static-app.js
+          grep -q 'class="workspace-stage-number" aria-hidden="true">1</span><span>Trip intent' index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection' index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">4</span><span>Indicative pricing' index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">6</span><span>Exact flight &amp; fare confirmation' index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">7</span><span>Final recommendation' index.html
+          grep -q "welcome-logo" static-issue30.css
+          if grep -q 'id="selected-hubs-content"\|<h3>Hub selection</h3>' index.html; then
+            echo "Issue #30 requires discovery and selection to share one section without a selected-hubs summary"
+            exit 1
+          fi
+          if grep -q 'welcome.append(createNode("div", "assistant-mark", "C"))' static-app.js; then
+            echo "Issue #30 requires the legacy welcome C avatar to remain removed"
             exit 1
           fi
 
