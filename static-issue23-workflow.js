@@ -32,7 +32,7 @@
 
     step("intent", p.intent, p.intent === "complete" ? "Captured" : null);
     step("baseline", p.baseline);
-    step("discovery", p.discovery);
+    step("discovery", p.discovery, p.discovery === "ready" ? "Select hubs" : p.discovery === "complete" ? "Selected" : null);
     step("pricing", p.pricing, p.pricing === "complete" ? "Indicative" : null);
     step("summary", p.summary, p.summary === "running" ? "Analyzing" : p.summary === "complete" ? "Recommended" : null);
     step(
@@ -57,6 +57,9 @@
 
   function statusText() {
     if (!s.streamBusy) {
+      if (s.phases.discovery === "ready") {
+        return ["Hub discovery complete — select one or more hubs to price.", false];
+      }
       if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
         return ["Luna analysis complete — select a candidate for exact confirmation.", false];
       }
@@ -92,6 +95,7 @@
     else if (s.confirmation?.status === "CONFIRMED") ws.textContent = "Confirmed · reviewing";
     else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Select another candidate";
     else if (s.phases.confirmation === "running") ws.textContent = "Confirming exact fare";
+    else if (s.phases.discovery === "ready") ws.textContent = "Waiting for hub selection";
     else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") ws.textContent = "Waiting for advisor selection";
     else if (s.pricing?.phase === "completed") ws.textContent = "Luna analysis";
   }
@@ -106,6 +110,15 @@
   }
 
   function composer() {
+    if (s.phases.discovery === "ready" && !s.streamBusy) {
+      setComposer(
+        "Select one or more hubs, for example: Geneva and Paris…",
+        "Hub discovery is complete. Choose one or more hubs from the results; Luna will not start indicative pricing until you make that selection.",
+        true,
+      );
+      return;
+    }
+
     if (s.phases.confirmation === "running") {
       setComposer(
         "Exact flight and fare confirmation is running…",
@@ -273,7 +286,7 @@
       const detail = box.querySelector(".tool-progress-copy span");
       if (!label || !detail) continue;
       const text = `${label.textContent} ${detail.textContent}`.toLowerCase();
-      if (/discovery/.test(text)) label.textContent = "Discovery";
+      if (/discovery/.test(text)) label.textContent = "Hub discovery & selection";
       if (/pricing/.test(text) && !/baseline/.test(text)) label.textContent = "Indicative pricing";
       if (/confirmation|confirming the exact|exact-price/.test(text)) label.textContent = "Exact flight & fare confirmation";
     }
