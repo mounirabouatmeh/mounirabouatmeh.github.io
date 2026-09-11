@@ -294,9 +294,17 @@ function recommendationLabel(value) {
   return String(value ?? "").toLowerCase().replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
+function flightDesignator(segment) {
+  const marketingCarrier = String(segment?.marketingCarrier ?? "").trim();
+  const flightNumber = String(segment?.flightNumber ?? "").trim();
+  if (!marketingCarrier && !flightNumber) return "Flight";
+  if (marketingCarrier && flightNumber.toUpperCase().startsWith(marketingCarrier.toUpperCase())) return flightNumber;
+  return `${marketingCarrier}${flightNumber}`;
+}
+
 function renderSegment(segment) {
   const row = createNode("div", "flight-segment-row");
-  const carrier = [segment.marketingCarrier, segment.flightNumber].filter(Boolean).join("") || "Flight";
+  const carrier = flightDesignator(segment);
   row.append(createNode("strong", null, carrier));
   row.append(createNode("span", null, `${segment.origin ?? "—"} → ${segment.destination ?? "—"}`));
   row.append(createNode("span", null, `${formatDateTime(segment.departure)} → ${formatDateTime(segment.arrival)}`));
@@ -321,6 +329,11 @@ function renderCandidateDetails(candidate, evaluation) {
   if (candidate.facts?.returnSelfConnectMinutes != null) fact("Return self-connect", `${candidate.facts.returnSelfConnectMinutes} min`);
   fact("Ticket structure", candidate.strategy === "SPLIT" ? `${candidate.offers?.length ?? 0} separate priced ticket${candidate.offers?.length === 1 ? "" : "s"}` : candidate.strategy ?? "—");
   detail.append(overview);
+  detail.append(createNode(
+    "p",
+    "city-time-explanation",
+    "Usable city time is the estimated time available in the stopover city after airport exit, ground transfers to and from the city, and the recommended pre-departure airport buffer.",
+  ));
 
   if (evaluation) {
     const evaluationBlock = createNode("div", "candidate-evaluation");
@@ -415,7 +428,9 @@ function renderPricingCandidates(pricing, candidates) {
 
     const facts = createNode("div", "candidate-facts");
     facts.append(createNode("span", "result-value", `${candidate.hubNights ?? "—"} hub night${candidate.hubNights === 1 ? "" : "s"}`));
-    facts.append(createNode("span", "result-value", `${candidate.usableCityHours ?? "—"} usable hours`));
+    const cityTime = createNode("span", "result-value city-time-fact", `${candidate.usableCityHours ?? "—"} usable city hours`);
+    cityTime.title = "Estimated time in the city after airport exit, ground transfers, and the recommended return-to-airport buffer.";
+    facts.append(cityTime);
     facts.append(createNode("span", null, `${candidate.destinationNights ?? "—"} destination nights`));
     if (evaluation?.overallScore != null) facts.append(createNode("span", null, `Stayover ${evaluation.overallScore}/100`));
     card.append(facts);
