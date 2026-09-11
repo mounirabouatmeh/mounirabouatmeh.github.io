@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="./static-issue20.css?v=1">
   <link rel="stylesheet" href="./static-issue23.css?v=1">
   <link rel="stylesheet" href="./static-issue25.css?v=2">
+  <link rel="stylesheet" href="./static-issue30.css?v=1">
 </head>
 <body>
   <main class="app-page">
@@ -114,8 +115,10 @@
           <span id="workspace-status" class="status-chip">Planning</span>
         </div>
 
-        <section class="workspace-section">
-          <h3>Trip intent</h3>
+        <section class="workspace-section" data-workspace-stage="intent">
+          <div class="section-title-row">
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">1</span><span>Trip intent</span></h3>
+          </div>
           <dl class="trip-fields">
             <div><dt>Origin</dt><dd id="intent-origin">Not set</dd></div>
             <div><dt>Destination</dt><dd id="intent-destination">Not set</dd></div>
@@ -125,9 +128,9 @@
           </dl>
         </section>
 
-        <section class="workspace-section">
+        <section class="workspace-section" data-workspace-stage="baseline">
           <div class="section-title-row">
-            <h3>Baseline</h3>
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">2</span><span>Baseline</span></h3>
             <span class="muted-badge">Cheapest trip</span>
           </div>
           <div id="baseline-content">
@@ -138,35 +141,22 @@
           </div>
         </section>
 
-        <section class="workspace-section">
+        <section class="workspace-section" data-workspace-stage="discovery">
           <div class="section-title-row">
-            <h3>Discovery</h3>
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection</span></h3>
             <span id="discovery-badge" class="muted-badge">Not run</span>
           </div>
           <div id="discovery-content">
             <div class="empty-workspace">
               <strong>No hub results yet</strong>
-              <p>Exact AeroDataBox stayover schedule opportunities will appear here as the conversation continues.</p>
+              <p>Feasible stayover hubs will appear here. The selected hub is identified directly by its green highlight.</p>
             </div>
           </div>
         </section>
 
-        <section class="workspace-section">
+        <section class="workspace-section" data-workspace-stage="pricing">
           <div class="section-title-row">
-            <h3>Hub selection</h3>
-            <span class="muted-badge">For indicative pricing</span>
-          </div>
-          <div id="selected-hubs-content">
-            <div class="empty-workspace compact-empty">
-              <strong>No hubs selected yet</strong>
-              <p>The hub or hubs chosen in the conversation will appear here before indicative Stayover pricing.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="workspace-section">
-          <div class="section-title-row">
-            <h3>Indicative pricing</h3>
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">4</span><span>Indicative pricing</span></h3>
             <span id="pricing-badge" class="muted-badge">Not run</span>
           </div>
           <div id="pricing-content">
@@ -177,9 +167,9 @@
           </div>
         </section>
 
-        <section class="workspace-section issue23-confirmation-section">
+        <section class="workspace-section issue23-confirmation-section" data-workspace-stage="confirmation">
           <div class="section-title-row">
-            <h3>Exact flight &amp; fare confirmation</h3>
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">6</span><span>Exact flight &amp; fare confirmation</span></h3>
             <span id="confirmation-badge" class="muted-badge">Not run</span>
           </div>
           <div id="confirmation-content">
@@ -190,9 +180,9 @@
           </div>
         </section>
 
-        <section class="workspace-section issue23-final-section">
+        <section class="workspace-section issue23-final-section" data-workspace-stage="final">
           <div class="section-title-row">
-            <h3>Final recommendation</h3>
+            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">7</span><span>Final recommendation</span></h3>
             <span id="final-recommendation-badge" class="muted-badge">Pending</span>
           </div>
           <div id="final-recommendation-content">
@@ -210,7 +200,7 @@
   <script src="./static-pricing-summary.js" defer></script>
   <script src="./static-markdown.js" defer></script>
   <script src="./static-flow.js" defer></script>
-  <script src="./static-app.js?v=13" defer></script>
+  <script src="./static-app.js?v=14" defer></script>
   <script src="./static-welcome-copy.js" defer></script>
   <script src="./static-intent-sync.js" defer></script>
   <script src="./static-pricing-complete.js?v=2" defer></script>
