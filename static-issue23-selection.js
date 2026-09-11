@@ -1,27 +1,20 @@
 (() => {
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
-  const { s, money, candidateName, candidateStatus, effectiveCandidate, evaluation, syncFns, queue } = C;
+  const { s, candidateName, candidateNumber, candidateStatus, canAuthorizeConfirmation, syncFns, queue } = C;
   const SAMPLE = "I have a client: 1 adult flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and is open to a short European stopover. Economy class, pricing in CAD.";
   const scroll = { active: false, writes: 0, timer: null };
 
-  function selectionMessage(candidate, score) {
-    const status = candidateStatus(candidate);
+  function confirmationAuthorizationMessage(candidate) {
+    const number = candidateNumber(candidate);
     return [
-      "I selected this Stayover candidate for Luna provisional analysis.",
+      `I selected Candidate ${number ?? "—"} for Luna to confirm pricing.`,
       `Candidate ID: ${candidate.id}`,
       s.pricingId ? `Pricing ID: ${s.pricingId}` : null,
       `Hub: ${candidateName(candidate)}`,
-      `Pricing status: ${status}`,
-      `Hub stay: ${candidate.hubNights ?? "—"} night${candidate.hubNights === 1 ? "" : "s"}`,
-      `Usable city time: ${candidate.usableCityHours ?? "—"} hours`,
-      status === "CONFIRMED" ? `Confirmed total: ${money(effectiveCandidate(candidate).totalPrice)}` : `Indicative total: ${money(candidate.totalPrice)}`,
-      candidate.baselineDelta ? `Baseline delta: ${money(candidate.baselineDelta)}` : null,
-      score?.overallScore != null ? `Stayover evaluation: ${score.overallScore}/100 (${score.recommendation ?? ""})` : null,
-      "Use the exact candidate and Stayover Evaluation already returned in this session. Do not rerun Baseline, Discovery, or Indicative Pricing. For a PROXY candidate, candidate.exactSchedule is the flight-schedule truth; Sabre proxy offers are economic evidence only.",
-      status === "PROXY"
-        ? "This selection is not, by itself, a request to exact-price the trip. First analyze it against the current candidate set. If you provisionally recommend it, state: “Recommended by Luna — exact fare confirmation required.” Only then should exact confirmation run for this one candidate; never bulk-confirm alternatives."
-        : "Explain whether this candidate remains the best overall journey using the confirmed fare and exact flights already available.",
+      `Pricing status: ${candidateStatus(candidate)}`,
+      "Advisor confirmation authorization: YES",
+      "This checkbox selection is my explicit authorization to run exact flight and fare confirmation for this candidate only. Call the confirmation tool exactly once for this pricingId/candidateId. Do not rerun Baseline, Discovery, or Indicative Pricing, and do not confirm any other candidate unless I explicitly select it later.",
     ].filter(Boolean).join("\n");
   }
 
@@ -47,7 +40,9 @@
         },
       });
       conversation.dataset.issue23ScrollGuard = "true";
-    } catch { /* The observer-loop removal remains the primary stability fix. */ }
+    } catch {
+      // Removal of competing observer/state writers remains the primary stability protection.
+    }
   }
 
   function activateScrollGuard() {
@@ -66,17 +61,28 @@
   }
   C.releaseScrollGuard = releaseScrollGuard;
 
-  function sendSelection(candidateId) {
+  function unselectOtherCheckboxes(candidateId) {
+    document.querySelectorAll("#pricing-content .issue23-itinerary-checkbox").forEach((checkbox) => {
+      const card = checkbox.closest(".interactive-candidate");
+      if (card?.dataset.candidateId !== candidateId) checkbox.checked = false;
+    });
+  }
+
+  function sendConfirmationAuthorization(candidateId) {
     if (!candidateId || candidateId !== s.selectedCandidateId || candidateId === s.lastSentCandidateId || s.streamBusy) return;
     const candidate = s.pricing?.candidates?.find((item) => item?.id === candidateId);
     const input = document.getElementById("message-input");
     const form = document.getElementById("composer");
-    if (!candidate || !input || !form) return;
+    if (!candidate || !input || !form || !canAuthorizeConfirmation(candidate)) return;
+
     s.lastSentCandidateId = candidateId;
-    s.phases.summary = "running";
+    s.confirmationAuthorizedPending = true;
+    s.phases.summary = "complete";
+    s.phases.confirmation = "ready";
     s.phases.final = "waiting";
     activateScrollGuard();
-    input.value = selectionMessage(candidate, evaluation(candidateId));
+
+    input.value = confirmationAuthorizationMessage(candidate);
     input.dispatchEvent(new Event("input", { bubbles: true }));
     form.requestSubmit();
     queue();
@@ -104,29 +110,51 @@
 
   function bindPricing() {
     const pricing = document.getElementById("pricing-content");
-    if (!pricing) return;
+    if (!pricing || pricing.dataset.issue25ConfirmationBound) return;
+    pricing.dataset.issue25ConfirmationBound = "true";
+
+    pricing.addEventListener("click", (event) => {
+      if (event.target.closest?.(".issue23-selection-control")) {
+        event.stopPropagation();
+        return;
+      }
+      if (event.target.closest?.(".interactive-candidate,.pricing-filter")) queue();
+    }, true);
+
+    pricing.addEventListener("keydown", (event) => {
+      if (event.target.closest?.(".issue23-selection-control")) {
+        event.stopPropagation();
+        return;
+      }
+      if ((event.key === "Enter" || event.key === " ") && event.target.closest?.(".interactive-candidate")) queue();
+    }, true);
+
     pricing.addEventListener("change", (event) => {
       const checkbox = event.target.closest?.(".issue23-itinerary-checkbox");
       if (!checkbox) return;
-      const candidateId = checkbox.closest(".interactive-candidate")?.dataset.candidateId;
-      if (!candidateId) return;
+      const card = checkbox.closest(".interactive-candidate");
+      const candidateId = card?.dataset.candidateId;
+      const candidate = s.pricing?.candidates?.find((item) => item?.id === candidateId);
+      if (!candidateId || !candidate) return;
+
       if (checkbox.checked) {
+        if (!canAuthorizeConfirmation(candidate)) {
+          checkbox.checked = false;
+          queue();
+          return;
+        }
+        unselectOtherCheckboxes(candidateId);
         s.selectedCandidateId = candidateId;
         s.lastSentCandidateId = null;
         queue();
-        sendSelection(candidateId);
-      } else if (s.selectedCandidateId === candidateId) {
+        sendConfirmationAuthorization(candidateId);
+      } else if (s.selectedCandidateId === candidateId && !s.streamBusy) {
         s.selectedCandidateId = null;
         s.lastSentCandidateId = null;
+        s.confirmationAuthorizedPending = false;
         queue();
       }
     });
-    pricing.addEventListener("click", (event) => {
-      if (!event.target.closest?.(".issue23-selection-control") && event.target.closest?.(".interactive-candidate,.pricing-filter")) queue();
-    }, true);
-    pricing.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && event.target.closest?.(".interactive-candidate")) queue();
-    }, true);
   }
 
   syncFns.push(syncWelcome);
@@ -135,5 +163,6 @@
     bindPricing();
     syncWelcome();
   };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true }); else start();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
 })();
