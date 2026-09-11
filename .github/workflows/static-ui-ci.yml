@@ -30,6 +30,7 @@ on:
       - static-issue25.js
       - static-issue25.css
       - static-issue30.css
+      - static-issue32.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -88,6 +89,7 @@ jobs:
           test -s static-issue25.js
           test -s static-issue25.css
           test -s static-issue30.css
+          test -s static-issue32.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -108,6 +110,7 @@ jobs:
           grep -q "static-issue25.js" index.html
           grep -q "static-issue25.css" index.html
           grep -q "static-issue30.css" index.html
+          grep -q "static-issue32.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -196,6 +199,19 @@ jobs:
           fi
           if grep -q 'welcome.append(createNode("div", "assistant-mark", "C"))' static-app.js; then
             echo "Issue #30 requires the legacy welcome C avatar to remain removed"
+            exit 1
+          fi
+
+          # Issue #32: provider-neutral discovery, explicit hub gate, carrier cleanup, city-time explanation.
+          grep -q "Hub discovery &amp; selection" index.html
+          grep -q "flightDesignator" static-app.js
+          grep -q "flightDesignator" static-issue23-candidates.js
+          grep -q "Usable city time is the estimated time available" static-app.js
+          grep -q 's.phases.discovery === "ready"' static-issue23-workflow.js
+          grep -q 's.phases.discovery = "complete"' static-issue23-state.js
+          grep -q "Select hubs" static-issue23-workflow.js
+          if grep -qi "AeroDataBox" index.html static-app.js static-flow.js static-issue*.js static-issue*.css; then
+            echo "Issue #32 requires provider-neutral user-facing interface copy"
             exit 1
           fi
 
