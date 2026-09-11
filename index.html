@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="./static-issue16.css?v=1">
   <link rel="stylesheet" href="./static-issue20.css?v=1">
   <link rel="stylesheet" href="./static-issue23.css?v=1">
+  <link rel="stylesheet" href="./static-issue25.css?v=1">
 </head>
 <body>
   <main class="app-page">
@@ -66,6 +67,13 @@
             <span class="trip-progress-icon" aria-hidden="true">7</span>
             <span class="trip-progress-copy"><strong>Final recommendation</strong><span class="trip-progress-status">Waiting</span></span>
           </div>
+        </div>
+
+        <div id="luna-font-controls" class="luna-font-controls" aria-label="Luna response font size controls">
+          <span class="luna-font-controls-label">Luna text</span>
+          <button id="luna-font-decrease" class="luna-font-control-button" type="button" aria-label="Decrease Luna response font size">−</button>
+          <output id="luna-font-value" class="luna-font-value" aria-live="polite">15px</output>
+          <button id="luna-font-increase" class="luna-font-control-button" type="button" aria-label="Increase Luna response font size">+</button>
         </div>
 
         <div id="conversation" class="conversation" role="log" aria-live="polite"></div>
@@ -159,7 +167,7 @@
           <div id="pricing-content">
             <div class="empty-workspace">
               <strong>No indicative pricing results yet</strong>
-              <p>Choose one or more discovered hubs in the conversation to run SPLIT pricing. Exact fare is checked only after Luna recommends a candidate.</p>
+              <p>Choose one or more discovered hubs in the conversation to run SPLIT pricing. Luna analyzes the indicative candidates first; exact confirmation waits for your explicit candidate selection.</p>
             </div>
           </div>
         </section>
@@ -172,7 +180,7 @@
           <div id="confirmation-content">
             <div class="empty-workspace compact-empty">
               <strong>No exact confirmation yet</strong>
-              <p>Only the candidate Luna provisionally recommends advances to selected-flight and fare confirmation.</p>
+              <p>After Luna’s analysis, open the desired candidate above and check “Select for Luna to confirm pricing.”</p>
             </div>
           </div>
         </section>
@@ -202,10 +210,11 @@
   <script src="./static-intent-sync.js" defer></script>
   <script src="./static-pricing-complete.js?v=2" defer></script>
   <script src="./static-issue14.js?v=1" defer></script>
-  <script src="./static-issue23-state.js?v=1" defer></script>
-  <script src="./static-issue23-workflow.js?v=1" defer></script>
-  <script src="./static-issue23-candidates.js?v=1" defer></script>
-  <script src="./static-issue23-selection.js?v=1" defer></script>
+  <script src="./static-issue23-state.js?v=2" defer></script>
+  <script src="./static-issue23-workflow.js?v=2" defer></script>
+  <script src="./static-issue23-candidates.js?v=2" defer></script>
+  <script src="./static-issue23-selection.js?v=2" defer></script>
+  <script src="./static-issue25.js?v=1" defer></script>
   <script src="./static-issue20.js?v=1" defer></script>
 </body>
 </html>
