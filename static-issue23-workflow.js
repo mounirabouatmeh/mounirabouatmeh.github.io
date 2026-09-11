@@ -1,7 +1,7 @@
 (() => {
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
-  const { s, stages, node, money, candidateName, syncFns } = C;
+  const { s, stages, node, money, candidateName, candidateNumber, syncFns } = C;
 
   function step(stage, phase, override) {
     const el = document.querySelector(`.trip-progress-step[data-stage="${stage}"]`);
@@ -35,7 +35,19 @@
     step("discovery", p.discovery);
     step("pricing", p.pricing, p.pricing === "complete" ? "Indicative" : null);
     step("summary", p.summary, p.summary === "running" ? "Analyzing" : p.summary === "complete" ? "Recommended" : null);
-    step("confirmation", p.confirmation, p.confirmation === "running" ? "Confirming" : p.confirmation === "complete" ? "Confirmed" : null);
+    step(
+      "confirmation",
+      p.confirmation,
+      p.confirmation === "running"
+        ? "Confirming"
+        : p.confirmation === "complete"
+          ? "Confirmed"
+          : p.confirmation === "ready"
+            ? "Select candidate"
+            : p.confirmation === "error"
+              ? "Select another"
+              : null,
+    );
     step("final", p.final, p.final === "running" ? "Reviewing" : p.final === "complete" ? "Final" : null);
 
     document.querySelectorAll(".trip-progress-connector").forEach((x, i) => {
@@ -44,12 +56,20 @@
   }
 
   function statusText() {
-    if (!s.streamBusy) return ["Ready for the next instruction.", false];
+    if (!s.streamBusy) {
+      if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
+        return ["Luna analysis complete — select a candidate for exact confirmation.", false];
+      }
+      if (s.phases.confirmation === "error") {
+        return ["Exact confirmation needs another candidate selection.", false];
+      }
+      return ["Ready for the next instruction.", false];
+    }
     if (s.phases.confirmation === "running") return ["Confirming the exact selected flights and fare…", true];
     if (s.confirmation?.status === "CONFIRMED") return ["Luna is reviewing the confirmed fare…", true];
-    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is re-evaluating the remaining options…", true];
+    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the failed exact check…", true];
     if (s.phases.pricing === "running") return ["Evaluating stayover options…", true];
-    if (s.pricing?.phase === "completed") return ["Luna is analyzing this trip…", true];
+    if (s.pricing?.phase === "completed") return ["Luna is analyzing the candidate set…", true];
     if (s.phases.discovery === "running") return ["Identifying feasible stayover hubs…", true];
     if (s.phases.baseline === "running") return ["Pricing the standard trip baseline…", true];
     return ["Cuberence is working…", true];
@@ -70,9 +90,10 @@
     if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy && s.reviewTextSeen) ws.textContent = "Final recommendation";
     else if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy) ws.textContent = "Confirmed · Luna review pending";
     else if (s.confirmation?.status === "CONFIRMED") ws.textContent = "Confirmed · reviewing";
-    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Exact check needs review";
+    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Select another candidate";
     else if (s.phases.confirmation === "running") ws.textContent = "Confirming exact fare";
-    else if (s.pricing?.phase === "completed") ws.textContent = "Indicative pricing";
+    else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") ws.textContent = "Waiting for advisor selection";
+    else if (s.pricing?.phase === "completed") ws.textContent = "Luna analysis";
   }
 
   function setComposer(placeholder, guidance, isNext = false) {
@@ -88,7 +109,7 @@
     if (s.phases.confirmation === "running") {
       setComposer(
         "Exact flight and fare confirmation is running…",
-        "Cuberence is validating only Luna’s selected candidate against the exact Sabre flight and fare result.",
+        "Cuberence is validating only the candidate you explicitly selected for confirmation.",
       );
       return;
     }
@@ -112,8 +133,10 @@
 
     if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
       setComposer(
-        s.streamBusy ? "Luna is re-evaluating the remaining options…" : "Ask Luna to continue with the next-best option…",
-        "The exact check did not confirm the selected candidate. No final-success state is shown; Luna can re-rank and exact-check only the next candidate it recommends.",
+        s.streamBusy ? "Luna is explaining the failed exact check…" : "Open another candidate on the right and select it for confirmation…",
+        s.streamBusy
+          ? "The selected exact check failed. Luna will explain what happened, then wait for your next selection."
+          : "No final-success state was created. If Luna recommends another option, open that candidate and check “Select for Luna to confirm pricing.”",
         !s.streamBusy,
       );
       return;
@@ -121,17 +144,25 @@
 
     if (s.pricing?.phase === "completed" && s.streamBusy) {
       setComposer(
-        "Luna is analyzing the selected trip…",
-        "The candidate price is still indicative. Luna is evaluating the exact discovered schedule and journey value before any exact fare check.",
+        "Luna is analyzing the candidate set…",
+        "Indicative pricing is complete. Luna is comparing the candidates and will stop before exact confirmation.",
+      );
+      return;
+    }
+
+    if (s.phases.summary === "complete" && s.phases.confirmation === "ready" && !s.streamBusy) {
+      setComposer(
+        "Open the recommended candidate on the right to confirm pricing…",
+        "Luna’s analysis is complete. Open the desired candidate in Indicative pricing and check “Select for Luna to confirm pricing.” Exact confirmation will not run until you select it.",
+        true,
       );
       return;
     }
 
     if (s.pricing?.phase === "completed" && !s.streamBusy) {
       setComposer(
-        "Expand a trip and select it for Luna analysis, or ask a follow-up…",
-        "Indicative pricing is complete. Select one candidate for Luna’s provisional analysis; exact fare confirmation happens only if Luna recommends it.",
-        true,
+        "Ask a follow-up about Luna’s analysis…",
+        "Indicative pricing is complete. Luna will analyze the candidates before any exact confirmation is allowed.",
       );
     }
   }
@@ -145,36 +176,45 @@
     let card;
     if (s.phases.confirmation === "running") {
       badge.textContent = "Running";
+      const number = candidateNumber(s.confirmationCandidateId);
       card = node("div", "issue23-confirmation-card is-running");
       card.append(
         node("strong", null, "Confirming exact flight & fare"),
-        node("p", null, s.confirmationCandidateId ? `Candidate ${s.confirmationCandidateId}` : "Validating Luna’s provisional recommendation."),
+        node("p", null, number ? `Candidate ${number} · ${s.confirmationCandidateId}` : "Validating the advisor-selected candidate."),
       );
     } else if (s.confirmation?.status === "CONFIRMED") {
       badge.textContent = "Confirmed";
       const c = s.confirmation.candidate;
       const p = s.confirmation.confirmedPricing ?? c?.confirmedPricing;
+      const number = candidateNumber(c);
       card = node("div", "issue23-confirmation-card is-confirmed");
       card.append(
-        node("strong", null, `Confirmed · ${candidateName(c)}`),
+        node("strong", null, `Confirmed · Candidate ${number ?? "—"} · ${candidateName(c)}`),
         node("p", "issue23-confirmed-total", money(c?.totalPrice ?? p?.price)),
       );
       if (p?.proxyPrice) {
         card.append(node("p", null, `Indicative was ${money(p.proxyPrice)}${p.delta ? ` · Change ${money(p.delta)}` : ""}`));
       }
     } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
-      badge.textContent = "Failed";
+      badge.textContent = "Select another";
       card = node("div", "issue23-confirmation-card is-failed");
       card.append(
-        node("strong", null, "Exact check did not confirm this candidate"),
-        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Luna is re-evaluating alternatives."),
+        node("strong", null, "Exact check did not confirm the selected candidate"),
+        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Choose another Luna-recommended candidate if you want to continue."),
+      );
+    } else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
+      badge.textContent = "Waiting for advisor";
+      card = node("div", "issue23-confirmation-card");
+      card.append(
+        node("strong", null, "Select the candidate to exact-confirm"),
+        node("p", null, "Open the desired candidate in Indicative pricing and check “Select for Luna to confirm pricing.” No exact API call is made until you select it."),
       );
     } else {
-      badge.textContent = s.phases.confirmation === "ready" ? "Ready after Luna" : "Not run";
+      badge.textContent = "Not run";
       card = node("div", "empty-workspace compact-empty");
       card.append(
         node("strong", null, "No exact confirmation yet"),
-        node("p", null, "Only a candidate Luna provisionally recommends advances to exact flight and fare confirmation."),
+        node("p", null, "Luna analyzes the candidate set first. Advisor selection is required before exact confirmation."),
       );
     }
     target.append(card);
@@ -209,11 +249,11 @@
         node("p", null, "The UI will not mark the recommendation final until Luna has reviewed the confirmed result."),
       );
     } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
-      badge.textContent = s.streamBusy ? "Re-evaluating" : "Needs review";
+      badge.textContent = "Pending new selection";
       card.classList.add("is-failed");
       card.append(
         node("strong", null, "Recommendation not final"),
-        node("p", null, "The exact check did not confirm this candidate; Luna must re-evaluate another indicative option."),
+        node("p", null, "The exact check failed. Luna will not automatically confirm another candidate; the advisor must explicitly select one."),
       );
     } else {
       badge.textContent = "Pending";
