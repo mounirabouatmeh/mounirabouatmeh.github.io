@@ -21,7 +21,21 @@
   let queued = false;
   const node = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const money = (v) => v && typeof v.amount === "number" ? `${v.currency ?? ""} ${v.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.trim() : "—";
-  const formatDateTime = (v) => typeof v === "string" && v ? v.replace("T", " ").replace(/:00(?=[+-]|Z|$)/, "") : "—";
+  const formatDateTime = (v) => {
+    if (typeof v !== "string" || !v) return "—";
+    const match = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/);
+    if (!match) return v.replace("T", " ").replace(/:00(?=[+-]|Z|$)/, "");
+    const [, year, month, day, hour, minute] = match;
+    const localClock = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)));
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "UTC",
+    }).format(localClock);
+  };
   const candidateName = (c) => c?.hub?.name ?? c?.hub?.city ?? c?.hub?.id ?? "Stayover";
   const candidateNumber = (candidateOrId) => {
     const id = typeof candidateOrId === "string" ? candidateOrId : candidateOrId?.id;
