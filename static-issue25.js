@@ -13,7 +13,8 @@
 
   function storedSize() {
     try {
-      return clamp(globalThis.localStorage?.getItem(STORAGE_KEY));
+      const stored = globalThis.localStorage?.getItem(STORAGE_KEY);
+      return stored == null ? DEFAULT_SIZE : clamp(stored);
     } catch {
       return DEFAULT_SIZE;
     }
