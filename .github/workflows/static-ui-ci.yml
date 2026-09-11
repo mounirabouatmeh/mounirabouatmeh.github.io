@@ -26,6 +26,8 @@ on:
       - static-issue23-candidates.js
       - static-issue23-selection.js
       - static-issue23.css
+      - static-issue25.js
+      - static-issue25.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -55,6 +57,7 @@ jobs:
           node --check static-issue23-workflow.js
           node --check static-issue23-candidates.js
           node --check static-issue23-selection.js
+          node --check static-issue25.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Check required live UI files
@@ -79,6 +82,8 @@ jobs:
           test -s static-issue23-candidates.js
           test -s static-issue23-selection.js
           test -s static-issue23.css
+          test -s static-issue25.js
+          test -s static-issue25.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -96,6 +101,8 @@ jobs:
           grep -q "static-issue23-candidates.js" index.html
           grep -q "static-issue23-selection.js" index.html
           grep -q "static-issue23.css" index.html
+          grep -q "static-issue25.js" index.html
+          grep -q "static-issue25.css" index.html
           grep -q "leaflet@1.9.4" index.html
           grep -q "static-welcome-copy.js" index.html
           grep -q "baseline-content" index.html
@@ -131,7 +138,7 @@ jobs:
           grep -q "max-height: 120px" static-issue20.css
           grep -q "MAX_HEIGHT = 120" static-issue20.js
 
-          # Issue #23 owns the live workflow and selection lifecycle.
+          # Issue #23 owns the base live workflow and state lifecycle.
           grep -q 'data-stage="intent"' index.html
           grep -q 'data-stage="baseline"' index.html
           grep -q 'data-stage="discovery"' index.html
@@ -147,12 +154,28 @@ jobs:
           grep -q "issue23-status-cloud" static-issue23.css
           grep -q "pricingStatus" static-issue23-state.js
           grep -q "EXACT_CHECK_PENDING" static-issue23-candidates.js
-          grep -q "Select this trip for Luna analysis" static-issue23-candidates.js
-          grep -q "Recommended by Luna — exact fare confirmation required" static-issue23-candidates.js
           grep -q "Confirming the exact selected flights and fare" static-issue23-workflow.js
           grep -q "Final recommendation complete" static-issue23-workflow.js
 
-          # The old observer-driven tracker/selection runtimes must not compete with Issue #23.
+          # Issue #25: user-gated confirmation, candidate numbers, Luna font controls.
+          grep -q 'id="luna-font-controls"' index.html
+          grep -q 'id="luna-font-decrease"' index.html
+          grep -q 'id="luna-font-increase"' index.html
+          grep -q "cuberence-luna-font-size" static-issue25.js
+          grep -q "--luna-response-font-size" static-issue25.css
+          grep -q "issue25-candidate-number" static-issue23-candidates.js
+          grep -q "candidateNumber" static-issue23-state.js
+          grep -q "Select for Luna to confirm pricing" static-issue23-candidates.js
+          grep -q "Advisor confirmation authorization: YES" static-issue23-selection.js
+          grep -q "confirmationAuthorizedPending" static-issue23-state.js
+          grep -q "Waiting for advisor selection" static-issue23-workflow.js
+          grep -q "Select candidate" static-issue23-workflow.js
+          if grep -q "Select this trip for Luna analysis" static-issue23-candidates.js static-issue23-selection.js; then
+            echo "Issue #25 removes candidate-checkbox-driven provisional analysis; confirmation selection must be user-gated after Luna analysis"
+            exit 1
+          fi
+
+          # The old observer-driven tracker/selection runtimes must not compete with the current flow.
           if grep -q '<script src="./static-sticky-progress.js' index.html; then
             echo "Issue #23 requires static-sticky-progress.js to remain out of the live runtime"
             exit 1
