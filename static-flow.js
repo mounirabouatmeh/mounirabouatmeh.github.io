@@ -190,7 +190,7 @@
       isNextStep = true;
     } else if (["starting", "queued", "running"].includes(flowState.discoveryPhase)) {
       placeholder = "Hub discovery is running…";
-      message = "Cuberence is finding feasible stayover hubs. Hub selection comes next.";
+      message = "Cuberence is finding feasible stayover hubs. You will choose one or more hubs before pricing starts.";
     } else if (flowState.baselinePhase === "completed") {
       placeholder = "Discovery will start automatically…";
       message = "Baseline is complete. Cuberence is moving to hub discovery next.";

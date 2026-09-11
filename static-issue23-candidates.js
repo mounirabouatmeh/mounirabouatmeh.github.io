@@ -23,12 +23,20 @@
       : null;
   }
 
+  function flightDesignator(flight) {
+    const marketingCarrier = String(flight?.marketingCarrier ?? "").trim();
+    const flightNumber = String(flight?.flightNumber ?? "").trim();
+    if (!marketingCarrier && !flightNumber) return "Flight";
+    if (marketingCarrier && flightNumber.toUpperCase().startsWith(marketingCarrier.toUpperCase())) return flightNumber;
+    return `${marketingCarrier}${flightNumber}`;
+  }
+
   function flightRow(flight, role) {
     if (!flight) return null;
     const row = node("div", "issue23-flight-row");
     row.append(node("span", "issue23-flight-role", role));
     const detail = node("div", "issue23-flight-detail");
-    detail.append(node("strong", null, `${flight.marketingCarrier ?? ""}${flight.flightNumber ?? ""}` || "Flight"));
+    detail.append(node("strong", null, flightDesignator(flight)));
     detail.append(node("span", null, `${flight.origin ?? "—"} → ${flight.destination ?? "—"}`));
     detail.append(node("small", null, `${formatDateTime(flight.departure)} → ${formatDateTime(flight.arrival)}`));
     row.append(detail);
@@ -40,7 +48,7 @@
     if (!exact) return null;
     const block = node("section", "issue23-schedule-block");
     const heading = node("div", "issue23-subheading");
-    heading.append(node("strong", null, status === "CONFIRMED" ? "Selected flight schedule" : "Exact schedule from AeroDataBox"));
+    heading.append(node("strong", null, status === "CONFIRMED" ? "Confirmed flight schedule" : "Cuberence flight schedule"));
     if (status !== "CONFIRMED") heading.append(node("span", null, "Schedule truth — fare still indicative"));
     block.append(heading);
     [

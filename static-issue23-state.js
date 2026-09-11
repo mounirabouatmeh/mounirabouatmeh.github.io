@@ -3,6 +3,7 @@
   const API = "cuberence-travel-api.vercel.app/api/v1/chat";
   const stages = ["intent", "baseline", "discovery", "pricing", "summary", "confirmation", "final"];
   const s = {
+    discovery: null,
     pricing: null,
     pricingId: null,
     selectedCandidateId: null,
@@ -67,9 +68,11 @@
       Object.assign(s.phases, { intent: "complete", baseline: "running", discovery: "waiting", pricing: "waiting", summary: "waiting", confirmation: "waiting", final: "waiting" });
       resetPostPricingState();
     } else if (tool === "discovery") {
+      s.discovery = null;
       s.phases.intent = "complete";
       s.phases.discovery = "running";
     } else if (tool === "pricing") {
+      s.phases.discovery = "complete";
       s.pricing = null;
       s.pricingId = null;
       resetPostPricingState();
@@ -88,7 +91,10 @@
     if (tool === "baseline" || (data.baselineId && !data.discoveryId && !data.pricingId)) {
       s.phases.baseline = data.phase === "completed" ? "complete" : data.phase === "failed" ? "error" : "running";
     } else if (tool === "discovery" || (data.discoveryId && !data.pricingId)) {
-      s.phases.discovery = data.phase === "completed" ? "complete" : data.phase === "failed" ? "error" : "running";
+      if (data.phase === "completed") s.discovery = data;
+      s.phases.discovery = data.phase === "completed"
+        ? (Array.isArray(data.hubs) && data.hubs.length ? "ready" : "complete")
+        : data.phase === "failed" ? "error" : "running";
     } else if (tool === "pricing" || (data.pricingId && Array.isArray(data.candidates))) {
       if (data.phase === "completed" && Array.isArray(data.candidates)) {
         s.pricing = data;
