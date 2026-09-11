@@ -59,6 +59,7 @@ jobs:
           node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
+          set -x
           test -s index.html
           test -s static-app.css
           test -s static-markdown.js
