@@ -1,7 +1,19 @@
 (() => {
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
-  const { s, node, money, formatDateTime, candidateName, candidateStatus, effectiveCandidate, visibleCandidates, syncFns } = C;
+  const {
+    s,
+    node,
+    money,
+    formatDateTime,
+    candidateName,
+    candidateNumber,
+    candidateStatus,
+    effectiveCandidate,
+    visibleCandidates,
+    canAuthorizeConfirmation,
+    syncFns,
+  } = C;
 
   function range(proxy) {
     const r = proxy?.observedRange;
@@ -111,15 +123,38 @@
   }
 
   function selectionControl(candidate) {
+    const number = candidateNumber(candidate);
     const label = node("label", "issue16-selection-control issue23-selection-control");
     const checkbox = node("input", "issue16-itinerary-checkbox issue23-itinerary-checkbox");
     checkbox.type = "checkbox";
-    checkbox.setAttribute("aria-label", `Select ${candidateName(candidate)} trip for Luna analysis`);
+    checkbox.setAttribute("aria-label", `Select Candidate ${number ?? ""} ${candidateName(candidate)} for Luna to confirm pricing`.trim());
     const copy = node("span", "issue16-selection-copy issue23-selection-copy");
-    copy.append(node("strong", null, "Select this trip for Luna analysis"));
-    copy.append(node("small", null, "Luna analyzes this indicative candidate first. Exact fare confirmation follows only if Luna recommends it."));
+    copy.append(node("strong", null, "Select for Luna to confirm pricing"));
+    copy.append(node("small", null, "Available after Luna finishes analysis and recommendation."));
     label.append(checkbox, copy);
     return label;
+  }
+
+  function updateSelectionControl(control, candidate, status, selected) {
+    const checkbox = control.querySelector(".issue23-itinerary-checkbox");
+    const small = control.querySelector(".issue23-selection-copy small");
+    const enabled = canAuthorizeConfirmation(candidate);
+    const number = candidateNumber(candidate);
+
+    control.classList.toggle("is-confirmation-locked", !enabled && status === "PROXY");
+    if (checkbox) {
+      checkbox.checked = selected;
+      checkbox.disabled = !enabled;
+      checkbox.setAttribute("aria-label", `Select Candidate ${number ?? ""} ${candidateName(candidate)} for Luna to confirm pricing`.trim());
+    }
+
+    if (!small) return;
+    if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
+    else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
+    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";
+    else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
+    else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
+    else small.textContent = "Checking this box explicitly authorizes exact fare confirmation for this candidate only.";
   }
 
   function decorate(card, candidate) {
@@ -127,12 +162,24 @@
     const effective = effectiveCandidate(candidate);
     const status = candidateStatus(candidate);
     const selected = s.selectedCandidateId === candidate.id;
+    const number = candidateNumber(candidate);
     card.dataset.candidateId = candidate.id;
+    card.dataset.candidateNumber = number == null ? "" : String(number);
     card.dataset.pricingStatus = status;
     card.classList.toggle("is-itinerary-selected", selected);
 
     const top = card.querySelector(".candidate-top");
     if (top) {
+      const left = top.firstElementChild;
+      if (left) {
+        let numberBadge = left.querySelector(".issue25-candidate-number");
+        if (!numberBadge) {
+          numberBadge = node("span", "issue25-candidate-number");
+          left.prepend(numberBadge);
+        }
+        numberBadge.textContent = `Candidate ${number ?? "—"}`;
+      }
+
       let badge = top.querySelector(".issue23-price-state");
       if (!badge) {
         badge = node("span", "issue23-price-state");
@@ -154,21 +201,27 @@
     if (!detail) return;
     updateFact(detail, "Total", money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice), status === "CONFIRMED" ? "Confirmed total" : "Indicative total");
     updateFact(detail, "Ticket structure", status === "CONFIRMED" ? "2 separate tickets · exact fare confirmed" : "2 separate tickets · proxy economics until exact confirmation");
-    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure").forEach((element) => element.remove());
+    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure,.issue25-confirmation-ready").forEach((element) => element.remove());
 
     let control = detail.querySelector(".issue23-selection-control");
     if (!control) {
       control = selectionControl(candidate);
       detail.prepend(control);
     }
-    const checkbox = control.querySelector(".issue23-itinerary-checkbox");
-    if (checkbox) checkbox.checked = selected;
+    updateSelectionControl(control, candidate, status, selected);
 
     let anchor = control;
+    if (status === "PROXY" && s.phases.summary === "complete" && canAuthorizeConfirmation(candidate)) {
+      const ready = node("div", "issue25-confirmation-ready");
+      ready.append(node("strong", null, `Candidate ${number ?? "—"} is available for exact confirmation.`));
+      ready.append(document.createTextNode(" Open this card only if you want Luna to exact-check this itinerary, then use the checkbox above."));
+      anchor.after(ready);
+      anchor = ready;
+    }
     if (status === "EXACT_CHECK_PENDING") {
-      const recommendation = node("div", "issue23-luna-recommendation", "Recommended by Luna — exact fare confirmation required");
-      anchor.after(recommendation);
-      anchor = recommendation;
+      const pending = node("div", "issue23-luna-recommendation", `Candidate ${number ?? "—"} selected — exact fare confirmation in progress`);
+      anchor.after(pending);
+      anchor = pending;
     }
     const schedule = scheduleBlock(effective, status) ?? scheduleBlock(candidate, status);
     if (schedule) {

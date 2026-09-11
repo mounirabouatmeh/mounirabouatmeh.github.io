@@ -1,0 +1,119 @@
+/* Issue #25: Luna font controls, candidate numbering, and advisor-gated confirmation. */
+
+.luna-font-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px 28px 0;
+  color: #718079;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.luna-font-controls-label {
+  margin-right: 2px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.luna-font-control-button {
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d5ddda;
+  border-radius: 8px;
+  background: #fff;
+  color: #3f5148;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.luna-font-control-button:hover:not(:disabled) {
+  border-color: #9fb7aa;
+  background: #f5f8f6;
+}
+
+.luna-font-control-button:focus-visible {
+  outline: 2px solid #7ba28d;
+  outline-offset: 2px;
+}
+
+.luna-font-control-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.luna-font-value {
+  min-width: 34px;
+  text-align: center;
+  color: #68766f;
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-panel .assistant-bubble {
+  font-size: var(--luna-response-font-size, 15px);
+}
+
+.chat-panel .assistant-bubble.markdown-body h2,
+.chat-panel .assistant-bubble.markdown-body h3,
+.chat-panel .assistant-bubble.markdown-body h4,
+.chat-panel .assistant-bubble.markdown-body h5 {
+  font-size: 1em;
+}
+
+.chat-panel .assistant-bubble.markdown-body .markdown-table-wrap table {
+  font-size: 0.8em;
+}
+
+.issue25-candidate-number {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 0 4px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eaf1ed;
+  color: #365948;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.issue23-selection-control.is-confirmation-locked {
+  opacity: 0.62;
+}
+
+.issue23-selection-control.is-confirmation-locked input {
+  cursor: not-allowed;
+}
+
+.issue23-selection-copy small {
+  display: block;
+  margin-top: 2px;
+}
+
+.issue25-confirmation-ready {
+  margin: 8px 0 0;
+  padding: 9px 10px;
+  border: 1px solid #c9d9d0;
+  border-radius: 9px;
+  background: #f4f9f6;
+  color: #456154;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.issue25-confirmation-ready strong {
+  color: #2f5d46;
+}
+
+@media (max-width: 600px) {
+  .luna-font-controls {
+    padding-inline: 14px;
+  }
+}
