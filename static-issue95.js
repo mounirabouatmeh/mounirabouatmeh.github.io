@@ -1,11 +1,10 @@
 (() => {
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
-  const { s, node, money, syncFns, queue } = C;
+  const { s, node, money, formatDateTime, candidateName, candidateStatus, canAuthorizeConfirmation, syncFns, queue } = C;
   const previousFetch = globalThis.fetch.bind(globalThis);
   const CHAT_API = "cuberence-travel-api.vercel.app/api/v1/chat";
   const loadedCandidateIds = new Set();
-  const originalCandidateNumber = C.candidateNumber;
 
   function universeNumber(candidateOrId) {
     const id = typeof candidateOrId === "string" ? candidateOrId : candidateOrId?.id;
@@ -20,9 +19,9 @@
       const number = row?.[numberIndex];
       if (Number.isInteger(number) && number > 0) return number;
     }
-    return originalCandidateNumber(candidateOrId);
+    const index = (s.pricing?.candidates ?? []).findIndex((candidate) => candidate?.id === id);
+    return index >= 0 ? index + 1 : null;
   }
-  C.candidateNumber = universeNumber;
 
   function mergeCandidateDetails(data) {
     if (!s.pricing || data?.kind !== "CANDIDATE_DETAILS") return;
@@ -52,9 +51,8 @@
       }
     }
 
-    // The legacy state interceptor can mistake a candidate-details payload for
-    // pricing because both carry pricingId. Keep the already-completed pricing
-    // phase authoritative; candidateDetails is read-only.
+    // candidateDetails is read-only. If the legacy state interceptor interpreted
+    // the payload as pricing activity, restore the already-completed phase.
     s.phases.pricing = "complete";
     queue();
   }
@@ -131,17 +129,96 @@
     grid.append(fact);
   }
 
+  function flightDesignator(flight) {
+    const carrier = String(flight?.marketingCarrier ?? "").trim();
+    const number = String(flight?.flightNumber ?? "").trim();
+    if (!carrier && !number) return "Flight";
+    if (carrier && number.toUpperCase().startsWith(carrier.toUpperCase())) return number;
+    return `${carrier}${number}`;
+  }
+
+  function addFlight(detail, flight, role) {
+    if (!flight) return;
+    const row = node("div", "issue23-flight-row");
+    row.append(node("span", "issue23-flight-role", role));
+    const copy = node("div", "issue23-flight-detail");
+    copy.append(node("strong", null, flightDesignator(flight)));
+    copy.append(node("span", null, `${flight.origin ?? "—"} → ${flight.destination ?? "—"}`));
+    copy.append(node("small", null, `${formatDateTime(flight.departure)} → ${formatDateTime(flight.arrival)}`));
+    row.append(copy);
+    detail.append(row);
+  }
+
+  function authorizationMessage(candidate) {
+    const number = universeNumber(candidate);
+    return [
+      `I selected Candidate ${number ?? "—"} for Luna to confirm pricing.`,
+      `Candidate ID: ${candidate.id}`,
+      s.pricingId ? `Pricing ID: ${s.pricingId}` : null,
+      `Hub: ${candidateName(candidate)}`,
+      `Pricing status: ${candidateStatus(candidate)}`,
+      "Advisor confirmation authorization: YES",
+      "This checkbox selection is my explicit authorization to run exact flight and fare confirmation for this candidate only. Call the confirmation tool exactly once for this pricingId/candidateId. Do not rerun Baseline, Discovery, or Indicative Pricing, and do not confirm any other candidate unless I explicitly select it later.",
+    ].filter(Boolean).join("\n");
+  }
+
+  function sendAuthorization(candidate, checkbox) {
+    if (!candidate || !canAuthorizeConfirmation(candidate)) {
+      checkbox.checked = false;
+      queue();
+      return;
+    }
+    const input = document.getElementById("message-input");
+    const form = document.getElementById("composer");
+    if (!input || !form) return;
+
+    document.querySelectorAll("#pricing-content input[type=checkbox]").forEach((other) => {
+      if (other !== checkbox) other.checked = false;
+    });
+    s.selectedCandidateId = candidate.id;
+    s.lastSentCandidateId = candidate.id;
+    s.confirmationAuthorizedPending = true;
+    s.phases.summary = "complete";
+    s.phases.confirmation = "ready";
+    s.phases.final = "waiting";
+
+    input.value = authorizationMessage(candidate);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    form.requestSubmit();
+    queue();
+  }
+
+  function selectionControl(candidate) {
+    const label = node("label", "issue16-selection-control issue23-selection-control issue95-selection-control");
+    const checkbox = node("input", "issue95-itinerary-checkbox");
+    checkbox.type = "checkbox";
+    const copy = node("span", "issue16-selection-copy issue23-selection-copy");
+    copy.append(node("strong", null, "Select for Luna to confirm pricing"));
+    copy.append(node("small", null, "Available after Luna finishes analysis and recommendation."));
+    label.append(checkbox, copy);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) sendAuthorization(candidate, checkbox);
+      else if (s.selectedCandidateId === candidate.id && !s.streamBusy) {
+        s.selectedCandidateId = null;
+        s.lastSentCandidateId = null;
+        s.confirmationAuthorizedPending = false;
+        queue();
+      }
+    });
+    return label;
+  }
+
   function createLoadedCandidateCard(candidate) {
-    const card = node("article", "candidate-card interactive-candidate expanded issue95-loaded-finalist");
-    card.tabIndex = 0;
-    card.setAttribute("role", "group");
-    card.setAttribute("aria-expanded", "true");
+    const number = universeNumber(candidate);
+    const card = node("article", "candidate-card expanded issue95-loaded-finalist");
     card.dataset.candidateId = candidate.id;
+    card.dataset.candidateNumber = number == null ? "" : String(number);
 
     const top = node("div", "candidate-top");
     const left = node("div");
-    left.append(node("strong", "result-value", candidate?.hub?.name ?? candidate?.hub?.city ?? candidate?.hub?.id ?? "Stayover"));
-    left.append(node("span", null, "Loaded by Luna from the full candidate analysis"));
+    left.append(node("span", "issue25-candidate-number", `Candidate ${number ?? "—"}`));
+    left.append(node("strong", "result-value", candidateName(candidate)));
+    left.append(node("span", null, "Loaded by Luna from all analyzed candidates"));
     top.append(left);
     top.append(node("b", "candidate-price result-value", money(candidate.totalPrice)));
     card.append(top);
@@ -152,9 +229,10 @@
     facts.append(node("span", null, `${candidate.destinationNights ?? "—"} destination nights`));
     card.append(facts);
     if (candidate.baselineDelta) card.append(node("small", "result-value", `Vs baseline: ${money(candidate.baselineDelta)}`));
-    card.append(node("span", "candidate-expand-hint", "Full finalist details loaded by Luna"));
 
     const detail = node("div", "candidate-detail");
+    const control = selectionControl(candidate);
+    detail.append(control);
     const grid = node("div", "candidate-detail-grid");
     addFact(grid, "Total", money(candidate.totalPrice));
     addFact(grid, "Hub stay", `${candidate.hubNights ?? "—"} night${candidate.hubNights === 1 ? "" : "s"}`);
@@ -165,6 +243,28 @@
     if (candidate.facts?.returnSelfConnectMinutes != null) addFact(grid, "Return self-connect", `${candidate.facts.returnSelfConnectMinutes} min`);
     addFact(grid, "Ticket structure", "2 separate tickets · proxy economics until exact confirmation");
     detail.append(grid);
+
+    if (candidate.exactSchedule) {
+      const schedule = node("section", "issue23-schedule-block");
+      const heading = node("div", "issue23-subheading");
+      heading.append(node("strong", null, "Cuberence flight schedule"));
+      heading.append(node("span", null, "Schedule truth — fare still indicative"));
+      schedule.append(heading);
+      addFlight(schedule, candidate.exactSchedule.outerOutbound, "Home → hub");
+      addFlight(schedule, candidate.exactSchedule.innerOutbound, "Hub → destination");
+      addFlight(schedule, candidate.exactSchedule.innerReturn, "Destination → hub");
+      addFlight(schedule, candidate.exactSchedule.outerReturn, "Hub → home");
+      detail.append(schedule);
+    }
+
+    const risks = Array.isArray(candidate.risks) ? candidate.risks : [];
+    if (risks.length) {
+      const risk = node("div", "candidate-risk-block");
+      risk.append(node("strong", null, "Validation / risk flags"));
+      risk.append(node("span", null, risks.map((value) => String(value).replaceAll("_", " ")).join(" · ")));
+      detail.append(risk);
+    }
+
     card.append(detail);
     return card;
   }
@@ -179,22 +279,37 @@
       const candidate = s.pricing?.candidates?.find((item) => item?.id === candidateId);
       if (!candidate) continue;
       const shouldShow = nightFilter == null || Number(candidate.hubNights) === nightFilter;
-      const existing = [...document.querySelectorAll("#pricing-content .interactive-candidate")]
-        .find((card) => card.dataset.candidateId === candidateId);
+      const existing = document.querySelector(`#pricing-content .issue95-loaded-finalist[data-candidate-id="${CSS.escape(candidateId)}"]`);
       if (!shouldShow) {
         existing?.remove();
         continue;
       }
       if (!existing) list.append(createLoadedCandidateCard(candidate));
+      const card = document.querySelector(`#pricing-content .issue95-loaded-finalist[data-candidate-id="${CSS.escape(candidateId)}"]`);
+      const checkbox = card?.querySelector(".issue95-itinerary-checkbox");
+      const small = card?.querySelector(".issue95-selection-control small");
+      if (checkbox) {
+        const enabled = canAuthorizeConfirmation(candidate);
+        checkbox.disabled = !enabled;
+        checkbox.checked = s.selectedCandidateId === candidate.id;
+      }
+      if (small) {
+        const status = candidateStatus(candidate);
+        if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
+        else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";
+        else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
+        else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
+        else small.textContent = "Checking this box explicitly authorizes exact fare confirmation for this candidate only.";
+      }
     }
 
     const badge = document.getElementById("pricing-badge");
     const total = s.pricing?.page?.fullAnalysis?.candidateUniverse?.total;
     if (badge && Number.isInteger(total) && total > 0) {
-      const shown = document.querySelectorAll("#pricing-content .interactive-candidate").length;
-      badge.textContent = `${total} analyzed · ${shown} loaded`;
+      const loaded = (s.pricing?.candidates ?? []).length;
+      badge.textContent = `${total} analyzed · ${loaded} full details loaded`;
     }
   }
 
-  syncFns.unshift(syncLoadedFinalists);
+  syncFns.push(syncLoadedFinalists);
 })();
