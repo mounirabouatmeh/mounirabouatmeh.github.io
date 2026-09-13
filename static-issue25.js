@@ -5,6 +5,14 @@
   const MAX_SIZE = 20;
   const STEP = 1;
 
+  function loadIssue95Support() {
+    if (document.querySelector('script[data-issue95-support]')) return;
+    const script = document.createElement("script");
+    script.src = "./static-issue95.js?v=1";
+    script.dataset.issue95Support = "true";
+    document.head.append(script);
+  }
+
   function clamp(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return DEFAULT_SIZE;
@@ -60,6 +68,7 @@
     });
   }
 
+  loadIssue95Support();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 })();
