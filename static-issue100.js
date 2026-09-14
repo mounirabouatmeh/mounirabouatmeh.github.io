@@ -191,34 +191,48 @@
     const target = document.getElementById("pricing-content");
     if (!target || !universe) return;
 
-    target.querySelectorAll(".issue100-pagination").forEach((element) => element.remove());
-
     const total = Number(universe.total ?? universe.rows?.length ?? 0);
     const loaded = s.pricing?.candidates?.length ?? 0;
-    if (!total || loaded >= total) return;
+    let control = target.querySelector(".issue100-pagination");
 
-    const control = node("div", "issue100-pagination");
-    control.style.display = "grid";
-    control.style.justifyItems = "center";
-    control.style.gap = "6px";
-    control.style.padding = "12px 0 2px";
+    if (!total || loaded >= total) {
+      control?.remove();
+      return;
+    }
 
-    const button = node("button", "sample-prompt issue100-load-more", `Load ${Math.min(PAGE_SIZE, total - loaded)} more candidates`);
-    button.type = "button";
-    button.setAttribute("aria-label", `Load more priced candidates. ${loaded} of ${total} currently shown.`);
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      loadNextPage();
-    });
+    let button = control?.querySelector(".issue100-load-more");
+    let note = control?.querySelector(".issue100-pagination-note");
 
-    const note = node("small", "issue100-pagination-note", `${loaded} of ${total} candidates shown`);
-    note.style.color = "#66736d";
-    control.append(button, note);
+    if (!control) {
+      control = node("div", "issue100-pagination");
+      control.style.display = "grid";
+      control.style.justifyItems = "center";
+      control.style.gap = "6px";
+      control.style.padding = "12px 0 2px";
 
-    const interactive = target.querySelector(".interactive-pricing");
-    if (interactive) interactive.after(control);
-    else target.append(control);
+      button = node("button", "sample-prompt issue100-load-more");
+      button.type = "button";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        loadNextPage();
+      });
+
+      note = node("small", "issue100-pagination-note");
+      note.style.color = "#66736d";
+      control.append(button, note);
+
+      const interactive = target.querySelector(".interactive-pricing");
+      if (interactive) interactive.after(control);
+      else target.append(control);
+    }
+
+    const nextCount = Math.min(PAGE_SIZE, total - loaded);
+    if (button) {
+      button.textContent = `Load ${nextCount} more candidates`;
+      button.setAttribute("aria-label", `Load more priced candidates. ${loaded} of ${total} currently shown.`);
+    }
+    if (note) note.textContent = `${loaded} of ${total} candidates shown`;
   }
 
   function queuePaginationControl() {
