@@ -109,7 +109,12 @@ try {
   console.log('PASS initial pagination:', pagination);
 
   await page.click('.issue100-load-more');
-  await page.waitForFunction(() => globalThis.CuberenceIssue23.s.pricing.candidates.length === 100);
+  await page.waitForFunction(() => {
+    const C = globalThis.CuberenceIssue23;
+    return C.s.pricing.candidates.length === 100
+      && document.querySelector('.issue100-load-more')?.textContent?.includes('Load 2 more candidates')
+      && document.querySelector('.issue100-pagination-note')?.textContent?.includes('100 of 102');
+  });
   pagination = await page.evaluate(() => ({
     count: globalThis.CuberenceIssue23.s.pricing.candidates.length,
     button: document.querySelector('.issue100-load-more')?.textContent,
@@ -121,7 +126,10 @@ try {
   console.log('PASS second page:', pagination);
 
   await page.click('.issue100-load-more');
-  await page.waitForFunction(() => globalThis.CuberenceIssue23.s.pricing.candidates.length === 102);
+  await page.waitForFunction(() => {
+    const C = globalThis.CuberenceIssue23;
+    return C.s.pricing.candidates.length === 102 && !document.querySelector('.issue100-load-more');
+  });
   pagination = await page.evaluate(() => ({
     count: globalThis.CuberenceIssue23.s.pricing.candidates.length,
     buttonExists: Boolean(document.querySelector('.issue100-load-more')),
