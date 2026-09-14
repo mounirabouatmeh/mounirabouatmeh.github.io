@@ -1,0 +1,39 @@
+name: Issue 100 Live Acceptance
+
+on:
+  pull_request:
+    paths:
+      - scripts/issue100-live-acceptance.mjs
+      - .github/workflows/issue100-live-acceptance.yml
+
+permissions:
+  contents: read
+
+jobs:
+  live-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: npm install --no-save --no-audit --no-fund playwright@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run live production acceptance
+        run: node scripts/issue100-live-acceptance.mjs
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue100-live-acceptance
+          path: issue100-live-acceptance.png
+          if-no-files-found: ignore
