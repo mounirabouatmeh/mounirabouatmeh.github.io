@@ -3,6 +3,7 @@ name: Issue 100 Live Acceptance
 on:
   pull_request:
     paths:
+      - static-issue100.js
       - scripts/issue100-live-acceptance.mjs
       - .github/workflows/issue100-live-acceptance.yml
 
@@ -20,6 +21,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Check Issue 100 JavaScript syntax
+        run: node --check static-issue100.js
 
       - name: Install Playwright
         run: npm install --no-save --no-audit --no-fund playwright@1.55.0
