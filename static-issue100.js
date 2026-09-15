@@ -2,7 +2,7 @@
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
 
-  const { s, syncFns, node, money } = C;
+  const { s, syncFns, node } = C;
   const PAGE_SIZE = 50;
   const confirmationsByCandidate = new Map();
   let activePricingId = null;
@@ -54,7 +54,8 @@
 
   C.canAuthorizeConfirmation = (candidate) => {
     if (!candidate || s.streamBusy || s.confirmationAuthorizedPending) return false;
-    if (C.candidateStatus(candidate) !== "PROXY") return false;
+    const status = C.candidateStatus(candidate);
+    if (status !== "PROXY" && status !== "UNPRICED") return false;
     if (s.phases.summary !== "complete") return false;
     return s.phases.confirmation !== "running";
   };
@@ -74,6 +75,8 @@
     const risks = typeof record.risks === "string" && record.risks
       ? record.risks.split("|").filter(Boolean)
       : [];
+    const priceAmount = record.totalPrice == null ? null : Number(record.totalPrice);
+    const resolvedCurrency = String(currency ?? s.pricing?.candidates?.find((candidate) => candidate?.totalPrice?.currency)?.totalPrice?.currency ?? "");
     return {
       id: String(record.candidateId),
       hub: {
@@ -81,19 +84,21 @@
         name: String(record.hubName ?? record.hubId ?? "Stayover"),
       },
       hubNights: Number(record.hubNights ?? 0),
-      totalPrice: {
-        currency: String(currency ?? s.pricing?.candidates?.[0]?.totalPrice?.currency ?? ""),
-        amount: Number(record.totalPrice ?? 0),
-      },
+      ...(Number.isFinite(priceAmount) ? {
+        totalPrice: {
+          currency: resolvedCurrency,
+          amount: priceAmount,
+        },
+      } : {}),
       ...(record.baselineDelta == null ? {} : {
         baselineDelta: {
-          currency: String(currency ?? s.pricing?.candidates?.[0]?.totalPrice?.currency ?? ""),
+          currency: resolvedCurrency,
           amount: Number(record.baselineDelta),
         },
       }),
       usableCityHours: Number(record.usableCityHours ?? 0),
       candidateStatus: String(record.candidateStatus ?? "VALID"),
-      pricingStatus: String(record.pricingStatus ?? "PROXY"),
+      pricingStatus: String(record.pricingStatus ?? (Number.isFinite(priceAmount) ? "PROXY" : "UNPRICED")),
       strategy: "SPLIT",
       facts: {
         returnSelfConnectMinutes: record.returnSelfConnectMinutes == null ? null : Number(record.returnSelfConnectMinutes),
@@ -230,7 +235,7 @@
     const nextCount = Math.min(PAGE_SIZE, total - loaded);
     if (button) {
       button.textContent = `Load ${nextCount} more candidates`;
-      button.setAttribute("aria-label", `Load more priced candidates. ${loaded} of ${total} currently shown.`);
+      button.setAttribute("aria-label", `Load more candidates. ${loaded} of ${total} currently shown.`);
     }
     if (note) note.textContent = `${loaded} of ${total} candidates shown`;
   }
