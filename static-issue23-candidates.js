@@ -49,7 +49,8 @@
     const block = node("section", "issue23-schedule-block");
     const heading = node("div", "issue23-subheading");
     heading.append(node("strong", null, status === "CONFIRMED" ? "Confirmed flight schedule" : "Cuberence flight schedule"));
-    if (status !== "CONFIRMED") heading.append(node("span", null, "Schedule truth — fare still indicative"));
+    if (status === "UNPRICED") heading.append(node("span", null, "Direct schedule available — exact price required"));
+    else if (status !== "CONFIRMED") heading.append(node("span", null, "Schedule truth — fare still indicative"));
     block.append(heading);
     [
       [exact.outerOutbound, "Home → hub"],
@@ -77,6 +78,13 @@
       count != null ? `Proxy offers: ${count}` : null,
     ].filter(Boolean).join(" · ");
     block.append(node("span", null, details || "Proxy pricing evidence available."));
+    return block;
+  }
+
+  function unpricedBlock() {
+    const block = node("div", "issue23-proxy-evidence issue103-unpriced-evidence");
+    block.append(node("strong", null, "Exact price required"));
+    block.append(node("span", null, "Cuberence found the direct flight schedule, but no direct Sabre proxy fare is available. Select this candidate to run the exact flight/fare check."));
     return block;
   }
 
@@ -149,7 +157,7 @@
     const enabled = canAuthorizeConfirmation(candidate);
     const number = candidateNumber(candidate);
 
-    control.classList.toggle("is-confirmation-locked", !enabled && status === "PROXY");
+    control.classList.toggle("is-confirmation-locked", !enabled && (status === "PROXY" || status === "UNPRICED"));
     if (checkbox) {
       checkbox.checked = selected;
       checkbox.disabled = !enabled;
@@ -162,6 +170,7 @@
     else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";
     else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
     else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
+    else if (status === "UNPRICED") small.textContent = "Checking this box explicitly authorizes the exact flight/fare check for this direct schedule.";
     else small.textContent = "Checking this box explicitly authorizes exact fare confirmation for this candidate only.";
   }
 
@@ -195,20 +204,34 @@
         if (price) price.before(badge); else top.append(badge);
       }
       badge.textContent = ({
-        UNPRICED: "Unpriced",
+        UNPRICED: "Exact price required",
         PROXY: "Indicative price",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: "Confirmed fare",
         EXACT_CHECK_FAILED: "Exact check failed",
       })[status] ?? status;
       const price = top.querySelector(".candidate-price");
-      if (price) price.textContent = money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+      if (price) price.textContent = status === "UNPRICED"
+        ? "Exact check"
+        : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     }
 
     const detail = card.querySelector(".candidate-detail");
     if (!detail) return;
-    updateFact(detail, "Total", money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice), status === "CONFIRMED" ? "Confirmed total" : "Indicative total");
-    updateFact(detail, "Ticket structure", status === "CONFIRMED" ? "2 separate tickets · exact fare confirmed" : "2 separate tickets · proxy economics until exact confirmation");
+    const displayedPrice = status === "UNPRICED"
+      ? "Exact confirmation required"
+      : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+    const priceLabel = status === "CONFIRMED" ? "Confirmed total" : status === "UNPRICED" ? "Price" : "Indicative total";
+    updateFact(detail, "Total", displayedPrice, priceLabel);
+    updateFact(
+      detail,
+      "Ticket structure",
+      status === "CONFIRMED"
+        ? "2 separate tickets · exact fare confirmed"
+        : status === "UNPRICED"
+          ? "2 separate direct tickets · exact price required"
+          : "2 separate direct tickets · proxy economics until exact confirmation",
+    );
     detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure,.issue25-confirmation-ready").forEach((element) => element.remove());
 
     let control = detail.querySelector(".issue23-selection-control");
@@ -219,7 +242,7 @@
     updateSelectionControl(control, candidate, status, selected);
 
     let anchor = control;
-    if (status === "PROXY" && s.phases.summary === "complete" && canAuthorizeConfirmation(candidate)) {
+    if ((status === "PROXY" || status === "UNPRICED") && s.phases.summary === "complete" && canAuthorizeConfirmation(candidate)) {
       const ready = node("div", "issue25-confirmation-ready");
       ready.append(node("strong", null, `Candidate ${number ?? "—"} is available for exact confirmation.`));
       ready.append(document.createTextNode(" Open this card only if you want Luna to exact-check this itinerary, then use the checkbox above."));
@@ -242,6 +265,10 @@
         anchor.after(block);
         anchor = block;
       }
+    } else if (status === "UNPRICED") {
+      const exactRequired = unpricedBlock();
+      anchor.after(exactRequired);
+      anchor = exactRequired;
     } else {
       const proxy = proxyBlock(candidate);
       if (proxy) {
@@ -264,7 +291,7 @@
     const badge = document.getElementById("pricing-badge");
     if (badge) {
       const count = s.pricing.candidates?.length ?? 0;
-      badge.textContent = `${count} indicative candidate${count === 1 ? "" : "s"}`;
+      badge.textContent = `${count} candidate${count === 1 ? "" : "s"}`;
     }
   }
 
