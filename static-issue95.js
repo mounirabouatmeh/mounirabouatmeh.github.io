@@ -296,7 +296,8 @@
       if (small) {
         const status = candidateStatus(candidate);
         if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
-        else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";
+        else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
+        else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
         else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
         else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
         else small.textContent = "Checking this box explicitly authorizes exact fare confirmation for this candidate only.";

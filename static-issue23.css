@@ -125,6 +125,18 @@
   background: #eef8f2;
 }
 
+.interactive-candidate[data-pricing-status="EXACT_PRICE_UNAVAILABLE"] {
+  border-color: #d8ba73 !important;
+  background: #fffaf1 !important;
+  box-shadow: inset 4px 0 0 #ba8b2c !important;
+}
+
+.interactive-candidate[data-pricing-status="EXACT_PRICE_UNAVAILABLE"] .issue23-price-state {
+  border-color: #d8ba73;
+  color: #7c5b19;
+  background: #fff6df;
+}
+
 .interactive-candidate[data-pricing-status="EXACT_CHECK_FAILED"] {
   border-color: #d9a5a5 !important;
   background: #fff7f7 !important;
@@ -143,6 +155,7 @@
 
 .issue23-luna-recommendation,
 .issue23-exact-failure,
+.issue23-exact-unavailable,
 .issue23-proxy-evidence,
 .issue23-confirmed-evidence {
   margin: 10px 0;
@@ -157,6 +170,12 @@
   color: #745718;
   background: #fff7e3;
   font-weight: 700;
+}
+
+.issue23-exact-unavailable {
+  border: 1px solid #d8ba73;
+  color: #745718;
+  background: #fff7e3;
 }
 
 .issue23-exact-failure {
@@ -289,6 +308,12 @@
 
 .issue23-confirmation-card.is-running,
 .issue23-final-card.is-running {
+  border-color: #d8ba73;
+  background: #fffaf0;
+}
+
+.issue23-confirmation-card.is-unavailable,
+.issue23-final-card.is-unavailable {
   border-color: #d8ba73;
   background: #fffaf0;
 }
