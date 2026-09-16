@@ -1,0 +1,232 @@
+name: Issue 114 UI patch
+
+on:
+  push:
+    branches: [issue-114-exact-price-unavailable]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    if: github.actor == 'mounirabouatmeh'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-114-exact-price-unavailable
+          fetch-depth: 0
+      - name: Apply exact-price-unavailable UI
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  raise SystemExit(f"expected text not found in {path}: {old[:120]!r}")
+              p.write_text(text.replace(old, new))
+
+          # Core state machine: unavailable is a completed provider outcome, not an error.
+          replace(
+              "static-issue23-state.js",
+              '    if (x?.status === "CONFIRMED") return "CONFIRMED";\n    if (x?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";',
+              '    if (x?.status === "CONFIRMED") return "CONFIRMED";\n    if (x?.status === "EXACT_PRICE_UNAVAILABLE") return "EXACT_PRICE_UNAVAILABLE";\n    if (x?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";',
+          )
+          replace(
+              "static-issue23-state.js",
+              '    } else if (tool === "confirmation" || (["CONFIRMED", "EXACT_CHECK_FAILED"].includes(data.status) && data.candidateId)) {',
+              '    } else if (tool === "confirmation" || (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && data.candidateId)) {',
+          )
+          replace(
+              "static-issue23-state.js",
+              '      s.phases.confirmation = data.status === "CONFIRMED" ? "complete" : "error";\n      s.phases.final = data.status === "CONFIRMED" ? "running" : "waiting";',
+              '      const usableOutcome = data.status === "CONFIRMED" || data.status === "EXACT_PRICE_UNAVAILABLE";\n      s.phases.confirmation = usableOutcome ? "complete" : "error";\n      s.phases.final = usableOutcome ? "running" : "waiting";',
+          )
+          replace(
+              "static-issue23-state.js",
+              '      if (s.confirmation?.status === "CONFIRMED") s.reviewTextSeen = true;',
+              '      if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.reviewTextSeen = true;',
+          )
+          replace(
+              "static-issue23-state.js",
+              '      if (s.confirmation?.status === "CONFIRMED") s.phases.final = s.reviewTextSeen ? "complete" : "ready";',
+              '      if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.phases.final = s.reviewTextSeen ? "complete" : "ready";',
+          )
+          replace(
+              "static-issue23-state.js",
+              '&& s.confirmation?.status !== "CONFIRMED") {',
+              '&& !["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) {',
+          )
+
+          # Pagination / remembered candidate state.
+          replace(
+              "static-issue100.js",
+              '    if (confirmation.status === "CONFIRMED" || confirmation.status === "EXACT_CHECK_FAILED") {',
+              '    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(confirmation.status)) {',
+          )
+          replace(
+              "static-issue100.js",
+              '    if (remembered?.status === "CONFIRMED") return "CONFIRMED";\n    if (remembered?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";',
+              '    if (remembered?.status === "CONFIRMED") return "CONFIRMED";\n    if (remembered?.status === "EXACT_PRICE_UNAVAILABLE") return "EXACT_PRICE_UNAVAILABLE";\n    if (remembered?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";',
+          )
+
+          # Candidate cards.
+          replace(
+              "static-issue23-candidates.js",
+              '    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";',
+              '    else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";\n    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";',
+          )
+          replace(
+              "static-issue23-candidates.js",
+              '        CONFIRMED: "Confirmed fare",\n        EXACT_CHECK_FAILED: "Exact check failed",',
+              '        CONFIRMED: "Confirmed fare",\n        EXACT_PRICE_UNAVAILABLE: "Exact fare unavailable",\n        EXACT_CHECK_FAILED: "Exact check failed",',
+          )
+          replace(
+              "static-issue23-candidates.js",
+              '        ? "2 separate tickets · exact fare confirmed"\n        : status === "UNPRICED"\n          ? "2 separate direct tickets · exact price required"\n          : "2 separate direct tickets · proxy economics until exact confirmation",',
+              '        ? "2 separate tickets · exact fare confirmed"\n        : status === "EXACT_PRICE_UNAVAILABLE"\n          ? "2 separate direct tickets · exact Sabre fare unavailable"\n          : status === "UNPRICED"\n            ? "2 separate direct tickets · exact price required"\n            : "2 separate direct tickets · proxy economics until exact confirmation",',
+          )
+          replace(
+              "static-issue23-candidates.js",
+              '.issue23-luna-recommendation,.issue23-exact-failure,.issue25-confirmation-ready',
+              '.issue23-luna-recommendation,.issue23-exact-failure,.issue23-exact-unavailable,.issue25-confirmation-ready',
+          )
+          replace(
+              "static-issue23-candidates.js",
+              '    if (status === "EXACT_CHECK_FAILED") {\n      detail.append(node("div", "issue23-exact-failure", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "Exact fare confirmation did not validate this candidate."));\n    }',
+              '    if (status === "EXACT_PRICE_UNAVAILABLE") {\n      detail.append(node("div", "issue23-exact-unavailable", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "The schedule remains valid, but Sabre could not provide an exact fare. Indicative pricing remains available."));\n    } else if (status === "EXACT_CHECK_FAILED") {\n      detail.append(node("div", "issue23-exact-failure", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "Exact fare confirmation failed because of a technical or validation problem."));\n    }',
+          )
+
+          # Candidate details loaded after pagination/finalist lookup.
+          replace(
+              "static-issue95.js",
+              '        if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";\n        else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";',
+              '        if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";\n        else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";\n        else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";',
+          )
+
+          # Workflow/status panels.
+          replace(
+              "static-issue23-workflow.js",
+              '    if (s.confirmation?.status === "CONFIRMED" && p.final === "waiting") {',
+              '    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && p.final === "waiting") {',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '          ? "Confirmed"\n          : p.confirmation === "ready"',
+              '          ? (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" ? "Fare unavailable" : "Confirmed")\n          : p.confirmation === "ready"',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '      if (s.phases.confirmation === "error") {\n        return ["Exact confirmation needs another candidate selection.", false];\n      }',
+              '      if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {\n        return ["Exact Sabre fare unavailable — the Cuberence schedule remains valid.", false];\n      }\n      if (s.phases.confirmation === "error") {\n        return ["Exact confirmation hit a technical or validation problem.", false];\n      }',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '    if (s.confirmation?.status === "CONFIRMED") return ["Luna is reviewing the confirmed fare…", true];\n    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the failed exact check…", true];',
+              '    if (s.confirmation?.status === "CONFIRMED") return ["Luna is reviewing the confirmed fare…", true];\n    if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") return ["Luna is reviewing the valid schedule with unavailable exact fare…", true];\n    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the technical exact-check failure…", true];',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '    if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy && s.reviewTextSeen) ws.textContent = "Final recommendation";\n    else if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy) ws.textContent = "Confirmed · Luna review pending";\n    else if (s.confirmation?.status === "CONFIRMED") ws.textContent = "Confirmed · reviewing";\n    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Select another candidate";',
+              '    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && !s.streamBusy && s.reviewTextSeen) ws.textContent = "Final recommendation";\n    else if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy) ws.textContent = "Confirmed · Luna review pending";\n    else if (s.confirmation?.status === "CONFIRMED") ws.textContent = "Confirmed · reviewing";\n    else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && !s.streamBusy) ws.textContent = "Exact fare unavailable · Luna review pending";\n    else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") ws.textContent = "Exact fare unavailable · reviewing";\n    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Exact check needs attention";',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '    if (s.confirmation?.status === "CONFIRMED" && s.reviewTextSeen && !s.streamBusy) {',
+              '    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && s.reviewTextSeen && !s.streamBusy) {',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '        "Final recommendation complete. The selected fare is confirmed; other unconfirmed alternatives remain indicative.",',
+              '        s.confirmation?.status === "CONFIRMED"\n          ? "Final recommendation complete. The selected fare is confirmed; other unconfirmed alternatives remain indicative."\n          : "Final recommendation complete. The selected schedule remains valid, but Sabre could not provide its exact fare; the displayed price remains indicative.",',
+          )
+          # Insert unavailable composer branch before hard failure.
+          replace(
+              "static-issue23-workflow.js",
+              '    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {',
+              '    if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {\n      setComposer(\n        s.streamBusy ? "Luna is reviewing the exact-fare coverage gap…" : "Ask a follow-up about this candidate…",\n        s.streamBusy\n          ? "The schedule remains valid. Sabre could not provide the exact fare, so Luna is reviewing the candidate using its indicative economics and travel value."\n          : "Sabre exact fare is unavailable for this valid schedule. The candidate remains eligible; its displayed price is indicative.",\n        !s.streamBusy,\n      );\n      return;\n    }\n\n    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '    } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {\n      badge.textContent = "Select another";',
+              '    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {\n      badge.textContent = "Fare unavailable";\n      const c = s.confirmation.candidate;\n      const number = candidateNumber(c);\n      card = node("div", "issue23-confirmation-card is-unavailable");\n      card.append(\n        node("strong", null, `Exact fare unavailable · Candidate ${number ?? "—"} · ${candidateName(c)}`),\n        node("p", null, s.confirmation?.message ?? c?.exactCheckFailure?.message ?? "AeroDataBox schedule remains valid, but Sabre could not provide an exact fare. Indicative pricing remains available."),\n      );\n    } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {\n      badge.textContent = "Needs attention";',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '        node("strong", null, "Exact check did not confirm the selected candidate"),\n        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Choose another Luna-recommended candidate if you want to continue."),',
+              '        node("strong", null, "Exact check encountered a technical or validation problem"),\n        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Luna will explain the failure before another candidate is selected."),',
+          )
+          # Add unavailable final-panel branch before hard failure.
+          replace(
+              "static-issue23-workflow.js",
+              '    } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {\n      badge.textContent = "Pending new selection";',
+              '    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && s.streamBusy) {\n      badge.textContent = "Reviewing";\n      card.classList.add("is-unavailable");\n      card.append(\n        node("strong", null, "Luna is reviewing a valid schedule with unavailable exact fare"),\n        node("p", null, "The candidate remains eligible. Luna is using schedule value and clearly labeled indicative economics."),\n      );\n    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && s.reviewTextSeen) {\n      badge.textContent = "Final";\n      card.classList.add("is-unavailable");\n      card.append(\n        node("strong", null, "Final recommendation available in chat"),\n        node("p", null, "The schedule remains valid; Sabre exact fare was unavailable and the displayed price remains indicative."),\n      );\n    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {\n      badge.textContent = "Luna review";\n      card.classList.add("is-unavailable");\n      card.append(\n        node("strong", null, "Exact fare unavailable · Luna review pending"),\n        node("p", null, "A provider coverage gap does not invalidate the Cuberence schedule."),\n      );\n    } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {\n      badge.textContent = "Needs attention";',
+          )
+          replace(
+              "static-issue23-workflow.js",
+              '        node("p", null, "The exact check failed. Luna will not automatically confirm another candidate; the advisor must explicitly select one."),',
+              '        node("p", null, "The exact check encountered a technical or validation problem. Luna will not automatically confirm another candidate."),',
+          )
+
+          # Neutral/amber visual treatment for coverage gaps, not red failure treatment.
+          css = Path("static-issue23.css")
+          css_text = css.read_text()
+          marker = '.interactive-candidate[data-pricing-status="EXACT_CHECK_FAILED"] {'
+          if marker not in css_text:
+              raise SystemExit("CSS failure marker not found")
+          unavailable_css = '''.interactive-candidate[data-pricing-status="EXACT_PRICE_UNAVAILABLE"] {\n  border-color: #d8ba73 !important;\n  background: #fffaf1 !important;\n  box-shadow: inset 4px 0 0 #ba8b2c !important;\n}\n\n.interactive-candidate[data-pricing-status="EXACT_PRICE_UNAVAILABLE"] .issue23-price-state {\n  border-color: #d8ba73;\n  color: #7c5b19;\n  background: #fff6df;\n}\n\n'''
+          css_text = css_text.replace(marker, unavailable_css + marker)
+          css_text = css_text.replace(
+              '.issue23-luna-recommendation,\n.issue23-exact-failure,\n.issue23-proxy-evidence,',
+              '.issue23-luna-recommendation,\n.issue23-exact-failure,\n.issue23-exact-unavailable,\n.issue23-proxy-evidence,',
+          )
+          css_text = css_text.replace(
+              '.issue23-exact-failure {\n  border: 1px solid #e0b7b7;',
+              '.issue23-exact-unavailable {\n  border: 1px solid #d8ba73;\n  color: #745718;\n  background: #fff7e3;\n}\n\n.issue23-exact-failure {\n  border: 1px solid #e0b7b7;',
+          )
+          css_text = css_text.replace(
+              '.issue23-confirmation-card.is-confirmed,\n.issue23-final-card.is-complete {',
+              '.issue23-confirmation-card.is-unavailable,\n.issue23-final-card.is-unavailable {\n  border-color: #d8ba73;\n  background: #fffaf0;\n}\n\n.issue23-confirmation-card.is-confirmed,\n.issue23-final-card.is-complete {',
+          )
+          css.write_text(css_text)
+
+          # Bump cache keys for every modified frontend asset.
+          index = Path("index.html")
+          text = index.read_text()
+          for old, new in [
+              ('static-issue23.css?v=1', 'static-issue23.css?v=2'),
+              ('static-issue23-state.js?v=3', 'static-issue23-state.js?v=4'),
+              ('static-issue100.js?v=1', 'static-issue100.js?v=2'),
+              ('static-issue23-workflow.js?v=3', 'static-issue23-workflow.js?v=4'),
+              ('static-issue23-candidates.js?v=3', 'static-issue23-candidates.js?v=4'),
+              ('static-issue95.js?v=2', 'static-issue95.js?v=3'),
+          ]:
+              if old in text:
+                  text = text.replace(old, new)
+          index.write_text(text)
+          PY
+      - name: Verify JavaScript and new status coverage
+        shell: bash
+        run: |
+          node --check static-issue23-state.js
+          node --check static-issue100.js
+          node --check static-issue23-workflow.js
+          node --check static-issue23-candidates.js
+          node --check static-issue95.js
+          grep -q 'EXACT_PRICE_UNAVAILABLE' static-issue23-state.js
+          grep -q 'Exact fare unavailable' static-issue23-candidates.js
+          grep -q 'is-unavailable' static-issue23-workflow.js
+          grep -q 'EXACT_PRICE_UNAVAILABLE' static-issue100.js
+          grep -q 'EXACT_PRICE_UNAVAILABLE' static-issue95.js
+      - name: Commit implementation and remove temporary workflow
+        shell: bash
+        run: |
+          rm .github/workflows/issue114-ui-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Render exact fare unavailable state"
+          git push origin HEAD:issue-114-exact-price-unavailable
