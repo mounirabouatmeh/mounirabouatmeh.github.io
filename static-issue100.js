@@ -21,7 +21,7 @@
     const confirmation = s.confirmation;
     const candidateId = confirmation?.candidateId;
     if (!candidateId) return;
-    if (confirmation.status === "CONFIRMED" || confirmation.status === "EXACT_CHECK_FAILED") {
+    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(confirmation.status)) {
       confirmationsByCandidate.set(candidateId, confirmation);
     }
   }
@@ -32,6 +32,7 @@
     const candidateId = candidate?.id;
     const remembered = candidateId ? confirmationsByCandidate.get(candidateId) : null;
     if (remembered?.status === "CONFIRMED") return "CONFIRMED";
+    if (remembered?.status === "EXACT_PRICE_UNAVAILABLE") return "EXACT_PRICE_UNAVAILABLE";
     if (remembered?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";
     if (s.phases.confirmation === "running" && s.confirmationCandidateId === candidateId) return "EXACT_CHECK_PENDING";
     return originalCandidateStatus(candidate);

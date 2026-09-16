@@ -26,7 +26,7 @@
     if (s.pricing?.phase === "completed") p.pricing = "complete";
     if (p.pricing === "complete" && p.summary === "waiting") p.summary = s.streamBusy ? "running" : "ready";
     if (p.summary === "complete" && p.confirmation === "waiting") p.confirmation = "ready";
-    if (s.confirmation?.status === "CONFIRMED" && p.final === "waiting") {
+    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && p.final === "waiting") {
       p.final = s.streamBusy ? "running" : s.reviewTextSeen ? "complete" : "ready";
     }
 
@@ -41,7 +41,7 @@
       p.confirmation === "running"
         ? "Confirming"
         : p.confirmation === "complete"
-          ? "Confirmed"
+          ? (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" ? "Fare unavailable" : "Confirmed")
           : p.confirmation === "ready"
             ? "Select candidate"
             : p.confirmation === "error"
@@ -63,14 +63,18 @@
       if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
         return ["Luna analysis complete — select a candidate for exact confirmation.", false];
       }
+      if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+        return ["Exact Sabre fare unavailable — the Cuberence schedule remains valid.", false];
+      }
       if (s.phases.confirmation === "error") {
-        return ["Exact confirmation needs another candidate selection.", false];
+        return ["Exact confirmation hit a technical or validation problem.", false];
       }
       return ["Ready for the next instruction.", false];
     }
     if (s.phases.confirmation === "running") return ["Confirming the exact selected flights and fare…", true];
     if (s.confirmation?.status === "CONFIRMED") return ["Luna is reviewing the confirmed fare…", true];
-    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the failed exact check…", true];
+    if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") return ["Luna is reviewing the valid schedule with unavailable exact fare…", true];
+    if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the technical exact-check failure…", true];
     if (s.phases.pricing === "running") return ["Evaluating stayover options…", true];
     if (s.pricing?.phase === "completed") return ["Luna is analyzing the candidate set…", true];
     if (s.phases.discovery === "running") return ["Identifying feasible stayover hubs…", true];
@@ -90,10 +94,12 @@
 
     const ws = document.getElementById("workspace-status");
     if (!ws) return;
-    if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy && s.reviewTextSeen) ws.textContent = "Final recommendation";
+    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && !s.streamBusy && s.reviewTextSeen) ws.textContent = "Final recommendation";
     else if (s.confirmation?.status === "CONFIRMED" && !s.streamBusy) ws.textContent = "Confirmed · Luna review pending";
     else if (s.confirmation?.status === "CONFIRMED") ws.textContent = "Confirmed · reviewing";
-    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Select another candidate";
+    else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && !s.streamBusy) ws.textContent = "Exact fare unavailable · Luna review pending";
+    else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") ws.textContent = "Exact fare unavailable · reviewing";
+    else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Exact check needs attention";
     else if (s.phases.confirmation === "running") ws.textContent = "Confirming exact fare";
     else if (s.phases.discovery === "ready") ws.textContent = "Waiting for hub selection";
     else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") ws.textContent = "Waiting for advisor selection";
@@ -135,11 +141,24 @@
       return;
     }
 
-    if (s.confirmation?.status === "CONFIRMED" && s.reviewTextSeen && !s.streamBusy) {
+    if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status) && s.reviewTextSeen && !s.streamBusy) {
       setComposer(
         "Ask a follow-up about the final recommendation…",
-        "Final recommendation complete. The selected fare is confirmed; other unconfirmed alternatives remain indicative.",
+        s.confirmation?.status === "CONFIRMED"
+          ? "Final recommendation complete. The selected fare is confirmed; other unconfirmed alternatives remain indicative."
+          : "Final recommendation complete. The selected schedule remains valid, but Sabre could not provide its exact fare; the displayed price remains indicative.",
         true,
+      );
+      return;
+    }
+
+    if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+      setComposer(
+        s.streamBusy ? "Luna is reviewing the exact-fare coverage gap…" : "Ask a follow-up about this candidate…",
+        s.streamBusy
+          ? "The schedule remains valid. Sabre could not provide the exact fare, so Luna is reviewing the candidate using its indicative economics and travel value."
+          : "Sabre exact fare is unavailable for this valid schedule. The candidate remains eligible; its displayed price is indicative.",
+        !s.streamBusy,
       );
       return;
     }
@@ -208,12 +227,21 @@
       if (p?.proxyPrice) {
         card.append(node("p", null, `Indicative was ${money(p.proxyPrice)}${p.delta ? ` · Change ${money(p.delta)}` : ""}`));
       }
+    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+      badge.textContent = "Fare unavailable";
+      const c = s.confirmation.candidate;
+      const number = candidateNumber(c);
+      card = node("div", "issue23-confirmation-card is-unavailable");
+      card.append(
+        node("strong", null, `Exact fare unavailable · Candidate ${number ?? "—"} · ${candidateName(c)}`),
+        node("p", null, s.confirmation?.message ?? c?.exactCheckFailure?.message ?? "AeroDataBox schedule remains valid, but Sabre could not provide an exact fare. Indicative pricing remains available."),
+      );
     } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
-      badge.textContent = "Select another";
+      badge.textContent = "Needs attention";
       card = node("div", "issue23-confirmation-card is-failed");
       card.append(
-        node("strong", null, "Exact check did not confirm the selected candidate"),
-        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Choose another Luna-recommended candidate if you want to continue."),
+        node("strong", null, "Exact check encountered a technical or validation problem"),
+        node("p", null, s.confirmation?.message ?? s.confirmation?.candidate?.exactCheckFailure?.message ?? "Luna will explain the failure before another candidate is selected."),
       );
     } else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
       badge.textContent = "Waiting for advisor";
@@ -261,12 +289,33 @@
         node("strong", null, "Confirmed fare awaiting Luna re-evaluation"),
         node("p", null, "The UI will not mark the recommendation final until Luna has reviewed the confirmed result."),
       );
+    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && s.streamBusy) {
+      badge.textContent = "Reviewing";
+      card.classList.add("is-unavailable");
+      card.append(
+        node("strong", null, "Luna is reviewing a valid schedule with unavailable exact fare"),
+        node("p", null, "The candidate remains eligible. Luna is using schedule value and clearly labeled indicative economics."),
+      );
+    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE" && s.reviewTextSeen) {
+      badge.textContent = "Final";
+      card.classList.add("is-unavailable");
+      card.append(
+        node("strong", null, "Final recommendation available in chat"),
+        node("p", null, "The schedule remains valid; Sabre exact fare was unavailable and the displayed price remains indicative."),
+      );
+    } else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+      badge.textContent = "Luna review";
+      card.classList.add("is-unavailable");
+      card.append(
+        node("strong", null, "Exact fare unavailable · Luna review pending"),
+        node("p", null, "A provider coverage gap does not invalidate the Cuberence schedule."),
+      );
     } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
-      badge.textContent = "Pending new selection";
+      badge.textContent = "Needs attention";
       card.classList.add("is-failed");
       card.append(
         node("strong", null, "Recommendation not final"),
-        node("p", null, "The exact check failed. Luna will not automatically confirm another candidate; the advisor must explicitly select one."),
+        node("p", null, "The exact check encountered a technical or validation problem. Luna will not automatically confirm another candidate."),
       );
     } else {
       badge.textContent = "Pending";

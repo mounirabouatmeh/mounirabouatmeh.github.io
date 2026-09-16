@@ -167,7 +167,8 @@
     if (!small) return;
     if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
-    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed. Choose another candidate if Luna recommends one.";
+    else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
+    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
     else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
     else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
     else if (status === "UNPRICED") small.textContent = "Checking this box explicitly authorizes the exact flight/fare check for this direct schedule.";
@@ -208,6 +209,7 @@
         PROXY: "Indicative price",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: "Confirmed fare",
+        EXACT_PRICE_UNAVAILABLE: "Exact fare unavailable",
         EXACT_CHECK_FAILED: "Exact check failed",
       })[status] ?? status;
       const price = top.querySelector(".candidate-price");
@@ -228,11 +230,13 @@
       "Ticket structure",
       status === "CONFIRMED"
         ? "2 separate tickets · exact fare confirmed"
-        : status === "UNPRICED"
-          ? "2 separate direct tickets · exact price required"
-          : "2 separate direct tickets · proxy economics until exact confirmation",
+        : status === "EXACT_PRICE_UNAVAILABLE"
+          ? "2 separate direct tickets · exact Sabre fare unavailable"
+          : status === "UNPRICED"
+            ? "2 separate direct tickets · exact price required"
+            : "2 separate direct tickets · proxy economics until exact confirmation",
     );
-    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure,.issue25-confirmation-ready").forEach((element) => element.remove());
+    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure,.issue23-exact-unavailable,.issue25-confirmation-ready").forEach((element) => element.remove());
 
     let control = detail.querySelector(".issue23-selection-control");
     if (!control) {
@@ -278,8 +282,10 @@
     }
 
     detail.querySelectorAll(":scope > .ticket-detail").forEach((element) => { element.hidden = true; });
-    if (status === "EXACT_CHECK_FAILED") {
-      detail.append(node("div", "issue23-exact-failure", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "Exact fare confirmation did not validate this candidate."));
+    if (status === "EXACT_PRICE_UNAVAILABLE") {
+      detail.append(node("div", "issue23-exact-unavailable", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "The schedule remains valid, but Sabre could not provide an exact fare. Indicative pricing remains available."));
+    } else if (status === "EXACT_CHECK_FAILED") {
+      detail.append(node("div", "issue23-exact-failure", effective?.exactCheckFailure?.message ?? s.confirmation?.message ?? "Exact fare confirmation failed because of a technical or validation problem."));
     }
   }
 
