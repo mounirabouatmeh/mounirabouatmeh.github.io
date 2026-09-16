@@ -234,7 +234,7 @@
       card = node("div", "issue23-confirmation-card is-unavailable");
       card.append(
         node("strong", null, `Exact fare unavailable · Candidate ${number ?? "—"} · ${candidateName(c)}`),
-        node("p", null, s.confirmation?.message ?? c?.exactCheckFailure?.message ?? "AeroDataBox schedule remains valid, but Sabre could not provide an exact fare. Indicative pricing remains available."),
+        node("p", null, s.confirmation?.message ?? c?.exactCheckFailure?.message ?? "Cuberence schedule remains valid, but the exact fare could not be provided. Indicative pricing remains available."),
       );
     } else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") {
       badge.textContent = "Needs attention";
