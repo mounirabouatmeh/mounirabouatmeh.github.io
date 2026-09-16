@@ -224,3 +224,11 @@ jobs:
             echo "Issue #23 requires static-issue16.js to remain out of the live runtime"
             exit 1
           fi
+
+          # Issue #115 owns full-universe validity, recommendations, and environment display.
+          grep -q "universeRecommendationCategories" static-issue115.js
+          grep -q "VALID_WITH_RISK" static-issue115.js
+          grep -q "EXACT_CHECK_FAILED" static-issue115.js
+          grep -q "candidateNumber" static-issue115.js
+          grep -q "splitReturnOptions" static-issue115.js
+          grep -q "/api/v1/health" static-issue115.js
