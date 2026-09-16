@@ -1,0 +1,72 @@
+.issue115-environment {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border: 1px solid #cbd6d1;
+  border-radius: 999px;
+  color: #46534d;
+  background: #f3f6f4;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.issue115-environment.is-prod { color: #075c42; border-color: #8bc8b3; background: #e8f7f1; }
+.issue115-environment.is-cert { color: #7a4b00; border-color: #e0bd78; background: #fff7e5; }
+.issue115-environment.is-unknown { color: #7b3030; border-color: #deb4b4; background: #fff1f1; }
+
+.issue115-hub-unavailable {
+  opacity: .58;
+  filter: grayscale(.3);
+  cursor: not-allowed;
+}
+
+.issue115-hub-status { display: block; margin-top: 5px; color: #176b4f; font-weight: 700; }
+.issue115-hub-unavailable .issue115-hub-status { color: #8b4040; }
+
+.issue115-view-switcher { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 9px; }
+.issue115-view-button,
+.issue115-chat-link {
+  appearance: none;
+  border: 1px solid #bdccc5;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #30453c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.issue115-view-button.active { border-color: #167a58; color: #075c42; background: #e8f7f1; }
+.issue115-view-button:focus-visible,
+.issue115-chat-link:focus-visible { outline: 3px solid rgba(22, 122, 88, .25); outline-offset: 2px; }
+
+.issue115-luna-pick {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #075c42;
+  background: #dff4ec;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.issue115-recommended-card { box-shadow: inset 3px 0 #19835f; }
+.issue115-external-pricing { margin: 10px 0 0; padding: 8px 10px; border-radius: 8px; color: #783636; background: #fff0f0; font-size: 12px; font-weight: 650; }
+.issue115-chat-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.issue115-chat-link { color: #075c42; border-color: #8bc8b3; background: #f3fbf8; }
+.issue115-chat-target { animation: issue115-target 1.8s ease-out; }
+
+@keyframes issue115-target {
+  0%, 35% { box-shadow: 0 0 0 4px rgba(22, 122, 88, .28); }
+  100% { box-shadow: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .issue115-chat-target { animation: none; }
+}
