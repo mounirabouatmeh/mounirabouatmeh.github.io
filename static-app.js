@@ -114,7 +114,7 @@ function renderConversation() {
   if (state.messages.length === 0) {
     const welcome = createNode("div", "welcome-card");
     const welcomeLogo = createNode("img", "assistant-mark welcome-logo");
-    welcomeLogo.src = "./cuberence-logo-v2.png";
+    welcomeLogo.src = "/cuberence-logo-white-v3.svg";
     welcomeLogo.alt = "Cuberence";
     welcomeLogo.width = 40;
     welcomeLogo.height = 40;
