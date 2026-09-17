@@ -3,215 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Cuberence AI-assisted stopover decision intelligence for professional travel advisors.">
-  <title>Cuberence | Advisor Workspace</title>
-  <link rel="icon" href="./cuberence-logo-v2.png" type="image/png" sizes="any">
-  <link rel="shortcut icon" href="./cuberence-logo-v2.png" type="image/png">
-  <link rel="apple-touch-icon" href="./cuberence-logo-v2.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="./static-app.css">
-  <link rel="stylesheet" href="./static-markdown.css">
-  <link rel="stylesheet" href="./static-pricing-summary.css">
-  <link rel="stylesheet" href="./static-flow.css">
-  <link rel="stylesheet" href="./static-sticky-progress.css?v=3">
-  <link rel="stylesheet" href="./static-workspace-enhancements.css?v=1">
-  <link rel="stylesheet" href="./static-issue14.css?v=1">
-  <link rel="stylesheet" href="./static-issue16.css?v=1">
-  <link rel="stylesheet" href="./static-issue20.css?v=1">
-  <link rel="stylesheet" href="./static-issue23.css?v=2">
-  <link rel="stylesheet" href="./static-issue25.css?v=2">
-  <link rel="stylesheet" href="./static-issue30.css?v=1">
-  <link rel="stylesheet" href="./static-issue32.css?v=1">\n  <link rel="stylesheet" href="./static-issue115.css?v=1">
+  <meta name="description" content="Cuberence helps travel agencies uncover hidden mini-destinations inside flexible trips, creating richer itineraries and new sales opportunities.">
+  <title>Cuberence | Find the hidden trip inside every trip</title>
+  <link rel="icon" href="/cuberence-logo-v2.png" type="image/png" sizes="any">
+  <link rel="shortcut icon" href="/cuberence-logo-v2.png" type="image/png">
+  <link rel="apple-touch-icon" href="/cuberence-logo-v2.png">
+  <link rel="stylesheet" href="/static-home.css?v=1">
 </head>
 <body>
-  <main class="app-page">
-    <nav class="app-nav">
-      <div class="brand">
-        <img class="brand-logo" src="./cuberence-logo-v2.png" alt="" width="36" height="36">
-        <span>CUBERENCE</span>
-      </div>
-      <div class="nav-meta">
-        <span>Advisor workspace</span>
-        <span class="beta-badge">Live development</span>
-      </div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Cuberence home">
+      <img src="/cuberence-logo-v2.png" alt="" width="42" height="42">
+      <span>CUBERENCE</span>
+    </a>
+    <nav class="nav-actions" aria-label="Primary navigation">
+      <a class="nav-link" href="#how-it-works">How it works</a>
+      <a class="nav-link" href="#agency-value">Agency value</a>
+      <a class="button button-small button-ghost" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Request a demo</a>
+      <a class="button button-small button-primary" href="/demo/">Agency demo</a>
     </nav>
+  </header>
 
-    <div class="advisor-shell">
-      <section class="chat-panel" aria-label="Cuberence advisor conversation">
-        <span id="live-status" hidden aria-hidden="true">Ready</span>
-        <div id="trip-progress" class="trip-progress" aria-label="Trip progress">
-          <div class="trip-progress-step is-waiting" data-stage="intent">
-            <span class="trip-progress-icon" aria-hidden="true">1</span>
-            <span class="trip-progress-copy"><strong>Trip intent</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="baseline">
-            <span class="trip-progress-icon" aria-hidden="true">2</span>
-            <span class="trip-progress-copy"><strong>Baseline</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="discovery">
-            <span class="trip-progress-icon" aria-hidden="true">3</span>
-            <span class="trip-progress-copy"><strong>Hub discovery &amp; selection</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="pricing">
-            <span class="trip-progress-icon" aria-hidden="true">4</span>
-            <span class="trip-progress-copy"><strong>Indicative pricing</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="summary">
-            <span class="trip-progress-icon" aria-hidden="true">5</span>
-            <span class="trip-progress-copy"><strong>Analysis &amp; recommendation</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="confirmation">
-            <span class="trip-progress-icon" aria-hidden="true">6</span>
-            <span class="trip-progress-copy"><strong>Exact confirmation</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
-          <span class="trip-progress-connector" aria-hidden="true"></span>
-          <div class="trip-progress-step is-waiting" data-stage="final">
-            <span class="trip-progress-icon" aria-hidden="true">7</span>
-            <span class="trip-progress-copy"><strong>Final recommendation</strong><span class="trip-progress-status">Waiting</span></span>
-          </div>
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Built for travel agencies</p>
+        <h1>Find the hidden trip inside every trip.</h1>
+        <p class="hero-lead">Cuberence helps travel advisors turn flexible travel plans into mini-destinations — creating richer client experiences and new sales opportunities from the trip already being booked.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/demo/">Explore the agency demo</a>
+          <a class="button button-secondary" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Request a guided demo</a>
         </div>
-
-        <div id="luna-font-controls" class="luna-font-controls" aria-label="Luna response font size controls">
-          <span class="luna-font-controls-label">Luna text</span>
-          <button id="luna-font-decrease" class="luna-font-control-button" type="button" aria-label="Decrease Luna response font size">−</button>
-          <output id="luna-font-value" class="luna-font-value" aria-live="polite">15px</output>
-          <button id="luna-font-increase" class="luna-font-control-button" type="button" aria-label="Increase Luna response font size">+</button>
+        <div class="hero-proof" aria-label="Cuberence value highlights">
+          <span>Flexible dates</span><span>Route intelligence</span><span>Incremental airfare</span><span>Advisor-led selling</span>
         </div>
-
-        <div id="conversation" class="conversation" role="log" aria-live="polite"></div>
-
-        <div id="processing-status" class="processing-status" aria-live="off">
-          <span class="processing-status-copy">Ready for the next instruction.</span>
+      </div>
+      <div class="hero-visual" aria-label="Example Cuberence opportunity">
+        <div class="opportunity-card">
+          <div class="opportunity-topline"><span>Standard trip</span><strong>$1,300</strong></div>
+          <div class="route-line"><span>Montreal</span><i></i><span>Turkey</span></div>
+          <div class="opportunity-divider"></div>
+          <p class="opportunity-label">Cuberence uncovered</p>
+          <div class="opportunity-city">Paris · 2 nights</div>
+          <div class="opportunity-bottom"><span>Incremental airfare</span><strong>≈ +$250</strong></div>
         </div>
+        <p class="hero-caption">One flight request can become another destination — and another sales opportunity.</p>
+      </div>
+    </section>
 
-        <form id="composer" class="composer">
-          <span id="composer-guidance" class="composer-guidance">Start with the client’s origin, destination, departure window, and destination stay.</span>
-          <div class="composer-input-row">
-            <textarea
-              id="message-input"
-              aria-label="Message Cuberence"
-              placeholder="Describe the client’s trip, constraints, or what you want to compare…"
-              rows="2"
-              autocomplete="off"
-            ></textarea>
-            <div class="composer-actions">
-              <button id="send-button" class="send-button" type="submit">Send</button>
-              <button id="stop-button" class="send-button stop-button" type="button" hidden>Stop</button>
-            </div>
-          </div>
-        </form>
-      </section>
+    <section class="conversation-section" id="examples">
+      <div class="section-heading centered">
+        <p class="eyebrow dark">What changes for the advisor</p>
+        <h2>Don’t just answer the flight request. Reveal what else the trip can become.</h2>
+      </div>
 
-      <aside class="workspace-panel" aria-label="Trip workspace">
-        <div class="workspace-heading">
-          <div>
-            <p class="eyebrow">Trip workspace</p>
-            <h2 id="workspace-route">New trip</h2>
-          </div>
-          <span id="workspace-status" class="status-chip">Planning</span>
-        </div>
+      <div class="conversation-grid">
+        <article class="conversation-card">
+          <div class="conversation-label">Family visit · Turkey</div>
+          <div class="bubble traveller"><span>Traveller</span><p>“I’m travelling to Turkey to see my family. I can leave October 10–15 and stay around 10–12 days. What would the ticket cost?”</p></div>
+          <div class="bubble advisor"><span>Advisor + Cuberence</span><p>“The standard trip is around <strong>$1,300</strong>. But for approximately <strong>$250 more</strong>, you could spend <strong>2 nights in Paris</strong> along the way.”</p></div>
+          <div class="result-line"><strong>Same request.</strong><span>A new destination to sell.</span></div>
+        </article>
 
-        <section class="workspace-section" data-workspace-stage="intent">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">1</span><span>Trip intent</span></h3>
-          </div>
-          <dl class="trip-fields">
-            <div><dt>Origin</dt><dd id="intent-origin">Not set</dd></div>
-            <div><dt>Destination</dt><dd id="intent-destination">Not set</dd></div>
-            <div><dt>Departure window</dt><dd id="intent-dates">Conversation context</dd></div>
-            <div><dt>Destination stay</dt><dd id="intent-stay">Conversation context</dd></div>
-            <div><dt>Return window</dt><dd id="intent-return">Conversation context</dd></div>
-          </dl>
-        </section>
+        <article class="conversation-card featured">
+          <div class="conversation-label">Flexible discovery · Germany</div>
+          <div class="bubble traveller"><span>Traveller</span><p>“I’m going to Germany next month, but I want to explore somewhere else too.”</p></div>
+          <div class="bubble advisor"><span>Advisor + Cuberence</span><p>“You could stop in <strong>London, Paris, Milan or Rome.</strong> Which interests you most?”</p></div>
+          <div class="bubble traveller compact"><span>Traveller</span><p>“Paris.”</p></div>
+          <div class="bubble advisor highlight"><span>Advisor + Cuberence</span><p>“If you travel on these dates, you can spend <strong>2 nights in Paris with essentially the same flight cost</strong> as the standard itinerary.”</p></div>
+          <p class="fine-print">Hotel, transfers, activities and other destination costs remain separate.</p>
+        </article>
+      </div>
+    </section>
 
-        <section class="workspace-section" data-workspace-stage="baseline">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">2</span><span>Baseline</span></h3>
-            <span class="muted-badge">Cheapest trip</span>
-          </div>
-          <div id="baseline-content">
-            <div class="empty-workspace compact-empty">
-              <strong>Baseline not priced yet</strong>
-              <p>After trip intent and currency are confirmed, Cuberence prices the cheapest standard trip first, then starts hub discovery.</p>
-            </div>
-          </div>
-        </section>
+    <section class="value-section" id="agency-value">
+      <div class="section-heading">
+        <p class="eyebrow dark">What Cuberence adds</p>
+        <h2>More possibilities for the client. More ways for the agency to sell.</h2>
+        <p>Cuberence turns itinerary flexibility into structured commercial opportunities an advisor can evaluate and present.</p>
+      </div>
+      <div class="value-grid">
+        <article><span class="icon">01</span><h3>Discover hidden opportunities</h3><p>Surface viable mini-destinations that may not be obvious when an advisor searches one itinerary at a time.</p></article>
+        <article><span class="icon">02</span><h3>Compare the economics</h3><p>Put the standard itinerary beside alternative trip structures and understand the incremental airfare before presenting them.</p></article>
+        <article><span class="icon">03</span><h3>Use Luna as a copilot</h3><p>Luna helps analyze candidates, usable destination time, trade-offs and risk so the advisor can focus on the client conversation.</p></article>
+        <article><span class="icon">04</span><h3>Create cross-sell moments</h3><p>A mini-destination can unlock hotels, activities, transfers and other services that were not part of the original request.</p></article>
+        <article><span class="icon">05</span><h3>Keep the advisor in control</h3><p>Cuberence supports the decision. The advisor chooses what to present and when to confirm an exact fare.</p></article>
+        <article><span class="icon">06</span><h3>Work from the client’s flexibility</h3><p>Use travel windows and stay duration as an advantage rather than forcing the client into a single fixed search.</p></article>
+      </div>
+    </section>
 
-        <section class="workspace-section" data-workspace-stage="discovery">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection</span></h3>
-            <span id="discovery-badge" class="muted-badge">Not run</span>
-          </div>
-          <div id="discovery-content">
-            <div class="empty-workspace">
-              <strong>No hub results yet</strong>
-              <p>Feasible stayover hubs will appear here. The selected hub is identified directly by its green highlight.</p>
-            </div>
-          </div>
-        </section>
+    <section class="workflow-section" id="how-it-works">
+      <div class="section-heading centered light">
+        <p class="eyebrow">From intent to opportunity</p>
+        <h2>One workflow, five decisions.</h2>
+      </div>
+      <div class="workflow">
+        <div class="workflow-step"><span>1</span><strong>Understand the trip</strong><p>Origin, destination, dates, stay and flexibility.</p></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span>2</span><strong>Find mini-destinations</strong><p>Discover viable cities hidden inside the journey.</p></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span>3</span><strong>Compare economics</strong><p>Baseline itinerary versus alternative trip structures.</p></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span>4</span><strong>Let Luna analyze</strong><p>Prioritize the strongest client-ready possibilities.</p></div>
+        <div class="workflow-arrow">→</div>
+        <div class="workflow-step"><span>5</span><strong>Confirm exact fare</strong><p>Verify the selected itinerary before presenting it.</p></div>
+      </div>
+    </section>
 
-        <section class="workspace-section" data-workspace-stage="pricing">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">4</span><span>Indicative pricing</span></h3>
-            <span id="pricing-badge" class="muted-badge">Not run</span>
-          </div>
-          <div id="pricing-content">
-            <div class="empty-workspace">
-              <strong>No indicative pricing results yet</strong>
-              <p>Choose one or more discovered hubs in the conversation to run SPLIT pricing. Luna analyzes the indicative candidates first; exact confirmation waits for your explicit candidate selection.</p>
-            </div>
-          </div>
-        </section>
+    <section class="revenue-section">
+      <div class="revenue-copy">
+        <p class="eyebrow dark">Beyond the airfare</p>
+        <h2>One trip can become several products.</h2>
+        <p>Adding a mini-destination creates room for the agency to extend the itinerary with additional services instead of competing only on the flight.</p>
+      </div>
+      <div class="revenue-equation" aria-label="Trip revenue opportunity">
+        <span>Flight</span><b>+</b><span>Mini-destination</span><b>+</b><span>Hotel</span><b>+</b><span>Activities</span><b>+</b><span>Transfers</span><b>=</b><strong>Richer itinerary</strong>
+      </div>
+    </section>
 
-        <section class="workspace-section issue23-confirmation-section" data-workspace-stage="confirmation">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">6</span><span>Exact flight &amp; fare confirmation</span></h3>
-            <span id="confirmation-badge" class="muted-badge">Not run</span>
-          </div>
-          <div id="confirmation-content">
-            <div class="empty-workspace compact-empty">
-              <strong>No exact confirmation yet</strong>
-              <p>After Luna’s analysis, open the desired candidate above and check “Select for Luna to confirm pricing.”</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="workspace-section issue23-final-section" data-workspace-stage="final">
-          <div class="section-title-row">
-            <h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">7</span><span>Final recommendation</span></h3>
-            <span id="final-recommendation-badge" class="muted-badge">Pending</span>
-          </div>
-          <div id="final-recommendation-content">
-            <div class="empty-workspace compact-empty">
-              <strong>Final recommendation pending</strong>
-              <p>Final means the exact fare was checked and then re-evaluated by Luna. It does not mean booking, payment, reservation, or ticket issuance.</p>
-            </div>
-          </div>
-        </section>
-      </aside>
-    </div>
+    <section class="cta-section">
+      <p class="eyebrow">Agency demo</p>
+      <h2>See what is hidden inside your client’s next trip.</h2>
+      <p>Experience the Cuberence advisor workflow using real travel scenarios and flexible trip constraints.</p>
+      <div class="hero-actions centered-actions">
+        <a class="button button-light" href="/demo/">Enter the demo</a>
+        <a class="button button-outline-light" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Book a conversation</a>
+      </div>
+    </section>
   </main>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <script src="./static-pricing-summary.js" defer></script>
-  <script src="./static-markdown.js" defer></script>
-  <script src="./static-flow.js?v=2" defer></script>
-  <script src="./static-app.js?v=15" defer></script>
-  <script src="./static-welcome-copy.js" defer></script>
-  <script src="./static-intent-sync.js" defer></script>
-  <script src="./static-pricing-complete.js?v=2" defer></script>
-  <script src="./static-issue14.js?v=1" defer></script>
-  <script src="./static-issue23-state.js?v=4" defer></script>
-  <script src="./static-issue100.js?v=2" defer></script>\n  <script src="./static-issue115.js?v=1" defer></script>
-  <script src="./static-issue23-workflow.js?v=4" defer></script>
-  <script src="./static-issue23-candidates.js?v=4" defer></script>
-  <script src="./static-issue23-selection.js?v=2" defer></script>
-  <script src="./static-issue25.js?v=1" defer></script>
-  <script src="./static-issue20.js?v=1" defer></script>
+  <footer class="site-footer">
+    <div class="brand footer-brand"><img src="/cuberence-logo-v2.png" alt="" width="34" height="34"><span>CUBERENCE</span></div>
+    <p>Find the hidden trip inside every trip.</p>
+    <p>© 2026 Cuberence. All rights reserved.</p>
+  </footer>
 </body>
 </html>
