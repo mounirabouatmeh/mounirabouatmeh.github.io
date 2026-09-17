@@ -9,6 +9,9 @@
   <link rel="shortcut icon" href="/cuberence-logo-v2.png" type="image/png">
   <link rel="apple-touch-icon" href="/cuberence-logo-v2.png">
   <link rel="stylesheet" href="/static-home.css?v=9">
+  <style>
+    .demo-request-modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px}.demo-request-modal:target{display:grid}.demo-request-backdrop{position:absolute;inset:0;background:rgba(7,26,51,.58);backdrop-filter:blur(5px)}.demo-request-card{position:relative;z-index:1;width:min(560px,100%);padding:34px;border:1px solid #dbe4ee;border-radius:26px;background:#fff;box-shadow:0 30px 90px rgba(7,26,51,.28)}.demo-request-card h2{margin:0 0 14px;font-size:32px;line-height:1.08;letter-spacing:-.035em}.demo-request-card>p:not(.eyebrow){color:#64748b;font-size:17px}.demo-request-close{position:absolute;right:18px;top:16px;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid #dbe4ee;background:#fff;font-size:24px;line-height:1;color:#52647d}.demo-contact-address{display:block;margin:22px 0;padding:14px 16px;border:1px solid #dbe4ee;border-radius:14px;background:#f7f9fc;font-weight:800;color:#17345d;text-align:center}.demo-request-actions{display:flex;gap:10px;flex-wrap:wrap}.demo-request-actions .button{flex:1;min-width:150px}.demo-request-note{margin:18px 0 0!important;font-size:13px!important;color:#7b8798!important}@media(max-width:640px){.demo-request-card{padding:28px 20px}.demo-request-card h2{font-size:28px}.demo-request-actions{flex-direction:column}.demo-request-actions .button{width:100%}}
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -21,7 +24,7 @@
       <a class="nav-link" href="#why">Why Cuberence</a>
       <a class="nav-link" href="#value">Agency value</a>
       <a class="nav-link" href="#clients">Client opportunities</a>
-      <a class="button button-small button-ghost" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Request a demo</a>
+      <a class="button button-small button-ghost" href="#request-demo">Request a demo</a>
       <a class="button button-small button-primary" href="/demo/">Agency demo</a>
     </nav>
   </header>
@@ -46,7 +49,7 @@
         <p class="brand-line">Find the hidden trip inside every trip.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="/demo/">See Cuberence in action</a>
-          <a class="button button-secondary" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Request a guided demo</a>
+          <a class="button button-secondary" href="#request-demo">Request a guided demo</a>
         </div>
       </div>
     </section>
@@ -208,10 +211,27 @@
       <p>Try the Cuberence advisor experience with a real travel scenario and flexible client constraints.</p>
       <div class="hero-actions centered-actions">
         <a class="button button-light" href="/demo/">Enter the demo</a>
-        <a class="button button-outline-light" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Book a conversation</a>
+        <a class="button button-outline-light" href="#request-demo">Book a conversation</a>
       </div>
     </section>
   </main>
+
+  <section id="request-demo" class="demo-request-modal" role="dialog" aria-modal="true" aria-labelledby="request-demo-title">
+    <a class="demo-request-backdrop" href="#" aria-label="Close demo request"></a>
+    <div class="demo-request-card">
+      <a class="demo-request-close" href="#" aria-label="Close">×</a>
+      <p class="eyebrow dark">Request a demo</p>
+      <h2 id="request-demo-title">Let’s schedule a Cuberence demo.</h2>
+      <p>Contact us and suggest two or three date/time options that work for a 30–45 minute walkthrough.</p>
+      <span class="demo-contact-address">contact@cuberence.com</span>
+      <div class="demo-request-actions">
+        <a class="button button-primary" href="mailto:contact@cuberence.com?subject=Cuberence%20agency%20demo">Open email app</a>
+        <a class="button button-secondary" href="https://mail.google.com/mail/?view=cm&fs=1&to=contact%40cuberence.com&su=Cuberence%20agency%20demo" target="_blank" rel="noopener">Open Gmail</a>
+        <a class="button button-secondary" href="https://outlook.office.com/mail/deeplink/compose?to=contact%40cuberence.com&subject=Cuberence%20agency%20demo" target="_blank" rel="noopener">Open Outlook</a>
+      </div>
+      <p class="demo-request-note">If your computer has no default email application, use Gmail or Outlook above, or copy the email address.</p>
+    </div>
+  </section>
 
   <footer class="site-footer">
     <div class="brand footer-brand"><img src="/cuberence-logo-v2.png" alt="" width="34" height="34"><span>CUBERENCE</span></div>
