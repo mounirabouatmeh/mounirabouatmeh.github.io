@@ -79,7 +79,7 @@
     if (s.pricing?.phase === "completed") return ["Luna is analyzing the candidate set…", true];
     if (s.phases.discovery === "running") return ["Identifying feasible stayover hubs…", true];
     if (s.phases.baseline === "running") return ["Pricing the standard trip baseline…", true];
-    return ["Cuberence is working…", true];
+    return ["Luna is responding…", true];
   }
 
   function status() {
@@ -345,7 +345,7 @@
       const label = last.querySelector(".tool-progress-copy strong");
       const detail = last.querySelector(".tool-progress-copy span");
       if (label?.textContent === "Cuberence") label.textContent = "Exact flight & fare confirmation";
-      if (detail && /cuberence is working/i.test(detail.textContent)) detail.textContent = "Confirming the exact selected flights and fare…";
+      if (detail && /luna is responding/i.test(detail.textContent)) detail.textContent = "Confirming the exact selected flights and fare…";
     }
   }
 
