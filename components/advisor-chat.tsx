@@ -45,7 +45,6 @@ export function AdvisorChat() {
             const text = textFromParts(message.parts);
             return <div key={message.id}>{text && <div className={`message-row ${message.role}`}>{message.role === "assistant" && <span className="assistant-mark small">C</span>}<div className="message-bubble">{message.role === "assistant" ? <AIMessage>{text}</AIMessage> : text}</div></div>}<ToolProgress message={message} /></div>;
           })}
-          {busy && <div className="live-status"><span className="pulse-dot" /><span>{status === "submitted" ? "Understanding the trip…" : "Cuberence is working…"}</span></div>}
         </div>
         <form className="composer" onSubmit={submit}><textarea aria-label="Message Cuberence" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="Describe the client's trip, constraints, or what you want to compare…" rows={3} /><div className="composer-footer"><span>Discovery and pricing are agent-controlled Cuberence tools.</span>{busy ? <button type="button" className="send-button secondary-send" onClick={() => stop()}>Stop</button> : <button type="submit" className="send-button" disabled={!input.trim()}>Send</button>}</div></form>
       </section>

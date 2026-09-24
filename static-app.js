@@ -162,16 +162,6 @@ function renderConversation() {
     }
   }
 
-  if (state.busy) {
-    const live = createNode("div", "live-status-inline");
-    live.append(createNode("span", "pulse-dot"));
-    live.append(createNode("span", null, "Cuberence is working…"));
-    el.conversation.append(live);
-  }
-
-  requestAnimationFrame(() => {
-    el.conversation.scrollTop = el.conversation.scrollHeight;
-  });
 }
 
 function setConfirmedValue(element, value, confirmed) {

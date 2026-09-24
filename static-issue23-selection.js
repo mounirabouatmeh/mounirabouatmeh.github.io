@@ -3,8 +3,6 @@
   if (!C) return;
   const { s, candidateName, candidateNumber, candidateStatus, canAuthorizeConfirmation, syncFns, queue } = C;
   const SAMPLE = "I have a client: 1 adult flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and is open to a short European stopover. Economy class, pricing in CAD.";
-  const scroll = { active: false, writes: 0, timer: null };
-
   function confirmationAuthorizationMessage(candidate) {
     const number = candidateNumber(candidate);
     return [
@@ -18,46 +16,8 @@
     ].filter(Boolean).join("\n");
   }
 
-  function installScrollGuard() {
-    const conversation = document.getElementById("conversation");
-    if (!conversation || conversation.dataset.issue23ScrollGuard) return;
-    let prototype = conversation;
-    let descriptor;
-    while (prototype && !descriptor) {
-      descriptor = Object.getOwnPropertyDescriptor(prototype, "scrollTop");
-      prototype = Object.getPrototypeOf(prototype);
-    }
-    if (!descriptor?.get || !descriptor?.set) return;
-    try {
-      Object.defineProperty(conversation, "scrollTop", {
-        configurable: true,
-        get: () => descriptor.get.call(conversation),
-        set: (value) => {
-          if (!scroll.active || scroll.writes === 0) {
-            descriptor.set.call(conversation, value);
-            if (scroll.active) scroll.writes += 1;
-          }
-        },
-      });
-      conversation.dataset.issue23ScrollGuard = "true";
-    } catch {
-      // Removal of competing observer/state writers remains the primary stability protection.
-    }
-  }
-
-  function activateScrollGuard() {
-    if (scroll.timer) clearTimeout(scroll.timer);
-    scroll.active = true;
-    scroll.writes = 0;
-  }
-
   function releaseScrollGuard() {
-    if (scroll.timer) clearTimeout(scroll.timer);
-    scroll.timer = setTimeout(() => {
-      scroll.active = false;
-      scroll.writes = 0;
-      scroll.timer = null;
-    }, 250);
+    // Issue #120: chat position is controlled only by the advisor.
   }
   C.releaseScrollGuard = releaseScrollGuard;
 
@@ -80,8 +40,6 @@
     s.phases.summary = "complete";
     s.phases.confirmation = "ready";
     s.phases.final = "waiting";
-    activateScrollGuard();
-
     input.value = confirmationAuthorizationMessage(candidate);
     input.dispatchEvent(new Event("input", { bubbles: true }));
     form.requestSubmit();
@@ -159,7 +117,6 @@
 
   syncFns.push(syncWelcome);
   const start = () => {
-    installScrollGuard();
     bindPricing();
     syncWelcome();
   };
