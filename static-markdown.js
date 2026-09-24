@@ -1,6 +1,6 @@
 (() => {
   function appendInline(container, text) {
-    const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+    const pattern = /(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`)/g;
     let lastIndex = 0;
     for (const match of text.matchAll(pattern)) {
       if (match.index > lastIndex) container.append(document.createTextNode(text.slice(lastIndex, match.index)));
@@ -9,6 +9,10 @@
         const strong = document.createElement("strong");
         strong.textContent = token.slice(2, -2);
         container.append(strong);
+      } else if (token.startsWith("*")) {
+        const emphasis = document.createElement("em");
+        emphasis.textContent = token.slice(1, -1);
+        container.append(emphasis);
       } else {
         const code = document.createElement("code");
         code.textContent = token.slice(1, -1);
