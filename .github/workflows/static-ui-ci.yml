@@ -66,8 +66,6 @@ jobs:
           node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
-          set -x
-          trap 'echo "STATIC_UI_FAILED_LINE=$LINENO"' ERR
           test -s index.html
           test -s cuberence-logo-v2.png
           test -s static-app.css
@@ -241,9 +239,9 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=16' demo/demo/index.html
-          grep -q '/static-issue23-workflow.js?v=5' demo/demo/index.html
-          grep -q '/static-issue23-selection.js?v=3' demo/demo/index.html
+          grep -q '/static-app.js?v=16' demo/index.html
+          grep -q '/static-issue23-workflow.js?v=5' demo/index.html
+          grep -q '/static-issue23-selection.js?v=3' demo/index.html
 
           # Issue #115 owns full-universe validity, recommendations, and environment display.
           grep -q "universeRecommendationCategories" static-issue115.js
