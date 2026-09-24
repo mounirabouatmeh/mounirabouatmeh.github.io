@@ -66,6 +66,8 @@ jobs:
           node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
+          set -x
+          trap 'echo "STATIC_UI_FAILED_LINE=$LINENO"' ERR
           test -s index.html
           test -s cuberence-logo-v2.png
           test -s static-app.css
