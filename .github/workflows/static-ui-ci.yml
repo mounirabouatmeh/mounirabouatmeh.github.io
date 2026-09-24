@@ -240,6 +240,9 @@ jobs:
             exit 1
           fi
           grep -q '/static-app.js?v=16' demo/index.html
+          # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
+          grep -q 'document.createElement("em")' static-markdown.js
+          grep -q '/static-markdown.js?v=2' demo/index.html
           grep -q '/static-issue23-workflow.js?v=5' demo/index.html
           grep -q '/static-issue23-selection.js?v=3' demo/index.html
 
