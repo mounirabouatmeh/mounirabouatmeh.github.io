@@ -66,8 +66,6 @@ jobs:
           node --check static-intent-sync.js
       - name: Check required live UI files
         run: |
-          set -x
-          trap 'echo "STATIC_UI_FAILED_LINE=$LINENO"' ERR
           test -s index.html
           test -s cuberence-logo-v2.png
           test -s static-app.css
@@ -96,30 +94,30 @@ jobs:
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
-          grep -q "static-markdown.js" index.html
-          grep -q "static-pricing-summary.js" index.html
-          grep -q "static-flow.js" index.html
-          grep -q "static-workspace-enhancements.css" index.html
-          grep -q "static-issue14.js" index.html
-          grep -q "static-issue14.css" index.html
-          grep -q "static-issue16.css" index.html
-          grep -q "static-issue20.js" index.html
-          grep -q "static-issue20.css" index.html
-          grep -q "static-issue23-state.js" index.html
-          grep -q "static-issue23-workflow.js" index.html
-          grep -q "static-issue23-candidates.js" index.html
-          grep -q "static-issue23-selection.js" index.html
-          grep -q "static-issue23.css" index.html
-          grep -q "static-issue25.js" index.html
-          grep -q "static-issue25.css" index.html
-          grep -q "static-issue30.css" index.html
-          grep -q "static-issue32.css" index.html
-          grep -q "leaflet@1.9.4" index.html
-          grep -q "static-welcome-copy.js" index.html
-          grep -q "baseline-content" index.html
+          grep -q "static-markdown.js" demo/index.html
+          grep -q "static-pricing-summary.js" demo/index.html
+          grep -q "static-flow.js" demo/index.html
+          grep -q "static-workspace-enhancements.css" demo/index.html
+          grep -q "static-issue14.js" demo/index.html
+          grep -q "static-issue14.css" demo/index.html
+          grep -q "static-issue16.css" demo/index.html
+          grep -q "static-issue20.js" demo/index.html
+          grep -q "static-issue20.css" demo/index.html
+          grep -q "static-issue23-state.js" demo/index.html
+          grep -q "static-issue23-workflow.js" demo/index.html
+          grep -q "static-issue23-candidates.js" demo/index.html
+          grep -q "static-issue23-selection.js" demo/index.html
+          grep -q "static-issue23.css" demo/index.html
+          grep -q "static-issue25.js" demo/index.html
+          grep -q "static-issue25.css" demo/index.html
+          grep -q "static-issue30.css" demo/index.html
+          grep -q "static-issue32.css" demo/index.html
+          grep -q "leaflet@1.9.4" demo/index.html
+          grep -q "static-welcome-copy.js" demo/index.html
+          grep -q "baseline-content" demo/index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
-          grep -q "prices the cheapest standard trip first, then starts hub discovery" index.html
+          grep -q "prices the cheapest standard trip first, then starts hub discovery" demo/index.html
           grep -q "2026 October 10–15" static-app.js
           grep -q "20–22 nights" static-app.js
           grep -q "pricingNightFilter" static-app.js
@@ -136,30 +134,30 @@ jobs:
             echo "static-welcome-copy.js must not write or inject the sample prompt"
             exit 1
           fi
-          if grep -q 'class="chat-header"' index.html; then
+          if grep -q 'class="chat-header"' demo/index.html; then
             echo "Issue #20 requires the oversized chat header to remain removed"
             exit 1
           fi
-          grep -q 'id="live-status" hidden' index.html
-          grep -q 'id="trip-progress"' index.html
-          grep -q 'id="composer-guidance"' index.html
-          grep -q 'class="composer-input-row"' index.html
-          grep -q 'rows="2"' index.html
+          grep -q 'id="live-status" hidden' demo/index.html
+          grep -q 'id="trip-progress"' demo/index.html
+          grep -q 'id="composer-guidance"' demo/index.html
+          grep -q 'class="composer-input-row"' demo/index.html
+          grep -q 'rows="2"' demo/index.html
           grep -q "max-height: 120px" static-issue20.css
           grep -q "MAX_HEIGHT = 120" static-issue20.js
 
           # Issue #23 owns the base live workflow and state lifecycle.
-          grep -q 'data-stage="intent"' index.html
-          grep -q 'data-stage="baseline"' index.html
-          grep -q 'data-stage="discovery"' index.html
-          grep -q 'data-stage="pricing"' index.html
-          grep -q 'data-stage="summary"' index.html
-          grep -q 'data-stage="confirmation"' index.html
-          grep -q 'data-stage="final"' index.html
-          grep -q "Indicative pricing" index.html
-          grep -q "Exact flight &amp; fare confirmation" index.html
-          grep -q "Final recommendation" index.html
-          grep -q 'id="processing-status"' index.html
+          grep -q 'data-stage="intent"' demo/index.html
+          grep -q 'data-stage="baseline"' demo/index.html
+          grep -q 'data-stage="discovery"' demo/index.html
+          grep -q 'data-stage="pricing"' demo/index.html
+          grep -q 'data-stage="summary"' demo/index.html
+          grep -q 'data-stage="confirmation"' demo/index.html
+          grep -q 'data-stage="final"' demo/index.html
+          grep -q "Indicative pricing" demo/index.html
+          grep -q "Exact flight &amp; fare confirmation" demo/index.html
+          grep -q "Final recommendation" demo/index.html
+          grep -q 'id="processing-status"' demo/index.html
           grep -q "prefers-reduced-motion" static-issue23.css
           grep -q "issue23-status-cloud" static-issue23.css
           grep -q "pricingStatus" static-issue23-state.js
@@ -168,9 +166,9 @@ jobs:
           grep -q "Final recommendation complete" static-issue23-workflow.js
 
           # Issue #25: user-gated confirmation, candidate numbers, Luna font controls, approved logo.
-          grep -q 'id="luna-font-controls"' index.html
-          grep -q 'id="luna-font-decrease"' index.html
-          grep -q 'id="luna-font-increase"' index.html
+          grep -q 'id="luna-font-controls"' demo/index.html
+          grep -q 'id="luna-font-decrease"' demo/index.html
+          grep -q 'id="luna-font-increase"' demo/index.html
           grep -q "cuberence-luna-font-size" static-issue25.js
           grep -q -- "--luna-response-font-size" static-issue25.css
           grep -q "issue25-candidate-number" static-issue23-candidates.js
@@ -180,8 +178,8 @@ jobs:
           grep -q "confirmationAuthorizedPending" static-issue23-state.js
           grep -q "Waiting for advisor selection" static-issue23-workflow.js
           grep -q "Select candidate" static-issue23-workflow.js
-          grep -q 'rel="icon" href="./cuberence-logo-v2.png" type="image/png" sizes="any"' index.html
-          grep -q 'class="brand-logo" src="./cuberence-logo-v2.png"' index.html
+          grep -q 'rel="icon" href="/cuberence-logo-clean-v7.png" type="image/png" sizes="any"' demo/index.html
+          grep -q 'class="brand-logo" src="/cuberence-logo-clean-v7.png"' demo/index.html
           grep -q "brand-logo" static-issue25.css
           if grep -q "Select this trip for Luna analysis" static-issue23-candidates.js static-issue23-selection.js; then
             echo "Issue #25 removes candidate-checkbox-driven provisional analysis; confirmation selection must be user-gated after Luna analysis"
@@ -190,13 +188,13 @@ jobs:
 
           # Issue #30: current welcome logo and numbered, consolidated workspace.
           grep -q 'welcomeLogo.src = "/cuberence-logo-clean-v7.png"' static-app.js
-          grep -q 'class="workspace-stage-number" aria-hidden="true">1</span><span>Trip intent' index.html
-          grep -q 'class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection' index.html
-          grep -q 'class="workspace-stage-number" aria-hidden="true">4</span><span>Indicative pricing' index.html
-          grep -q 'class="workspace-stage-number" aria-hidden="true">6</span><span>Exact flight &amp; fare confirmation' index.html
-          grep -q 'class="workspace-stage-number" aria-hidden="true">7</span><span>Final recommendation' index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">1</span><span>Trip intent' demo/index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection' demo/index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">4</span><span>Indicative pricing' demo/index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">6</span><span>Exact flight &amp; fare confirmation' demo/index.html
+          grep -q 'class="workspace-stage-number" aria-hidden="true">7</span><span>Final recommendation' demo/index.html
           grep -q "welcome-logo" static-issue30.css
-          if grep -q 'id="selected-hubs-content"\|<h3>Hub selection</h3>' index.html; then
+          if grep -q 'id="selected-hubs-content"\|<h3>Hub selection</h3>' demo/index.html; then
             echo "Issue #30 requires discovery and selection to share one section without a selected-hubs summary"
             exit 1
           fi
@@ -206,24 +204,24 @@ jobs:
           fi
 
           # Issue #32: provider-neutral discovery, explicit hub gate, carrier cleanup, city-time explanation.
-          grep -q "Hub discovery &amp; selection" index.html
+          grep -q "Hub discovery &amp; selection" demo/index.html
           grep -q "flightDesignator" static-app.js
           grep -q "flightDesignator" static-issue23-candidates.js
           grep -q "Usable city time is the estimated time available" static-app.js
           grep -q 's.phases.discovery === "ready"' static-issue23-workflow.js
           grep -q 's.phases.discovery = "complete"' static-issue23-state.js
           grep -q "Select hubs" static-issue23-workflow.js
-          if grep -qi "AeroDataBox" index.html static-app.js static-flow.js static-issue*.js static-issue*.css; then
+          if grep -qi "AeroDataBox" demo/index.html static-app.js static-flow.js static-issue*.js static-issue*.css; then
             echo "Issue #32 requires provider-neutral user-facing interface copy"
             exit 1
           fi
 
           # The old observer-driven tracker/selection runtimes must not compete with the current flow.
-          if grep -q '<script src="./static-sticky-progress.js' index.html; then
+          if grep -q '<script src="./static-sticky-progress.js' demo/index.html; then
             echo "Issue #23 requires static-sticky-progress.js to remain out of the live runtime"
             exit 1
           fi
-          if grep -q '<script src="./static-issue16.js' index.html; then
+          if grep -q '<script src="./static-issue16.js' demo/index.html; then
             echo "Issue #23 requires static-issue16.js to remain out of the live runtime"
             exit 1
           fi
@@ -241,9 +239,9 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=16' demo/index.html
-          grep -q '/static-issue23-workflow.js?v=5' demo/index.html
-          grep -q '/static-issue23-selection.js?v=3' demo/index.html
+          grep -q '/static-app.js?v=16' demo/demo/index.html
+          grep -q '/static-issue23-workflow.js?v=5' demo/demo/index.html
+          grep -q '/static-issue23-selection.js?v=3' demo/demo/index.html
 
           # Issue #115 owns full-universe validity, recommendations, and environment display.
           grep -q "universeRecommendationCategories" static-issue115.js
