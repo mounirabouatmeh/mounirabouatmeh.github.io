@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - index.html
+      - demo/index.html
       - cuberence-logo-v2.png
       - static-app.js
       - static-app.css
@@ -225,6 +226,23 @@ jobs:
             exit 1
           fi
 
+          # Issue #120: the processing tracker is the only busy indicator and chat scrolling stays manual.
+          if grep -q "Cuberence is working" static-app.js static-issue23-workflow.js components/advisor-chat.tsx; then
+            echo "Issue #120 removes the redundant Cuberence-is-working indicator"
+            exit 1
+          fi
+          if grep -q "conversation.scrollTop = conversation.scrollHeight\|el.conversation.scrollTop = el.conversation.scrollHeight" static-app.js static-issue23-selection.js; then
+            echo "Issue #120 forbids forced chat auto-scroll during streaming"
+            exit 1
+          fi
+          if grep -q 'Object.defineProperty(conversation, "scrollTop"' static-issue23-selection.js; then
+            echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
+            exit 1
+          fi
+          grep -q '/static-app.js?v=16' demo/index.html
+          grep -q '/static-issue23-workflow.js?v=5' demo/index.html
+          grep -q '/static-issue23-selection.js?v=3' demo/index.html
+
           # Issue #115 owns full-universe validity, recommendations, and environment display.
           grep -q "universeRecommendationCategories" static-issue115.js
           grep -q "VALID_WITH_RISK" static-issue115.js
@@ -232,3 +250,7 @@ jobs:
           grep -q "candidateNumber" static-issue115.js
           grep -q "splitReturnOptions" static-issue115.js
           grep -q "/api/v1/health" static-issue115.js
+
+
+# Issue #120 validation is intentionally kept in this workflow because the live /demo
+# is static and must not regress to forced streaming scroll or duplicate busy copy.
