@@ -38,20 +38,16 @@
     return state.statusById[hub.id] ?? "unassessed";
   }
 
-  function markerStyle(kind, status = "unassessed") {
-    const fillColor = kind === "origin" ? "#173f58"
-      : kind === "destination" ? "#9b7044"
-      : status === "selected" ? "#287a57"
-      : status === "failed" ? "#b84d47"
-      : "#71807a";
-    return {
-      radius: kind === "hub" ? (status === "selected" ? 9 : 7) : 9,
-      color: "#ffffff",
-      weight: 2,
-      fillColor,
-      fillOpacity: 1,
-      opacity: 1,
-    };
+  function markerIcon(kind, status = "unassessed") {
+    const L = globalThis.L;
+    const size = kind === "hub" ? (status === "selected" ? 18 : 14) : 18;
+    return L.divIcon({
+      className: "issue14-map-marker-shell",
+      html: `<span class="issue14-map-marker issue14-${kind}${kind === "hub" ? ` is-${status}` : ""}"></span>`,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      tooltipAnchor: [0, -size / 2],
+    });
   }
 
   function mapFingerprint() {
@@ -93,9 +89,10 @@
   function addPoint(map, bounds, point, options) {
     const L = globalThis.L;
     if (!point) return null;
-    const marker = L.circleMarker(point, {
-      ...markerStyle(options.kind, options.status),
-      interactive: true,
+    const marker = L.marker(point, {
+      icon: markerIcon(options.kind, options.status),
+      keyboard: true,
+      riseOnHover: true,
     }).addTo(map);
     marker.bindTooltip(options.label, {
       direction: "top",
@@ -103,7 +100,6 @@
       permanent: options.status === "selected" || Boolean(options.permanent),
       opacity: 0.96,
     });
-    marker.bringToFront();
     bounds.push(point);
     return marker;
   }
@@ -166,7 +162,6 @@
     }
 
     const map = L.map(canvas, {
-      preferCanvas: true,
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: false,
@@ -175,21 +170,10 @@
     });
     state.map = map;
 
-    if (globalThis.CuberenceLand?.features) {
-      L.geoJSON(globalThis.CuberenceLand, {
-        interactive: false,
-        style: { color: "#b5c8bd", weight: 0.8, fillColor: "#dce9e2", fillOpacity: 1 },
-      }).addTo(map);
-      map.attributionControl.addAttribution('<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a>');
-    }
-
-    const gridStyle = { color: "#cadbd4", weight: 0.7, opacity: 0.5, interactive: false };
-    for (const latitude of [-60, -30, 0, 30, 60]) {
-      L.polyline([[latitude, -180], [latitude, 180]], gridStyle).addTo(map);
-    }
-    for (const longitude of [-120, -60, 0, 60, 120]) {
-      L.polyline([[-75, longitude], [80, longitude]], gridStyle).addTo(map);
-    }
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors",
+    }).addTo(map);
 
     const bounds = [];
     addPoint(map, bounds, originPoint, {
