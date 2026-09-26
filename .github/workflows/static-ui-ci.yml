@@ -32,6 +32,7 @@ on:
       - static-issue25.css
       - static-issue30.css
       - static-issue32.css
+      - static-issue135.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -91,6 +92,7 @@ jobs:
           test -s static-issue25.css
           test -s static-issue30.css
           test -s static-issue32.css
+          test -s static-issue135.css
           test -s static-welcome-copy.js
           test -s static-intent-sync.js
           grep -q "cuberence-travel-api.vercel.app/api/v1/chat" static-app.js
@@ -112,14 +114,15 @@ jobs:
           grep -q "static-issue25.css" demo/index.html
           grep -q "static-issue30.css" demo/index.html
           grep -q "static-issue32.css" demo/index.html
+          grep -q "static-issue135.css" demo/index.html
           grep -q "leaflet@1.9.4" demo/index.html
           grep -q "static-welcome-copy.js" demo/index.html
           grep -q "baseline-content" demo/index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
-          grep -q "prices the cheapest standard trip first, then starts hub discovery" demo/index.html
-          grep -q "2026 October 10–15" static-app.js
-          grep -q "20–22 nights" static-app.js
+          grep -q "Luna then asks whether to explore 1–3 night mini-destinations" demo/index.html
+          grep -q "October 10–15, 2026" static-app.js
+          grep -q "returning November 20–22" static-app.js
           grep -q "pricingNightFilter" static-app.js
           grep -q "renderCandidateDetails" static-app.js
           grep -q "renderDiscoveryMap" static-app.js
@@ -239,12 +242,12 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=16' demo/index.html
+          grep -q '/static-app.js?v=17' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
           grep -q '/static-markdown.js?v=2' demo/index.html
-          grep -q '/static-issue23-workflow.js?v=5' demo/index.html
-          grep -q '/static-issue23-selection.js?v=3' demo/index.html
+          grep -q '/static-issue23-workflow.js?v=6' demo/index.html
+          grep -q '/static-issue23-selection.js?v=4' demo/index.html
 
           # Issue #115 owns full-universe validity, recommendations, and environment display.
           grep -q "universeRecommendationCategories" static-issue115.js
@@ -253,6 +256,22 @@ jobs:
           grep -q "candidateNumber" static-issue115.js
           grep -q "splitReturnOptions" static-issue115.js
           grep -q "/api/v1/health" static-issue115.js
+
+
+          # Issue #135: explicit return windows, mandatory mini-destination gate, staged hub validation, baseline selection.
+          grep -q "input.returnWindow?.from" static-intent-sync.js
+          grep -q "Awaiting mini-destination confirmation" static-app.js
+          grep -q "Identified · not yet validated" static-app.js
+          grep -q "Select this trip for Luna analysis & exact price confirmation" static-flow.js
+          grep -q "Advisor baseline confirmation authorization: YES" static-flow.js
+          grep -q "baselineConfirmation" static-issue23-state.js
+          grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
+          grep -q "Identified candidate · not yet validated" static-issue115.js
+          grep -q '/static-flow.js?v=3' demo/index.html
+          grep -q '/static-intent-sync.js?v=2' demo/index.html
+          grep -q '/static-issue23-state.js?v=5' demo/index.html
+          grep -q '/static-issue115.js?v=2' demo/index.html
+          grep -q 'static-issue135.css?v=1' demo/index.html
 
 
 # Issue #120 validation is intentionally kept in this workflow because the live /demo

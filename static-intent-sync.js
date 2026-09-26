@@ -33,12 +33,17 @@
     const minNights = Number(input.destinationStay?.minNights);
     const maxNights = Number(input.destinationStay?.maxNights);
     if (Number.isFinite(minNights) && Number.isFinite(maxNights)) {
-      setText("intent-stay", `${minNights}–${maxNights} nights`);
-      if (from && to) {
-        const earliest = addDays(from, minNights);
-        const latest = addDays(to, maxNights);
-        if (earliest && latest) setText("intent-return", `${earliest} → ${latest}`);
-      }
+      setText("intent-stay", `${minNights}–${maxNights} nights · derived`);
+    }
+
+    const returnFrom = input.returnWindow?.from;
+    const returnTo = input.returnWindow?.to;
+    if (returnFrom && returnTo) {
+      setText("intent-return", `${returnFrom} → ${returnTo}`);
+    } else if (Number.isFinite(minNights) && Number.isFinite(maxNights) && from && to) {
+      const earliest = addDays(from, minNights);
+      const latest = addDays(to, maxNights);
+      if (earliest && latest) setText("intent-return", `${earliest} → ${latest}`);
     }
   }
 

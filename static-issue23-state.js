@@ -4,6 +4,11 @@
   const stages = ["intent", "baseline", "discovery", "pricing", "summary", "confirmation", "final"];
   const s = {
     discovery: null,
+    discoveryMode: null,
+    discoveryValidationStatus: null,
+    miniDestinationGate: "waiting",
+    baselineId: null,
+    baselinePathSelected: false,
     pricing: null,
     pricingId: null,
     selectedCandidateId: null,
@@ -11,6 +16,7 @@
     confirmation: null,
     confirmationCandidateId: null,
     confirmationAuthorizedPending: false,
+    baselineConfirmationAuthorizedPending: false,
     analysisTextSeen: false,
     reviewTextSeen: false,
     streamBusy: false,
@@ -74,6 +80,8 @@
     s.confirmation = null;
     s.confirmationCandidateId = null;
     s.confirmationAuthorizedPending = false;
+    s.baselineConfirmationAuthorizedPending = false;
+    s.baselinePathSelected = false;
     s.analysisTextSeen = false;
     s.reviewTextSeen = false;
   }
@@ -81,9 +89,14 @@
   function toolInput(tool, data) {
     if (tool === "baseline") {
       Object.assign(s.phases, { intent: "complete", baseline: "running", discovery: "waiting", pricing: "waiting", summary: "waiting", confirmation: "waiting", final: "waiting" });
+      s.miniDestinationGate = "waiting";
+      s.baselineId = null;
       resetPostPricingState();
     } else if (tool === "discovery") {
       s.discovery = null;
+      s.discoveryMode = data?.mode ?? null;
+      s.discoveryValidationStatus = null;
+      s.miniDestinationGate = "confirmed";
       s.phases.intent = "complete";
       s.phases.discovery = "running";
     } else if (tool === "pricing") {
@@ -92,6 +105,13 @@
       s.pricingId = null;
       resetPostPricingState();
       Object.assign(s.phases, { pricing: "running", summary: "waiting", confirmation: "waiting", final: "waiting" });
+    } else if (tool === "baselineConfirmation") {
+      s.baselineConfirmationAuthorizedPending = false;
+      s.baselinePathSelected = true;
+      s.confirmation = null;
+      s.confirmationCandidateId = null;
+      s.reviewTextSeen = false;
+      Object.assign(s.phases, { baseline: "complete", discovery: "complete", pricing: "complete", summary: "complete", confirmation: "running", final: "waiting" });
     } else if (tool === "confirmation") {
       s.confirmationAuthorizedPending = false;
       s.confirmationCandidateId = data?.candidateId ?? s.confirmationCandidateId;
@@ -103,12 +123,24 @@
 
   function toolOutput(tool, data) {
     if (!data) return;
-    if (tool === "baseline" || (data.baselineId && !data.discoveryId && !data.pricingId)) {
+    if (tool === "baselineConfirmation" || (data.baselineId && ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && !data.candidateId)) {
+      s.baselinePathSelected = true;
+      s.baselineConfirmationAuthorizedPending = false;
+      s.confirmation = data;
+      s.confirmationCandidateId = null;
+      const usableOutcome = data.status === "CONFIRMED" || data.status === "EXACT_PRICE_UNAVAILABLE";
+      s.phases.confirmation = usableOutcome ? "complete" : "error";
+      s.phases.final = usableOutcome ? "running" : "waiting";
+    } else if (tool === "baseline" || (data.baselineId && !data.discoveryId && !data.pricingId)) {
+      if (data.baselineId) s.baselineId = data.baselineId;
       s.phases.baseline = data.phase === "completed" ? "complete" : data.phase === "failed" ? "error" : "running";
+      if (data.phase === "completed") s.miniDestinationGate = "awaiting";
     } else if (tool === "discovery" || (data.discoveryId && !data.pricingId)) {
       if (data.phase === "completed") s.discovery = data;
+      s.discoveryMode = data.mode ?? s.discoveryMode;
+      s.discoveryValidationStatus = data.validationStatus ?? s.discoveryValidationStatus;
       s.phases.discovery = data.phase === "completed"
-        ? (Array.isArray(data.hubs) && data.hubs.length ? "ready" : "complete")
+        ? (data.validationStatus === "IDENTIFIED" && Array.isArray(data.hubs) && data.hubs.length ? "ready" : "complete")
         : data.phase === "failed" ? "error" : "running";
     } else if (tool === "pricing" || (data.pricingId && Array.isArray(data.candidates))) {
       if (data.phase === "completed" && Array.isArray(data.candidates)) {
@@ -156,7 +188,11 @@
     }
     if (e.type === "tool-output-error") {
       const tool = e.toolName ?? s.toolNames.get(e.toolCallId);
-      if (tool === "confirmation") {
+      if (tool === "baselineConfirmation") {
+        s.baselineConfirmationAuthorizedPending = false;
+        s.phases.confirmation = "error";
+        s.phases.final = "waiting";
+      } else if (tool === "confirmation") {
         s.confirmationAuthorizedPending = false;
         s.phases.confirmation = "error";
         s.phases.final = "waiting";
@@ -209,7 +245,7 @@
     const chat = typeof args[0] === "string" ? args[0].includes(API) : args[0]?.url?.includes(API);
     if (chat) {
       s.streamBusy = true;
-      if (s.pricing?.phase === "completed" && !s.confirmationAuthorizedPending && s.phases.confirmation !== "running" && !["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) {
+      if (!s.baselinePathSelected && s.pricing?.phase === "completed" && !s.confirmationAuthorizedPending && s.phases.confirmation !== "running" && !["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) {
         s.phases.summary = "running";
         s.analysisTextSeen = false;
       }

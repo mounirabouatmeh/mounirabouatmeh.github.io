@@ -11,7 +11,12 @@
     baselineMessage: null,
     baselineWarnings: [],
     baseline: null,
+    baselineExpanded: false,
+    baselineConfirmation: null,
+    baselineConfirmationPending: false,
     discoveryPhase: null,
+    discoveryMode: null,
+    discoveryValidationStatus: null,
     pricingPhase: null,
   };
 
@@ -41,6 +46,9 @@
   }
 
   function returnWindow(input) {
+    if (input?.returnWindow?.from && input?.returnWindow?.to) {
+      return `${input.returnWindow.from} → ${input.returnWindow.to}`;
+    }
     const from = input?.departureWindow?.from;
     const to = input?.departureWindow?.to;
     const minNights = Number(input?.destinationStay?.minNights);
@@ -78,11 +86,41 @@
     }
 
     if (stay && input.destinationStay?.minNights != null && input.destinationStay?.maxNights != null) {
-      stay.textContent = `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights`;
+      stay.textContent = `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights${input.returnWindow ? " · derived" : ""}`;
     }
 
     const derivedReturn = returnWindow(input);
     if (returns && derivedReturn) returns.textContent = derivedReturn;
+  }
+
+  function baselineAuthorizationMessage() {
+    return [
+      "I selected the standard Baseline for Luna analysis and exact price confirmation.",
+      flowState.baselineId ? `Baseline ID: ${flowState.baselineId}` : null,
+      "Advisor baseline confirmation authorization: YES",
+      "This checkbox selection is my explicit authorization to analyze and exact-confirm this standard no-mini-destination trip only. Call baselineConfirmation exactly once for this baselineId. Do not start or rerun Hub Discovery, Indicative Pricing, or candidate confirmation as a side effect.",
+    ].filter(Boolean).join("\n");
+  }
+
+  function sendBaselineAuthorization() {
+    if (!flowState.baselineId || flowState.baselineConfirmationPending) return;
+    const input = document.getElementById("message-input");
+    const form = document.getElementById("composer");
+    if (!input || !form) return;
+    flowState.baselineConfirmationPending = true;
+    input.value = baselineAuthorizationMessage();
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    form.requestSubmit();
+    renderFlow();
+  }
+
+  function renderBaselineSegment(segment) {
+    const row = node("div", "baseline-segment-row");
+    const carrier = [segment?.marketingCarrier, segment?.flightNumber].filter(Boolean).join("");
+    row.append(node("strong", null, carrier || "Flight"));
+    row.append(node("span", null, `${segment?.origin ?? "—"} → ${segment?.destination ?? "—"}`));
+    row.append(node("small", null, `${segment?.departure?.replace?.("T", " ").slice?.(0, 16) ?? "—"} → ${segment?.arrival?.replace?.("T", " ").slice?.(0, 16) ?? "—"}`));
+    return row;
   }
 
   function renderBaseline() {
@@ -95,23 +133,23 @@
       const empty = node("div", "empty-workspace compact-empty");
       if (["starting", "queued", "running"].includes(flowState.baselinePhase)) {
         empty.append(node("strong", null, "Pricing baseline…"));
-        empty.append(node("p", null, flowState.baselineMessage ?? "Finding the cheapest standard trip. Hub discovery will start after the baseline completes."));
+        empty.append(node("p", null, flowState.baselineMessage ?? "Finding the cheapest standard trip. Luna will ask before any mini-destination exploration begins."));
       } else if (flowState.baselinePhase === "completed") {
         empty.append(node("strong", null, "No valid baseline found"));
         const warning = flowState.baselineWarnings[0];
-        empty.append(node("p", null, warning ?? "The baseline search completed without a valid standard round trip for the requested window and stay."));
+        empty.append(node("p", null, warning ?? "The baseline search completed without a valid standard round trip for the requested dates."));
       } else {
         empty.append(node("strong", null, "Baseline not priced yet"));
-        empty.append(node("p", null, "After trip intent and currency are confirmed, Cuberence prices the cheapest standard trip first, then starts hub discovery."));
+        empty.append(node("p", null, "After trip intent and currency are confirmed, Cuberence prices the standard trip first. Luna then asks whether to explore 1–3 night mini-destinations."));
       }
       target.append(empty);
       return;
     }
 
-    const card = node("article", "baseline-overview-card");
+    const card = node("article", `baseline-overview-card issue135-baseline-card ${flowState.baselineExpanded ? "is-expanded" : ""}`);
     const top = node("div", "baseline-overview-top");
     const copy = node("div");
-    copy.append(node("span", "baseline-kicker", "Cheapest standard trip"));
+    copy.append(node("span", "baseline-kicker", "Standard trip · no mini-destination"));
     copy.append(node("strong", "baseline-price", money(baseline.price)));
     top.append(copy);
     top.append(node("span", "baseline-provider", `${baseline.provider ?? "Sabre"}${baseline.environment ? ` ${baseline.environment}` : ""}`));
@@ -127,6 +165,52 @@
       facts.append(node("span", null, `Return ${inbound?.departure?.slice?.(0, 10) ?? "—"}`));
       if (baseline.validatingCarrier) facts.append(node("span", null, `Carrier ${baseline.validatingCarrier}`));
       card.append(facts);
+    }
+
+    const expand = node("button", "issue135-baseline-expand", flowState.baselineExpanded ? "Hide flight details" : "View flight details");
+    expand.type = "button";
+    expand.setAttribute("aria-expanded", String(flowState.baselineExpanded));
+    expand.addEventListener("click", () => {
+      flowState.baselineExpanded = !flowState.baselineExpanded;
+      renderBaseline();
+    });
+    card.append(expand);
+
+    if (flowState.baselineExpanded) {
+      const details = node("div", "issue135-baseline-details");
+      legs.forEach((leg, index) => {
+        const legBlock = node("section", "issue135-baseline-leg");
+        legBlock.append(node("b", null, `Leg ${index + 1}: ${leg?.origin ?? "—"} → ${leg?.destination ?? "—"}`));
+        const segments = Array.isArray(leg?.segments) ? leg.segments : [];
+        if (segments.length) segments.forEach((segment) => legBlock.append(renderBaselineSegment(segment)));
+        else legBlock.append(node("span", null, `${leg?.departure ?? "—"} → ${leg?.arrival ?? "—"}`));
+        details.append(legBlock);
+      });
+      card.append(details);
+    }
+
+    const selection = node("label", "issue23-selection-control issue135-baseline-selection");
+    const checkbox = node("input", "issue135-baseline-checkbox");
+    checkbox.type = "checkbox";
+    checkbox.checked = flowState.baselineConfirmationPending || ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(flowState.baselineConfirmation?.status);
+    checkbox.disabled = flowState.baselineConfirmationPending || Boolean(flowState.baselineConfirmation);
+    const selectionCopy = node("span", "issue23-selection-copy");
+    selectionCopy.append(node("strong", null, "Select this trip for Luna analysis & exact price confirmation"));
+    selectionCopy.append(node("small", null, "The standard baseline is not exact-confirmed until you select it."));
+    selection.append(checkbox, selectionCopy);
+    checkbox.addEventListener("change", () => {
+      if (checkbox.checked) sendBaselineAuthorization();
+    });
+    card.append(selection);
+
+    if (flowState.baselineConfirmationPending) {
+      card.append(node("p", "issue135-baseline-confirmation is-running", "Exact-confirming the selected standard trip…"));
+    } else if (flowState.baselineConfirmation?.status === "CONFIRMED") {
+      card.append(node("p", "issue135-baseline-confirmation is-confirmed", `Exact fare confirmed: ${money(flowState.baselineConfirmation.confirmedOffer?.price)}`));
+    } else if (flowState.baselineConfirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+      card.append(node("p", "issue135-baseline-confirmation is-unavailable", flowState.baselineConfirmation.message ?? "Exact matching fare unavailable; the original baseline remains the benchmark."));
+    } else if (flowState.baselineConfirmation?.status === "EXACT_CHECK_FAILED") {
+      card.append(node("p", "issue135-baseline-confirmation is-failed", flowState.baselineConfirmation.message ?? "Exact baseline confirmation needs attention."));
     }
 
     target.append(card);
@@ -184,19 +268,22 @@
     } else if (["starting", "queued", "running"].includes(flowState.pricingPhase)) {
       placeholder = "SPLIT pricing is running…";
       message = "Cuberence is pricing the selected hub or hubs.";
-    } else if (flowState.discoveryPhase === "completed" && flowState.hubs.length && !flowState.selectedHubIds.length) {
-      placeholder = "Select hubs to price, for example: Milan and Rome…";
-      message = "Next step: Select one or more hubs for SPLIT pricing.";
+    } else if (flowState.discoveryPhase === "completed" && flowState.discoveryValidationStatus === "IDENTIFIED") {
+      placeholder = "Choose one, several, or all identified hubs to validate…";
+      message = "Hubs are identified, not yet validated. Tell Luna which hubs to check, or say “check all”.";
       isNextStep = true;
     } else if (["starting", "queued", "running"].includes(flowState.discoveryPhase)) {
-      placeholder = "Hub discovery is running…";
-      message = "Cuberence is finding feasible stayover hubs. You will choose one or more hubs before pricing starts.";
+      placeholder = flowState.discoveryMode === "VALIDATE" ? "Validating the selected hubs…" : "Identifying mini-destination hubs…";
+      message = flowState.discoveryMode === "VALIDATE"
+        ? "Cuberence is validating complete 1–3 night itineraries only for the hubs you selected."
+        : "Cuberence is identifying route-relevant hubs. Feasibility will be checked only after you select hubs.";
     } else if (flowState.baselinePhase === "completed") {
-      placeholder = "Discovery will start automatically…";
-      message = "Baseline is complete. Cuberence is moving to hub discovery next.";
+      placeholder = "Answer Luna’s mini-destination question…";
+      message = "Baseline is complete. Luna must get your confirmation before Step 3 can identify mini-destinations.";
+      isNextStep = true;
     } else if (["starting", "queued", "running"].includes(flowState.baselinePhase)) {
       placeholder = "Baseline pricing is running…";
-      message = "Cuberence is pricing the cheapest standard trip first. Discovery will start automatically afterward.";
+      message = "Cuberence is pricing the standard trip first. Luna will ask before any mini-destination exploration begins.";
     } else if (/currency/i.test(latestAssistantText())) {
       placeholder = "Enter the pricing currency, for example CAD or USD…";
       message = "Next step: Choose the currency to use for Baseline and SPLIT pricing.";
@@ -220,13 +307,15 @@
       flowState.intentInput = event.input;
       flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
       flowState.baselinePhase = "starting";
-      flowState.baselineMessage = "Preparing the standard-trip baseline first. Hub discovery will start after it completes.";
+      flowState.baselineMessage = "Preparing the standard-trip baseline first. Luna will ask before any mini-destination exploration begins.";
       renderFlow();
       return;
     }
 
     if (event?.type === "tool-input-available" && event.toolName === "discovery" && event.input) {
       flowState.intentInput = event.input;
+      flowState.discoveryMode = event.input.mode ?? null;
+      flowState.selectedHubIds = Array.isArray(event.input.selectedHubs) ? event.input.selectedHubs : [];
       flowState.discoveryPhase = "starting";
       renderFlow();
       return;
@@ -245,6 +334,14 @@
     if (event?.type !== "tool-output-available" || !event.output) return;
     const output = event.output;
 
+    if (output.baselineId && ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(output.status)) {
+      flowState.baselineId = output.baselineId;
+      flowState.baselineConfirmation = output;
+      flowState.baselineConfirmationPending = false;
+      renderFlow();
+      return;
+    }
+
     if (output.baselineId && !output.pricingId) {
       flowState.baselineId = output.baselineId;
       flowState.baselinePhase = output.phase ?? flowState.baselinePhase;
@@ -257,6 +354,8 @@
 
     if (output.discoveryId) {
       flowState.discoveryPhase = output.phase ?? flowState.discoveryPhase;
+      flowState.discoveryMode = output.mode ?? flowState.discoveryMode;
+      flowState.discoveryValidationStatus = output.validationStatus ?? flowState.discoveryValidationStatus;
       if (Array.isArray(output.hubs)) flowState.hubs = output.hubs;
       renderFlow();
       return;
