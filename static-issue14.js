@@ -38,16 +38,20 @@
     return state.statusById[hub.id] ?? "unassessed";
   }
 
-  function markerIcon(kind, status = "unassessed") {
-    const L = globalThis.L;
-    const size = kind === "hub" ? (status === "selected" ? 18 : 14) : 18;
-    return L.divIcon({
-      className: "issue14-map-marker-shell",
-      html: `<span class="issue14-map-marker issue14-${kind}${kind === "hub" ? ` is-${status}` : ""}"></span>`,
-      iconSize: [size, size],
-      iconAnchor: [size / 2, size / 2],
-      tooltipAnchor: [0, -size / 2],
-    });
+  function markerStyle(kind, status = "unassessed") {
+    const fillColor = kind === "origin" ? "#173f58"
+      : kind === "destination" ? "#9b7044"
+      : status === "selected" ? "#287a57"
+      : status === "failed" ? "#b84d47"
+      : "#71807a";
+    return {
+      radius: kind === "hub" ? (status === "selected" ? 9 : 7) : 9,
+      color: "#ffffff",
+      weight: 2,
+      fillColor,
+      fillOpacity: 1,
+      opacity: 1,
+    };
   }
 
   function mapFingerprint() {
@@ -89,10 +93,9 @@
   function addPoint(map, bounds, point, options) {
     const L = globalThis.L;
     if (!point) return null;
-    const marker = L.marker(point, {
-      icon: markerIcon(options.kind, options.status),
-      keyboard: true,
-      riseOnHover: true,
+    const marker = L.circleMarker(point, {
+      ...markerStyle(options.kind, options.status),
+      interactive: true,
     }).addTo(map);
     marker.bindTooltip(options.label, {
       direction: "top",
@@ -100,6 +103,7 @@
       permanent: options.status === "selected" || Boolean(options.permanent),
       opacity: 0.96,
     });
+    marker.bringToFront();
     bounds.push(point);
     return marker;
   }
