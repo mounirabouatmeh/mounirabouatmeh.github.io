@@ -32,9 +32,23 @@
 
     step("intent", p.intent, p.intent === "complete" ? "Captured" : null);
     step("baseline", p.baseline);
-    step("discovery", p.discovery, p.discovery === "ready" ? "Select hubs" : p.discovery === "complete" ? "Selected" : null);
-    step("pricing", p.pricing, p.pricing === "complete" ? "Indicative" : null);
-    step("summary", p.summary, p.summary === "running" ? "Analyzing" : p.summary === "complete" ? "Recommended" : null);
+    step(
+      "discovery",
+      p.discovery,
+      s.baselinePathSelected
+        ? "Skipped"
+        : p.discovery === "running"
+          ? (s.discoveryMode === "VALIDATE" ? "Validating" : "Identifying")
+          : p.discovery === "ready"
+            ? "Select hubs"
+            : p.discovery === "complete"
+              ? (s.discoveryValidationStatus === "VALIDATED" ? "Validated" : "Complete")
+              : s.miniDestinationGate === "awaiting" && p.baseline === "complete"
+                ? "Awaiting confirmation"
+                : null,
+    );
+    step("pricing", p.pricing, s.baselinePathSelected ? "Skipped" : p.pricing === "complete" ? "Indicative" : null);
+    step("summary", p.summary, s.baselinePathSelected ? "Baseline selected" : p.summary === "running" ? "Analyzing" : p.summary === "complete" ? "Recommended" : null);
     step(
       "confirmation",
       p.confirmation,
@@ -57,8 +71,11 @@
 
   function statusText() {
     if (!s.streamBusy) {
+      if (s.miniDestinationGate === "awaiting" && s.phases.baseline === "complete" && s.phases.discovery === "waiting") {
+        return ["Baseline complete — Luna is waiting for your decision about exploring 1–3 night mini-destinations.", false];
+      }
       if (s.phases.discovery === "ready") {
-        return ["Hub discovery complete — select one or more hubs to price.", false];
+        return ["Hubs identified — choose one, several, or all for complete validation.", false];
       }
       if (s.phases.summary === "complete" && s.phases.confirmation === "ready") {
         return ["Luna analysis complete — select a candidate for exact confirmation.", false];
@@ -77,7 +94,10 @@
     if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") return ["Luna is explaining the technical exact-check failure…", true];
     if (s.phases.pricing === "running") return ["Evaluating stayover options…", true];
     if (s.pricing?.phase === "completed") return ["Luna is analyzing the candidate set…", true];
-    if (s.phases.discovery === "running") return ["Identifying feasible stayover hubs…", true];
+    if (s.phases.discovery === "running") return [
+      s.discoveryMode === "VALIDATE" ? "Validating the selected 1–3 night mini-destination hubs…" : "Identifying route-relevant mini-destination hubs…",
+      true,
+    ];
     if (s.phases.baseline === "running") return ["Pricing the standard trip baseline…", true];
     return ["Luna is responding…", true];
   }
@@ -101,7 +121,10 @@
     else if (s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") ws.textContent = "Exact fare unavailable · reviewing";
     else if (s.confirmation?.status === "EXACT_CHECK_FAILED" || s.phases.confirmation === "error") ws.textContent = "Exact check needs attention";
     else if (s.phases.confirmation === "running") ws.textContent = "Confirming exact fare";
-    else if (s.phases.discovery === "ready") ws.textContent = "Waiting for hub selection";
+    else if (s.miniDestinationGate === "awaiting" && s.phases.baseline === "complete" && s.phases.discovery === "waiting") ws.textContent = "Awaiting mini-destination confirmation";
+    else if (s.phases.discovery === "ready") ws.textContent = "Hubs identified · awaiting selection";
+    else if (s.phases.discovery === "running" && s.discoveryMode === "VALIDATE") ws.textContent = "Validating selected hubs";
+    else if (s.phases.discovery === "complete" && s.discoveryValidationStatus === "VALIDATED" && !s.pricing) ws.textContent = "Hub validation complete";
     else if (s.phases.summary === "complete" && s.phases.confirmation === "ready") ws.textContent = "Waiting for advisor selection";
     else if (s.pricing?.phase === "completed") ws.textContent = "Luna analysis";
   }
@@ -116,10 +139,19 @@
   }
 
   function composer() {
+    if (s.miniDestinationGate === "awaiting" && s.phases.baseline === "complete" && s.phases.discovery === "waiting" && !s.streamBusy) {
+      setComposer(
+        "Reply yes to explore mini-destinations, or no to stay with the standard trip…",
+        "Luna must receive your explicit confirmation before Step 3 can identify 1–3 night mini-destinations.",
+        true,
+      );
+      return;
+    }
+
     if (s.phases.discovery === "ready" && !s.streamBusy) {
       setComposer(
-        "Select one or more hubs, for example: Geneva and Paris…",
-        "Hub discovery is complete. Choose one or more hubs from the results; Luna will not start indicative pricing until you make that selection.",
+        "Choose hubs to validate, for example: Paris and Rome, or check all…",
+        "These hubs are identified candidates only. Choose one, several, or all; Cuberence will validate complete itineraries only for your selected hubs.",
         true,
       );
       return;
@@ -133,7 +165,21 @@
       return;
     }
 
-    if (s.confirmation?.status === "CONFIRMED" && s.streamBusy) {
+    if (s.baselinePathSelected && s.confirmation?.status === "CONFIRMED" && s.streamBusy) {
+      badge.textContent = "Reviewing";
+      card.classList.add("is-running");
+      card.append(
+        node("strong", null, "Luna is reviewing the confirmed standard trip"),
+        node("p", null, "The selected baseline exact fare is being reviewed as the no-mini-destination recommendation."),
+      );
+    } else if (s.baselinePathSelected && s.confirmation?.status === "CONFIRMED" && s.reviewTextSeen) {
+      badge.textContent = "Final";
+      card.classList.add("is-complete");
+      card.append(
+        node("strong", null, "Final standard-trip recommendation available in chat"),
+        node("p", null, "Luna has reviewed the exact-confirmed baseline. No mini-destination search was required."),
+      );
+    } else if (s.confirmation?.status === "CONFIRMED" && s.streamBusy) {
       setComposer(
         "Luna is reviewing the confirmed fare…",
         "Exact flight and fare confirmation is complete. Luna is re-evaluating the recommendation using the confirmed economics.",
@@ -206,7 +252,14 @@
     target.replaceChildren();
 
     let card;
-    if (s.phases.confirmation === "running") {
+    if (s.phases.confirmation === "running" && s.baselinePathSelected) {
+      badge.textContent = "Running";
+      card = node("div", "issue23-confirmation-card is-running");
+      card.append(
+        node("strong", null, "Confirming standard-trip exact fare"),
+        node("p", null, "Validating only the advisor-selected no-mini-destination baseline."),
+      );
+    } else if (s.phases.confirmation === "running") {
       badge.textContent = "Running";
       const number = candidateNumber(s.confirmationCandidateId);
       card = node("div", "issue23-confirmation-card is-running");
@@ -214,6 +267,24 @@
         node("strong", null, "Confirming exact flight & fare"),
         node("p", null, number ? `Candidate ${number} · ${s.confirmationCandidateId}` : "Validating the advisor-selected candidate."),
       );
+    } else if (s.baselinePathSelected && s.confirmation?.status === "CONFIRMED") {
+      badge.textContent = "Confirmed";
+      card = node("div", "issue23-confirmation-card is-confirmed");
+      card.append(
+        node("strong", null, "Confirmed · Standard trip"),
+        node("p", "issue23-confirmed-total", money(s.confirmation?.confirmedOffer?.price ?? s.confirmation?.baseline?.price)),
+      );
+    } else if (s.baselinePathSelected && s.confirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+      badge.textContent = "Fare unavailable";
+      card = node("div", "issue23-confirmation-card is-unavailable");
+      card.append(
+        node("strong", null, "Exact standard-trip fare unavailable"),
+        node("p", null, s.confirmation?.message ?? "The original baseline remains the standard-trip benchmark."),
+      );
+    } else if (s.baselinePathSelected && s.confirmation?.status === "EXACT_CHECK_FAILED") {
+      badge.textContent = "Needs attention";
+      card = node("div", "issue23-confirmation-card is-failed");
+      card.append(node("strong", null, "Standard-trip exact check needs attention"), node("p", null, s.confirmation?.message ?? "Luna will explain the confirmation problem."));
     } else if (s.confirmation?.status === "CONFIRMED") {
       badge.textContent = "Confirmed";
       const c = s.confirmation.candidate;
