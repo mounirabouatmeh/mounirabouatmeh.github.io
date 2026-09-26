@@ -1,0 +1,76 @@
+/* Issue #135 — baseline as a first-class option + staged hub states */
+
+.issue135-baseline-card {
+  display: grid;
+  gap: 10px;
+}
+
+.issue135-baseline-expand {
+  width: fit-content;
+  border: 1px solid #cfdad5;
+  border-radius: 8px;
+  background: #fff;
+  padding: 6px 9px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.issue135-baseline-details {
+  display: grid;
+  gap: 9px;
+  padding-top: 2px;
+}
+
+.issue135-baseline-leg {
+  display: grid;
+  gap: 6px;
+  padding: 9px 10px;
+  border: 1px solid #e0e8e4;
+  border-radius: 9px;
+  background: #fafcfb;
+}
+
+.baseline-segment-row {
+  display: grid;
+  grid-template-columns: 64px 74px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  font-size: 10px;
+}
+
+.baseline-segment-row small {
+  color: var(--muted);
+}
+
+.issue135-baseline-selection {
+  margin: 0;
+}
+
+.issue135-baseline-confirmation {
+  margin: 0;
+  padding: 8px 9px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.issue135-baseline-confirmation.is-running {
+  background: #f7f5ec;
+}
+
+.issue135-baseline-confirmation.is-confirmed {
+  background: #eef8f2;
+  color: #246d4f;
+}
+
+.issue135-baseline-confirmation.is-unavailable,
+.issue135-baseline-confirmation.is-failed {
+  background: #fff6eb;
+}
+
+@media (max-width: 600px) {
+  .baseline-segment-row {
+    grid-template-columns: 1fr;
+  }
+}
