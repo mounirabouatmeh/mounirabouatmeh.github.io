@@ -140,6 +140,7 @@ jobs:
           grep -q "discovery-world-map" static-workspace-enhancements.css
           grep -q "Natural Earth" static-issue14.js
           grep -q "L.circleMarker" static-issue14.js
+          grep -q "preferCanvas: true" static-issue14.js
           ! grep -q "L.divIcon" static-issue14.js
           grep -q "All identified hubs remain visible" static-issue14.js
           ! grep -q "tile.openstreetmap.org" static-issue14.js
@@ -257,7 +258,7 @@ jobs:
           grep -q '/static-app.js?v=19' demo/index.html
           grep -q '/static-hub-state.js?v=2' demo/index.html
           grep -q '/static-issue14-land.js?v=1' demo/index.html
-          grep -q '/static-issue14.js?v=3' demo/index.html
+          grep -q '/static-issue14.js?v=4' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js

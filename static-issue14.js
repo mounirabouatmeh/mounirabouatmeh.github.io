@@ -166,6 +166,7 @@
     }
 
     const map = L.map(canvas, {
+      preferCanvas: true,
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: false,
