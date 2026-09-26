@@ -71,6 +71,7 @@ function toolLabel(part) {
   if (part.type === "tool-baseline") return "Baseline";
   if (part.type === "tool-discovery") return "Discovery";
   if (part.type === "tool-pricing") return "Pricing";
+  if (part.type === "tool-baselineConfirmation") return "Baseline exact confirmation";
   return "Cuberence";
 }
 
@@ -121,11 +122,11 @@ function renderConversation() {
     welcome.append(welcomeLogo);
     const copy = createNode("div");
     copy.append(createNode("h2", null, "Start with the client’s travel intent."));
-    copy.append(createNode("p", null, "For example: “My clients are flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and are open to a short European stopover.”"));
+    copy.append(createNode("p", null, "For example: “I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.”"));
     const sample = createNode("button", "sample-prompt", "Use this example");
     sample.type = "button";
     sample.addEventListener("click", () => {
-      el.input.value = "My clients are flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and are open to a short European stopover.";
+      el.input.value = "I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.";
       el.input.focus();
       updateComposer();
     });
@@ -213,7 +214,8 @@ function renderDiscoveryMap(discovery, hubs, selectedHubIds, priced) {
   const revisiting = asksToRevisitHubs(hubs, priced);
   const selected = revisiting ? new Set() : new Set(selectedHubIds);
   const visibleHubs = selected.size ? hubs.filter((hub) => selected.has(hub.id)) : hubs;
-  title.append(createNode("span", null, selected.size ? `${visibleHubs.length} selected` : `${visibleHubs.length} feasible`));
+  const identifiedOnly = discovery?.validationStatus === "IDENTIFIED";
+  title.append(createNode("span", null, selected.size ? `${visibleHubs.length} selected` : identifiedOnly ? `${visibleHubs.length} identified` : `${visibleHubs.length} validated`));
   wrapper.append(title);
 
   const origin = discovery?.resolved?.origin;
@@ -230,7 +232,7 @@ function renderDiscoveryMap(discovery, hubs, selectedHubIds, priced) {
     return wrapper;
   }
 
-  const svg = svgNode("svg", { viewBox: "0 0 720 320", role: "img", "aria-label": "World map showing trip origin, destination and feasible stayover hubs" });
+  const svg = svgNode("svg", { viewBox: "0 0 720 320", role: "img", "aria-label": identifiedOnly ? "World map showing trip origin, destination and identified mini-destination hubs" : "World map showing trip origin, destination and validated stayover hubs" });
   svg.classList.add("discovery-world-map");
   mapWorldBackground(svg);
 
@@ -269,7 +271,7 @@ function renderDiscoveryMap(discovery, hubs, selectedHubIds, priced) {
   wrapper.append(svg);
   const legend = createNode("div", "map-legend");
   legend.append(createNode("span", "map-legend-origin", "Origin"));
-  legend.append(createNode("span", "map-legend-hub", selected.size ? "Selected hub" : "Feasible hubs"));
+  legend.append(createNode("span", "map-legend-hub", selected.size ? "Selected hub" : identifiedOnly ? "Identified hubs" : "Validated hubs"));
   legend.append(createNode("span", "map-legend-destination", "Destination"));
   wrapper.append(legend);
   return wrapper;
@@ -480,10 +482,14 @@ function renderWorkspace() {
   }
 
   if (input?.destinationStay?.minNights != null && input?.destinationStay?.maxNights != null) {
-    setConfirmedValue(el.intentStay, `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights`, true);
-    const earliest = addDays(input.departureWindow?.from, Number(input.destinationStay.minNights));
-    const latest = addDays(input.departureWindow?.to, Number(input.destinationStay.maxNights));
-    if (earliest && latest) setConfirmedValue(el.intentReturn, `${earliest} → ${latest}`, true);
+    setConfirmedValue(el.intentStay, `${input.destinationStay.minNights}–${input.destinationStay.maxNights} nights${input.returnWindow ? " · derived" : ""}`, true);
+    if (input.returnWindow?.from && input.returnWindow?.to) {
+      setConfirmedValue(el.intentReturn, `${input.returnWindow.from} → ${input.returnWindow.to}`, true);
+    } else {
+      const earliest = addDays(input.departureWindow?.from, Number(input.destinationStay.minNights));
+      const latest = addDays(input.departureWindow?.to, Number(input.destinationStay.maxNights));
+      if (earliest && latest) setConfirmedValue(el.intentReturn, `${earliest} → ${latest}`, true);
+    }
   } else {
     setConfirmedValue(el.intentStay, "Conversation context", false);
     if (el.intentReturn && !el.intentReturn.classList.contains("confirmed-value")) setConfirmedValue(el.intentReturn, "Conversation context", false);
@@ -491,7 +497,7 @@ function renderWorkspace() {
 
   const hubs = Array.isArray(discovery?.hubs) ? discovery.hubs : [];
   const candidates = Array.isArray(pricing?.candidates) ? pricing.candidates : [];
-  const selectedHubIds = pricingPart?.input?.selectedHubs ?? pricing?.selectedHubs ?? [];
+  const selectedHubIds = pricingPart?.input?.selectedHubs ?? pricing?.selectedHubs ?? discoveryPart?.input?.selectedHubs ?? [];
 
   const priced = pricing?.phase === "completed";
   const discovered = discovery?.phase === "completed";
@@ -501,8 +507,9 @@ function renderWorkspace() {
     state.expandedCandidateIds.clear();
   }
 
-  el.workspaceStatus.textContent = priced ? "Priced" : discovered ? "Discovered" : "Planning";
-  el.discoveryBadge.textContent = discovered ? `${hubs.length} hubs` : discoveryPart ? "Running" : "Not run";
+  const identificationOnly = discovery?.validationStatus === "IDENTIFIED";
+  el.workspaceStatus.textContent = priced ? "Priced" : discovered ? (identificationOnly ? "Hubs identified" : "Hubs validated") : baselinePart?.output?.phase === "completed" ? "Awaiting mini-destination confirmation" : "Planning";
+  el.discoveryBadge.textContent = discovered ? `${hubs.length} ${identificationOnly ? "identified" : "validated"}` : discoveryPart ? (discoveryPart?.input?.mode === "VALIDATE" ? "Validating…" : "Identifying…") : "Awaiting confirmation";
   el.pricingBadge.textContent = priced ? `${candidates.length} candidates` : pricingPart ? "Running" : "Not run";
 
   el.discoveryContent.replaceChildren();
@@ -518,7 +525,11 @@ function renderWorkspace() {
       top.append(createNode("span", null, hub.countryCode ?? ""));
       card.append(top);
       const airports = Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : "";
-      const nights = Array.isArray(hub.feasibleHubNights) ? `${hub.feasibleHubNights.join(", ")} night options` : "Feasible stopover";
+      const nights = identificationOnly
+        ? "Identified · not yet validated"
+        : Array.isArray(hub.feasibleHubNights) && hub.feasibleHubNights.length
+          ? `${hub.feasibleHubNights.join(", ")} night options`
+          : "No feasible complete itinerary";
       card.append(createNode("small", null, `${nights}${airports}`));
       list.append(card);
     }
@@ -526,7 +537,9 @@ function renderWorkspace() {
   } else {
     const empty = createNode("div", "empty-workspace");
     empty.append(createNode("strong", null, discovery?.message ?? "No hub results yet"));
-    empty.append(createNode("p", null, "Live Cuberence discovery results will appear here as the conversation continues."));
+    empty.append(createNode("p", null, baselinePart?.output?.phase === "completed"
+      ? "Luna will ask whether you want to explore 1–3 night mini-destinations before Step 3 starts."
+      : "Live Cuberence discovery results will appear here as the conversation continues."));
     el.discoveryContent.append(empty);
   }
 
