@@ -168,13 +168,20 @@
       const label = card.querySelector("strong")?.textContent?.trim();
       const hub = hubs.find((item) => [item?.city, item?.id].includes(label));
       if (!hub) continue;
+      const identifiedOnly = s.discoveryValidationStatus === "IDENTIFIED" || hub?.validationStatus === "IDENTIFIED";
+      let status = card.querySelector(".issue115-hub-status");
+      if (!status) { status = node("small", "issue115-hub-status"); card.append(status); }
+      if (identifiedOnly) {
+        card.classList.remove("issue115-hub-unavailable");
+        card.setAttribute("aria-disabled", "false");
+        setText(status, "Identified candidate · not yet validated");
+        continue;
+      }
       const nights = structurallyValidNights(hub);
       const usable = hubIsUsable(hub);
       card.classList.toggle("issue115-hub-unavailable", !usable);
       card.setAttribute("aria-disabled", String(!usable));
-      let status = card.querySelector(".issue115-hub-status");
-      if (!status) { status = node("small", "issue115-hub-status"); card.append(status); }
-      setText(status, usable ? `${nights.join(", ")} night${nights.length === 1 ? "" : "s"} · valid SPLIT` : "No complete valid SPLIT itinerary");
+      setText(status, usable ? `${nights.join(", ")} night${nights.length === 1 ? "" : "s"} · validated` : "No feasible complete itinerary");
       const base = card.querySelector(":scope > small:not(.issue115-hub-status)");
       if (base && nights.length) setText(base, base.textContent.replace(/^.*? night options/, `${nights.join(", ")} night options`));
     }
