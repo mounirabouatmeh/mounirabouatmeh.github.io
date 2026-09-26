@@ -138,12 +138,13 @@ jobs:
           grep -q "confirmed-value" static-workspace-enhancements.css
           grep -q "pricing-filter" static-workspace-enhancements.css
           grep -q "discovery-world-map" static-workspace-enhancements.css
-          grep -q "Natural Earth" static-issue14.js
-          grep -q "L.circleMarker" static-issue14.js
-          grep -q "preferCanvas: true" static-issue14.js
-          ! grep -q "L.divIcon" static-issue14.js
+          grep -q 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' static-issue14.js
+          ! grep -q 'https://{s}.tile.openstreetmap.org' static-issue14.js
+          grep -q "L.divIcon" static-issue14.js
+          grep -q "L.marker" static-issue14.js
+          ! grep -q "L.circleMarker" static-issue14.js
           grep -q "All identified hubs remain visible" static-issue14.js
-          ! grep -q "tile.openstreetmap.org" static-issue14.js
+          ! grep -q "Natural Earth" static-issue14.js
           grep -q "grid-template-rows: auto auto minmax(0, 1fr) auto" static-issue16.css
           grep -q "Issue #16 owns the sample prompt text and click behavior" static-welcome-copy.js
           if grep -q "SAMPLE_PROMPT\|example.textContent\|input.value" static-welcome-copy.js; then
@@ -257,8 +258,7 @@ jobs:
           fi
           grep -q '/static-app.js?v=19' demo/index.html
           grep -q '/static-hub-state.js?v=2' demo/index.html
-          grep -q '/static-issue14-land.js?v=1' demo/index.html
-          grep -q '/static-issue14.js?v=4' demo/index.html
+          grep -q '/static-issue14.js?v=5' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
