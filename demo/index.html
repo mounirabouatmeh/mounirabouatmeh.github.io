@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="/static-issue30.css?v=1">
   <link rel="stylesheet" href="/static-issue32.css?v=1">
   <link rel="stylesheet" href="/static-issue115.css?v=1">
+  <link rel="stylesheet" href="/static-issue135.css?v=1">
   <style>
     .demo-home-link{display:inline-flex;align-items:center;gap:7px;margin-left:auto;margin-right:10px;padding:8px 11px;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:inherit;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap}.demo-home-link:hover{background:rgba(255,255,255,.08)}
     .demo-test-notice{display:inline-flex;align-items:center;gap:7px;margin-right:10px;padding:8px 12px;border:1px solid rgba(251,191,36,.55);border-radius:999px;background:rgba(251,191,36,.14);color:#fde68a;font-size:12px;font-weight:800;white-space:nowrap}.demo-test-notice strong{color:#fbbf24;letter-spacing:.04em}.demo-test-notice::before{content:"⚠";font-size:13px}.demo-test-notice span{font-weight:700;color:#fff3c4}@media(max-width:900px){.demo-test-notice span{display:none}.demo-test-notice{padding:8px 10px}}
@@ -96,12 +97,12 @@
 
         <section class="workspace-section" data-workspace-stage="baseline">
           <div class="section-title-row"><h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">2</span><span>Baseline</span></h3><span class="muted-badge">Cheapest trip</span></div>
-          <div id="baseline-content"><div class="empty-workspace compact-empty"><strong>Baseline not priced yet</strong><p>After trip intent and currency are confirmed, Cuberence prices the cheapest standard trip first, then starts hub discovery.</p></div></div>
+          <div id="baseline-content"><div class="empty-workspace compact-empty"><strong>Baseline not priced yet</strong><p>After trip intent and currency are confirmed, Cuberence prices the standard trip first. Luna then asks whether to explore 1–3 night mini-destinations.</p></div></div>
         </section>
 
         <section class="workspace-section" data-workspace-stage="discovery">
           <div class="section-title-row"><h3 class="workspace-stage-title"><span class="workspace-stage-number" aria-hidden="true">3</span><span>Hub discovery &amp; selection</span></h3><span id="discovery-badge" class="muted-badge">Not run</span></div>
-          <div id="discovery-content"><div class="empty-workspace"><strong>No hub results yet</strong><p>Feasible stayover hubs will appear here. The selected hub is identified directly by its green highlight.</p></div></div>
+          <div id="discovery-content"><div class="empty-workspace"><strong>No hub results yet</strong><p>Step 3 starts only after advisor confirmation. Cuberence first identifies candidate hubs, then validates only the hub or hubs the advisor selects.</p></div></div>
         </section>
 
         <section class="workspace-section" data-workspace-stage="pricing">
@@ -125,18 +126,18 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
   <script src="/static-pricing-summary.js" defer></script>
   <script src="/static-markdown.js?v=2" defer></script>
-  <script src="/static-flow.js?v=2" defer></script>
-  <script src="/static-app.js?v=16" defer></script>
+  <script src="/static-flow.js?v=3" defer></script>
+  <script src="/static-app.js?v=17" defer></script>
   <script src="/static-welcome-copy.js" defer></script>
-  <script src="/static-intent-sync.js" defer></script>
+  <script src="/static-intent-sync.js?v=2" defer></script>
   <script src="/static-pricing-complete.js?v=2" defer></script>
   <script src="/static-issue14.js?v=1" defer></script>
-  <script src="/static-issue23-state.js?v=4" defer></script>
+  <script src="/static-issue23-state.js?v=5" defer></script>
   <script src="/static-issue100.js?v=2" defer></script>
-  <script src="/static-issue115.js?v=1" defer></script>
-  <script src="/static-issue23-workflow.js?v=5" defer></script>
+  <script src="/static-issue115.js?v=2" defer></script>
+  <script src="/static-issue23-workflow.js?v=6" defer></script>
   <script src="/static-issue23-candidates.js?v=4" defer></script>
-  <script src="/static-issue23-selection.js?v=3" defer></script>
+  <script src="/static-issue23-selection.js?v=4" defer></script>
   <script src="/static-issue25.js?v=1" defer></script>
   <script src="/static-issue20.js?v=1" defer></script>
 </body>
