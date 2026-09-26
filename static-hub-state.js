@@ -1,20 +1,55 @@
 (function (root) {
+  function tripDetails(input) {
+    const origin = String(input?.origin ?? "").trim().toUpperCase();
+    const destination = String(input?.destination ?? "").trim().toUpperCase();
+    const departure = input?.departureWindow;
+    const stay = input?.destinationStay;
+    if (!origin || !destination || !departure?.from || !departure?.to ||
+        stay?.minNights == null || stay?.maxNights == null) return null;
+    return {
+      origin, destination,
+      departureFrom: departure.from, departureTo: departure.to,
+      stayMin: Number(stay.minNights), stayMax: Number(stay.maxNights),
+      returnFrom: input.returnWindow?.from, returnTo: input.returnWindow?.to,
+    };
+  }
+
+  function isDifferentTrip(previous, next) {
+    if (!previous || !next) return false;
+    for (const key of ["origin", "destination", "departureFrom", "departureTo", "stayMin", "stayMax"]) {
+      if (previous[key] !== next[key]) return true;
+    }
+    return Boolean(previous.returnFrom && next.returnFrom && previous.returnFrom !== next.returnFrom) ||
+      Boolean(previous.returnTo && next.returnTo && previous.returnTo !== next.returnTo);
+  }
+
   function buildHubWorkspace(messages) {
     let identified = null;
     let latestValidated = null;
+    let activeTrip = null;
     const validatedById = new Map();
     const selectedIds = new Set();
+
+    function resetHubs() {
+      identified = null;
+      latestValidated = null;
+      validatedById.clear();
+      selectedIds.clear();
+    }
 
     for (const message of messages ?? []) {
       for (const part of message?.parts ?? []) {
         if (part?.type === "tool-baseline") {
-          identified = null;
-          latestValidated = null;
-          validatedById.clear();
-          selectedIds.clear();
+          const nextTrip = tripDetails(part.input);
+          if (isDifferentTrip(activeTrip, nextTrip)) resetHubs();
+          if (nextTrip) activeTrip = nextTrip;
           continue;
         }
         if (part?.type !== "tool-discovery") continue;
+
+        const nextTrip = tripDetails(part.input);
+        if (isDifferentTrip(activeTrip, nextTrip)) resetHubs();
+        if (nextTrip) activeTrip = nextTrip;
 
         const output = part.output;
         if (output?.phase === "completed" && Array.isArray(output.hubs)) {

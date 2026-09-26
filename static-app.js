@@ -35,7 +35,8 @@ function id(prefix = "msg") {
 }
 
 function textParts(message) {
-  return (message.parts ?? []).filter((part) => part.type === "text").map((part) => part.text ?? "").join("");
+  // Separate distinct assistant text blocks, including text before and after a tool call.
+  return (message.parts ?? []).filter((part) => part.type === "text" && part.text).map((part) => part.text).join("\n\n");
 }
 
 function allUserText() {
