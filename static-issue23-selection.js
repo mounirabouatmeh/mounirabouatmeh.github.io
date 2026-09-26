@@ -2,7 +2,7 @@
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
   const { s, candidateName, candidateNumber, candidateStatus, canAuthorizeConfirmation, syncFns, queue } = C;
-  const SAMPLE = "I have a client: 1 adult flying from YUL to BEY 2026 October 10–15, staying 20–22 nights, and is open to a short European stopover. Economy class, pricing in CAD.";
+  const SAMPLE = "I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.";
   function confirmationAuthorizationMessage(candidate) {
     const number = candidateNumber(candidate);
     return [
