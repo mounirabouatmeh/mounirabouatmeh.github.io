@@ -7,6 +7,9 @@ on:
       - demo/index.html
       - cuberence-logo-v2.png
       - static-app.js
+      - static-hub-state.js
+      - static-issue14-land.js
+      - test/hub-workspace.test.cjs
       - static-app.css
       - static-markdown.js
       - static-markdown.css
@@ -51,11 +54,15 @@ jobs:
       - name: Check browser JavaScript syntax
         run: |
           node --check static-app.js
+          node --check static-hub-state.js
+          node --check static-issue14-land.js
           node --check static-markdown.js
           node --check static-pricing-summary.js
           node --check static-flow.js
           node --check static-sticky-progress.js
           node --check static-issue14.js
+      - name: Verify staged hub status transitions
+        run: node --test test/hub-workspace.test.cjs
           node --check static-issue16.js
           node --check static-issue20.js
           node --check static-issue23-state.js
@@ -70,6 +77,8 @@ jobs:
           test -s index.html
           test -s cuberence-logo-v2.png
           test -s static-app.css
+          test -s static-hub-state.js
+          test -s static-issue14-land.js
           test -s static-markdown.js
           test -s static-markdown.css
           test -s static-pricing-summary.js
@@ -129,8 +138,9 @@ jobs:
           grep -q "confirmed-value" static-workspace-enhancements.css
           grep -q "pricing-filter" static-workspace-enhancements.css
           grep -q "discovery-world-map" static-workspace-enhancements.css
-          grep -q "OpenStreetMap contributors" static-issue14.js
-          grep -q "All feasible hubs remain visible" static-issue14.js
+          grep -q "Natural Earth" static-issue14.js
+          grep -q "All identified hubs remain visible" static-issue14.js
+          ! grep -q "tile.openstreetmap.org" static-issue14.js
           grep -q "grid-template-rows: auto auto minmax(0, 1fr) auto" static-issue16.css
           grep -q "Issue #16 owns the sample prompt text and click behavior" static-welcome-copy.js
           if grep -q "SAMPLE_PROMPT\|example.textContent\|input.value" static-welcome-copy.js; then
@@ -242,7 +252,11 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=17' demo/index.html
+          grep -q '/static-app.js?v=18' demo/index.html
+          grep -q '/static-hub-state.js?v=1' demo/index.html
+          grep -q '/static-issue14-land.js?v=1' demo/index.html
+          grep -q '/static-issue14.js?v=2' demo/index.html
+          grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
           grep -q '/static-markdown.js?v=2' demo/index.html
@@ -272,6 +286,8 @@ jobs:
           grep -q '/static-issue23-state.js?v=5' demo/index.html
           grep -q '/static-issue115.js?v=2' demo/index.html
           grep -q 'static-issue135.css?v=1' demo/index.html
+          grep -q 'CuberenceHubWorkspace' static-app.js static-issue14.js
+          grep -q 'No feasible itinerary' static-issue14.js
 
 
 # Issue #120 validation is intentionally kept in this workflow because the live /demo
