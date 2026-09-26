@@ -61,8 +61,6 @@ jobs:
           node --check static-flow.js
           node --check static-sticky-progress.js
           node --check static-issue14.js
-      - name: Verify staged hub status transitions
-        run: node --test test/hub-workspace.test.cjs
           node --check static-issue16.js
           node --check static-issue20.js
           node --check static-issue23-state.js
@@ -72,6 +70,8 @@ jobs:
           node --check static-issue25.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
+      - name: Verify staged hub status transitions
+        run: node --test test/hub-workspace.test.cjs
       - name: Check required live UI files
         run: |
           test -s index.html
