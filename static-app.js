@@ -7,6 +7,7 @@ const state = {
   pricingNightFilter: "all",
   expandedCandidateIds: new Set(),
   lastPricingId: null,
+  discoveryFingerprint: null,
 };
 
 const el = {
@@ -205,50 +206,49 @@ function asksToRevisitHubs(hubs, priced) {
   return mentionsHub && (/\b(price|try|check|use|switch|change|select|choose|test|run|instead)\b/.test(text) || /\bwhat about\b/.test(text));
 }
 
-function renderDiscoveryMap(discovery, hubs, selectedHubIds, priced) {
+function renderDiscoveryMap(discovery, hubs, statusById) {
   const wrapper = createNode("section", "discovery-map-card");
   wrapper.setAttribute("aria-label", "Stayover hub map");
   const title = createNode("div", "discovery-map-heading");
   title.append(createNode("strong", null, "Possible stayover hubs"));
-
-  const revisiting = asksToRevisitHubs(hubs, priced);
-  const selected = revisiting ? new Set() : new Set(selectedHubIds);
-  const visibleHubs = selected.size ? hubs.filter((hub) => selected.has(hub.id)) : hubs;
-  const identifiedOnly = discovery?.validationStatus === "IDENTIFIED";
-  title.append(createNode("span", null, selected.size ? `${visibleHubs.length} selected` : identifiedOnly ? `${visibleHubs.length} identified` : `${visibleHubs.length} validated`));
+  const selectedCount = hubs.filter((hub) => statusById[hub.id] === "selected").length;
+  const failedCount = hubs.filter((hub) => statusById[hub.id] === "failed").length;
+  title.append(createNode("span", null, `${hubs.length} identified · ${selectedCount} selected${failedCount ? ` · ${failedCount} no itinerary` : ""}`));
   wrapper.append(title);
 
   const origin = discovery?.resolved?.origin;
   const destination = discovery?.resolved?.destination;
   const originPoint = projectGeo(origin?.coordinates);
   const destinationPoint = projectGeo(destination?.coordinates);
-  const plottedHubs = visibleHubs.map((hub) => ({ hub, point: projectGeo(hub.coordinates) })).filter((item) => item.point);
+  const plottedHubs = hubs.map((hub) => ({ hub, point: projectGeo(hub.coordinates) })).filter((item) => item.point);
 
   if (!originPoint && !destinationPoint && !plottedHubs.length) {
     const unavailable = createNode("div", "map-unavailable");
     unavailable.append(createNode("strong", null, "Map data unavailable for this discovery"));
-    unavailable.append(createNode("p", null, "Run a new Discovery to use deterministic Cuberence city coordinates."));
     wrapper.append(unavailable);
     return wrapper;
   }
 
-  const svg = svgNode("svg", { viewBox: "0 0 720 320", role: "img", "aria-label": identifiedOnly ? "World map showing trip origin, destination and identified mini-destination hubs" : "World map showing trip origin, destination and validated stayover hubs" });
+  const svg = svgNode("svg", { viewBox: "0 0 720 320", role: "img", "aria-label": "World map showing all identified hubs and their assessment status" });
   svg.classList.add("discovery-world-map");
   mapWorldBackground(svg);
 
   if (originPoint && destinationPoint) {
     svg.append(svgNode("line", { x1: originPoint.x, y1: originPoint.y, x2: destinationPoint.x, y2: destinationPoint.y, class: "map-direct-route" }));
   }
-
   for (const { hub, point } of plottedHubs) {
-    if (originPoint) svg.append(svgNode("line", { x1: originPoint.x, y1: originPoint.y, x2: point.x, y2: point.y, class: "map-hub-route" }));
-    if (destinationPoint) svg.append(svgNode("line", { x1: point.x, y1: point.y, x2: destinationPoint.x, y2: destinationPoint.y, class: "map-hub-route" }));
-    const group = svgNode("g", { class: selected.has(hub.id) ? "map-point selected-hub-point" : "map-point hub-point" });
-    const circle = svgNode("circle", { cx: point.x, cy: point.y, r: selected.has(hub.id) ? 6 : 4.5 });
+    const status = statusById[hub.id] ?? "unassessed";
+    if (status === "selected") {
+      if (originPoint) svg.append(svgNode("line", { x1: originPoint.x, y1: originPoint.y, x2: point.x, y2: point.y, class: "map-hub-route" }));
+      if (destinationPoint) svg.append(svgNode("line", { x1: point.x, y1: point.y, x2: destinationPoint.x, y2: destinationPoint.y, class: "map-hub-route" }));
+    }
+    const className = status === "selected" ? "selected-hub-point" : status === "failed" ? "failed-hub-point" : "hub-point";
+    const group = svgNode("g", { class: `map-point ${className}` });
+    const circle = svgNode("circle", { cx: point.x, cy: point.y, r: status === "selected" ? 6 : 4.5 });
     const tooltip = svgNode("title");
-    tooltip.textContent = `${hub.city ?? hub.id}${hub.airports?.length ? ` · ${hub.airports.join("/")}` : ""}`;
+    tooltip.textContent = `${hub.city ?? hub.id} · ${status === "failed" ? "No feasible itinerary" : status === "selected" ? "Selected" : "Not assessed"}`;
     group.append(circle, tooltip);
-    if (selected.has(hub.id)) {
+    if (status === "selected") {
       const label = svgNode("text", { x: point.x + 8, y: point.y - 7, class: "map-label" });
       label.textContent = hub.city ?? hub.id;
       group.append(label);
@@ -271,7 +271,9 @@ function renderDiscoveryMap(discovery, hubs, selectedHubIds, priced) {
   wrapper.append(svg);
   const legend = createNode("div", "map-legend");
   legend.append(createNode("span", "map-legend-origin", "Origin"));
-  legend.append(createNode("span", "map-legend-hub", selected.size ? "Selected hub" : identifiedOnly ? "Identified hubs" : "Validated hubs"));
+  legend.append(createNode("span", "map-legend-hub", "Not assessed"));
+  legend.append(createNode("span", "map-legend-selected", "Selected"));
+  legend.append(createNode("span", "map-legend-failed", "No feasible itinerary"));
   legend.append(createNode("span", "map-legend-destination", "Destination"));
   wrapper.append(legend);
   return wrapper;
@@ -495,52 +497,66 @@ function renderWorkspace() {
     if (el.intentReturn && !el.intentReturn.classList.contains("confirmed-value")) setConfirmedValue(el.intentReturn, "Conversation context", false);
   }
 
-  const hubs = Array.isArray(discovery?.hubs) ? discovery.hubs : [];
+  const hubWorkspace = globalThis.CuberenceHubState?.buildHubWorkspace(state.messages) ?? {
+    discovery, hubs: Array.isArray(discovery?.hubs) ? discovery.hubs : [], statusById: {},
+    selectedHubIds: [], validatedCount: 0, failedCount: 0,
+  };
+  const hubs = hubWorkspace.hubs;
+  const statusById = hubWorkspace.statusById;
   const candidates = Array.isArray(pricing?.candidates) ? pricing.candidates : [];
-  const selectedHubIds = pricingPart?.input?.selectedHubs ?? pricing?.selectedHubs ?? discoveryPart?.input?.selectedHubs ?? [];
-
   const priced = pricing?.phase === "completed";
-  const discovered = discovery?.phase === "completed";
+  const discovered = Boolean(hubWorkspace.discovery);
+  const validating = discoveryPart?.input?.mode === "VALIDATE" && discoveryPart?.output?.phase !== "completed";
   if (pricing?.pricingId && pricing.pricingId !== state.lastPricingId) {
     state.lastPricingId = pricing.pricingId;
     state.pricingNightFilter = "all";
     state.expandedCandidateIds.clear();
   }
 
-  const identificationOnly = discovery?.validationStatus === "IDENTIFIED";
-  el.workspaceStatus.textContent = priced ? "Priced" : discovered ? (identificationOnly ? "Hubs identified" : "Hubs validated") : baselinePart?.output?.phase === "completed" ? "Awaiting mini-destination confirmation" : "Planning";
-  el.discoveryBadge.textContent = discovered ? `${hubs.length} ${identificationOnly ? "identified" : "validated"}` : discoveryPart ? (discoveryPart?.input?.mode === "VALIDATE" ? "Validating…" : "Identifying…") : "Awaiting confirmation";
+  el.workspaceStatus.textContent = priced ? "Priced" : validating ? "Validating selected hubs" : discovered
+    ? (hubWorkspace.validatedCount ? "Hubs assessed" : "Hubs identified")
+    : baselinePart?.output?.phase === "completed" ? "Awaiting mini-destination confirmation" : "Planning";
+  el.discoveryBadge.textContent = validating ? "Validating…" : discovered
+    ? `${hubs.length} identified · ${hubWorkspace.validatedCount} assessed`
+    : discoveryPart ? "Identifying…" : "Awaiting confirmation";
   el.pricingBadge.textContent = priced ? `${candidates.length} candidates` : pricingPart ? "Running" : "Not run";
 
-  el.discoveryContent.replaceChildren();
-  if (hubs.length) {
-    el.discoveryContent.append(renderDiscoveryMap(discovery, hubs, selectedHubIds, priced));
-    const list = createNode("div", "hub-list");
-    const selectedSet = new Set(selectedHubIds);
-    const visibleCards = selectedSet.size && !asksToRevisitHubs(hubs, priced) ? hubs.filter((hub) => selectedSet.has(hub.id)) : hubs;
-    for (const hub of visibleCards.slice(0, 18)) {
-      const card = createNode("article", `hub-card ${selectedSet.has(hub.id) ? "selected-hub-card" : ""}`);
-      const top = createNode("div", "hub-card-top");
-      top.append(createNode("strong", selectedSet.has(hub.id) ? "result-value" : null, hub.city ?? hub.id ?? "Hub"));
-      top.append(createNode("span", null, hub.countryCode ?? ""));
-      card.append(top);
-      const airports = Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : "";
-      const nights = identificationOnly
-        ? "Identified · not yet validated"
-        : Array.isArray(hub.feasibleHubNights) && hub.feasibleHubNights.length
-          ? `${hub.feasibleHubNights.join(", ")} night options`
-          : "No feasible complete itinerary";
-      card.append(createNode("small", null, `${nights}${airports}`));
-      list.append(card);
+  const discoveryFingerprint = JSON.stringify([
+    hubWorkspace.discovery?.discoveryId,
+    hubs.map((hub) => [hub.id, hub.airports, hub.feasibleHubNights, hub.splitFeasibleOptionCount, statusById[hub.id]]),
+    discoveryPart?.output?.phase,
+  ]);
+  if (discoveryFingerprint !== state.discoveryFingerprint) {
+    state.discoveryFingerprint = discoveryFingerprint;
+    el.discoveryContent.replaceChildren();
+    if (hubs.length) {
+      el.discoveryContent.append(renderDiscoveryMap(hubWorkspace.discovery, hubs, statusById));
+      const list = createNode("div", "hub-list");
+      for (const hub of hubs) {
+        const status = statusById[hub.id] ?? "unassessed";
+        const card = createNode("article", `hub-card ${status === "selected" ? "selected-hub-card" : status === "failed" ? "failed-hub-card" : ""}`);
+        const top = createNode("div", "hub-card-top");
+        top.append(createNode("strong", status === "selected" ? "result-value" : null, hub.city ?? hub.id ?? "Hub"));
+        top.append(createNode("span", null, hub.countryCode ?? ""));
+        card.append(top);
+        const airports = Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : "";
+        const nights = status === "failed" ? "Assessed · no feasible complete itinerary"
+          : status === "unassessed" ? "Identified · not yet validated"
+          : Array.isArray(hub.feasibleHubNights) && hub.feasibleHubNights.length
+            ? `${hub.feasibleHubNights.join(", ")} night options · selected`
+            : "Selected · validation in progress";
+        card.append(createNode("small", null, `${nights}${airports}`));
+        list.append(card);
+      }
+      el.discoveryContent.append(list);
+    } else {
+      const empty = createNode("div", "empty-workspace");
+      empty.append(createNode("strong", null, discovery?.message ?? "No hub results yet"));
+      empty.append(createNode("p", null, baselinePart?.output?.phase === "completed"
+        ? "Luna will ask whether you want to explore 1–3 night mini-destinations before Step 3 starts."
+        : "Live Cuberence discovery results will appear here as the conversation continues."));
+      el.discoveryContent.append(empty);
     }
-    el.discoveryContent.append(list);
-  } else {
-    const empty = createNode("div", "empty-workspace");
-    empty.append(createNode("strong", null, discovery?.message ?? "No hub results yet"));
-    empty.append(createNode("p", null, baselinePart?.output?.phase === "completed"
-      ? "Luna will ask whether you want to explore 1–3 night mini-destinations before Step 3 starts."
-      : "Live Cuberence discovery results will appear here as the conversation continues."));
-    el.discoveryContent.append(empty);
   }
 
   const existingSummary = priced ? el.pricingContent.querySelector("[data-pricing-summary]") : null;
@@ -773,4 +789,5 @@ el.input.addEventListener("keydown", (event) => {
 
 el.stop.addEventListener("click", () => state.abortController?.abort());
 
+globalThis.CuberenceHubWorkspace = () => globalThis.CuberenceHubState.buildHubWorkspace(state.messages);
 render();
