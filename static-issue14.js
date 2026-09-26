@@ -1,10 +1,11 @@
 (() => {
-  const previousFetch = globalThis.fetch.bind(globalThis);
   const state = {
     discovery: null,
     hubs: [],
     selectedHubIds: [],
-    pricingPhase: null,
+    statusById: {},
+    validatedCount: 0,
+    failedCount: 0,
     map: null,
     renderFingerprint: null,
     renderQueued: false,
@@ -33,16 +34,16 @@
     return hub?.city ?? hub?.name ?? hub?.id ?? "Hub";
   }
 
-  function selectedSet() {
-    return new Set(state.selectedHubIds);
+  function hubStatus(hub) {
+    return state.statusById[hub.id] ?? "unassessed";
   }
 
-  function markerIcon(kind, selected = false) {
+  function markerIcon(kind, status = "unassessed") {
     const L = globalThis.L;
-    const size = kind === "hub" ? (selected ? 18 : 14) : 18;
+    const size = kind === "hub" ? (status === "selected" ? 18 : 14) : 18;
     return L.divIcon({
       className: "issue14-map-marker-shell",
-      html: `<span class="issue14-map-marker issue14-${kind}${selected ? " is-selected" : ""}"></span>`,
+      html: `<span class="issue14-map-marker issue14-${kind}${kind === "hub" ? ` is-${status}` : ""}"></span>`,
       iconSize: [size, size],
       iconAnchor: [size / 2, size / 2],
       tooltipAnchor: [0, -size / 2],
@@ -51,32 +52,35 @@
 
   function mapFingerprint() {
     const discoveryId = state.discovery?.discoveryId ?? "";
-    const hubs = state.hubs.map((hub) => [hub.id, hub.coordinates?.lat, hub.coordinates?.lon]);
-    return JSON.stringify([discoveryId, hubs, [...state.selectedHubIds].sort()]);
+    const hubs = state.hubs.map((hub) => [hub.id, hub.coordinates?.lat, hub.coordinates?.lon, hubStatus(hub)]);
+    return JSON.stringify([discoveryId, hubs]);
   }
 
-  function renderHubList(target, selected) {
+  function renderHubList(target) {
     const current = target.querySelector(".issue14-hub-list");
-    const fingerprint = JSON.stringify([state.hubs.map((hub) => hub.id), [...selected].sort()]);
+    const fingerprint = JSON.stringify(state.hubs.map((hub) => [hub.id, hubStatus(hub), hub.feasibleHubNights, hub.airports]));
     if (current?.dataset.fingerprint === fingerprint) return;
     current?.remove();
 
     const list = node("div", "hub-list issue14-hub-list");
     list.dataset.fingerprint = fingerprint;
     for (const hub of state.hubs) {
-      const isSelected = selected.has(hub.id);
-      const card = node("article", `hub-card issue14-hub-card${isSelected ? " is-selected" : ""}`);
+      const status = hubStatus(hub);
+      const card = node("article", `hub-card issue14-hub-card is-${status}`);
       card.dataset.hubId = hub.id ?? "";
       const top = node("div", "hub-card-top");
-      top.append(node("strong", isSelected ? "result-value" : null, hubLabel(hub)));
+      top.append(node("strong", status === "selected" ? "result-value" : null, hubLabel(hub)));
       top.append(node("span", null, hub.countryCode ?? ""));
       card.append(top);
       const airports = Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : "";
-      const nights = Array.isArray(hub.feasibleHubNights) && hub.feasibleHubNights.length
-        ? `${hub.feasibleHubNights.join(", ")} night options`
-        : "Feasible stopover";
+      const nights = status === "failed" ? "Assessed · no feasible complete itinerary"
+        : status === "unassessed" ? "Identified · not assessed"
+        : Array.isArray(hub.feasibleHubNights) && hub.feasibleHubNights.length
+          ? `${hub.feasibleHubNights.join(", ")} night options · validated`
+          : "Selected · validation in progress";
       card.append(node("small", null, `${nights}${airports}`));
-      if (isSelected) card.append(node("span", "issue14-selected-label", "Selected"));
+      card.append(node("span", `issue14-status-label is-${status}`,
+        status === "failed" ? "No feasible itinerary" : status === "selected" ? "Selected" : "Not assessed"));
       list.append(card);
     }
     target.append(list);
@@ -86,21 +90,21 @@
     const L = globalThis.L;
     if (!point) return null;
     const marker = L.marker(point, {
-      icon: markerIcon(options.kind, options.selected),
+      icon: markerIcon(options.kind, options.status),
       keyboard: true,
       riseOnHover: true,
     }).addTo(map);
     marker.bindTooltip(options.label, {
       direction: "top",
-      className: options.selected ? "issue14-map-tooltip selected" : "issue14-map-tooltip",
-      permanent: Boolean(options.permanent),
+      className: `issue14-map-tooltip ${options.status ?? ""}`,
+      permanent: options.status === "selected" || Boolean(options.permanent),
       opacity: 0.96,
     });
     bounds.push(point);
     return marker;
   }
 
-  function renderMap(target, selected) {
+  function renderMap(target) {
     const fingerprint = mapFingerprint();
     const current = target.querySelector(".issue14-map-card");
     if (current?.dataset.fingerprint === fingerprint && state.map) return;
@@ -118,20 +122,21 @@
     const heading = node("div", "discovery-map-heading issue14-map-heading");
     const copy = node("div");
     copy.append(node("strong", null, "Stayover hub map"));
-    copy.append(node("small", null, "All feasible hubs remain visible"));
+    copy.append(node("small", null, "All identified hubs remain visible"));
     heading.append(copy);
-    heading.append(node("span", null, selected.size ? `${state.hubs.length} feasible · ${selected.size} selected` : `${state.hubs.length} feasible`));
+    heading.append(node("span", null, `${state.hubs.length} identified · ${state.validatedCount} assessed${state.failedCount ? ` · ${state.failedCount} no itinerary` : ""}`));
     card.append(heading);
 
     const canvas = node("div", "issue14-leaflet-map");
     canvas.setAttribute("role", "img");
-    canvas.setAttribute("aria-label", "Map showing origin, destination, feasible stayover hubs, and selected hubs in green");
+    canvas.setAttribute("aria-label", "Map showing every identified hub: selected in green, not assessed in grey, no feasible itinerary in red");
     card.append(canvas);
 
     const legend = node("div", "map-legend issue14-map-legend");
     legend.append(node("span", "issue14-legend-origin", "Origin"));
-    legend.append(node("span", "issue14-legend-feasible", "Feasible hub"));
-    legend.append(node("span", "issue14-legend-selected", "Selected hub"));
+    legend.append(node("span", "issue14-legend-unassessed", "Not assessed"));
+    legend.append(node("span", "issue14-legend-selected", "Selected"));
+    legend.append(node("span", "issue14-legend-failed", "No feasible itinerary"));
     legend.append(node("span", "issue14-legend-destination", "Destination"));
     card.append(legend);
 
@@ -165,10 +170,21 @@
     });
     state.map = map;
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map);
+    if (globalThis.CuberenceLand?.features) {
+      L.geoJSON(globalThis.CuberenceLand, {
+        interactive: false,
+        style: { color: "#b5c8bd", weight: 0.8, fillColor: "#dce9e2", fillOpacity: 1 },
+      }).addTo(map);
+      map.attributionControl.addAttribution('<a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a>');
+    }
+
+    const gridStyle = { color: "#cadbd4", weight: 0.7, opacity: 0.5, interactive: false };
+    for (const latitude of [-60, -30, 0, 30, 60]) {
+      L.polyline([[latitude, -180], [latitude, 180]], gridStyle).addTo(map);
+    }
+    for (const longitude of [-120, -60, 0, 60, 120]) {
+      L.polyline([[-75, longitude], [80, longitude]], gridStyle).addTo(map);
+    }
 
     const bounds = [];
     addPoint(map, bounds, originPoint, {
@@ -183,22 +199,22 @@
     });
 
     for (const { hub, point } of plottedHubs) {
-      const isSelected = selected.has(hub.id);
+      const status = hubStatus(hub);
       addPoint(map, bounds, point, {
         kind: "hub",
-        selected: isSelected,
+        status,
         label: `${hubLabel(hub)}${Array.isArray(hub.airports) && hub.airports.length ? ` · ${hub.airports.join("/")}` : ""}`,
-        permanent: isSelected,
+        permanent: status === "selected",
       });
 
-      if (isSelected && originPoint) {
+      if (status === "selected" && originPoint) {
         L.polyline([originPoint, point], {
           color: "#287a57",
           weight: 3,
           opacity: 0.78,
         }).addTo(map);
       }
-      if (isSelected && destinationPoint) {
+      if (status === "selected" && destinationPoint) {
         L.polyline([point, destinationPoint], {
           color: "#287a57",
           weight: 3,
@@ -207,7 +223,7 @@
       }
     }
 
-    if (!selected.size && originPoint && destinationPoint) {
+    if (!state.hubs.some((hub) => hubStatus(hub) === "selected") && originPoint && destinationPoint) {
       L.polyline([originPoint, destinationPoint], {
         color: "#7d8b85",
         weight: 2,
@@ -225,13 +241,17 @@
 
   function renderDiscovery() {
     state.renderQueued = false;
-    if (!state.discovery || !state.hubs.length) return;
+    const workspace = globalThis.CuberenceHubWorkspace?.();
+    if (!workspace?.discovery || !workspace.hubs.length) return;
+    state.discovery = workspace.discovery;
+    state.hubs = workspace.hubs;
+    state.statusById = workspace.statusById;
+    state.validatedCount = workspace.validatedCount;
+    state.failedCount = workspace.failedCount;
     const target = document.getElementById("discovery-content");
     if (!target) return;
-    const selected = selectedSet();
-    renderMap(target, selected);
-    renderHubList(target, selected);
-    state.renderFingerprint = mapFingerprint();
+    renderMap(target);
+    renderHubList(target);
   }
 
   function queueDiscoveryRender() {
@@ -295,8 +315,8 @@
 
     if (discovery.ready || discovery.text.includes("review hubs") || (discovery.complete && hub.ready)) {
       setComposer(
-        "Select or change the hub to price, for example Milan or Rome…",
-        "Next step: Select one or more feasible hubs for SPLIT pricing.",
+        "Choose the hub or hubs to validate, for example Paris or Rome…",
+        "Next step: Choose one, several, or all identified hubs for validation.",
         true,
       );
       return;
@@ -316,77 +336,6 @@
     requestAnimationFrame(syncComposer);
   }
 
-  function captureEvent(event) {
-    if (event?.type === "tool-input-available" && event.toolName === "discovery") {
-      state.discovery = null;
-      state.hubs = [];
-      state.selectedHubIds = [];
-      state.pricingPhase = null;
-      queueDiscoveryRender();
-      queueComposerSync();
-      return;
-    }
-
-    if (event?.type === "tool-input-available" && event.toolName === "pricing") {
-      state.selectedHubIds = Array.isArray(event.input?.selectedHubs) ? event.input.selectedHubs : [];
-      state.pricingPhase = "starting";
-      queueDiscoveryRender();
-      queueComposerSync();
-      return;
-    }
-
-    if (event?.type !== "tool-output-available" || !event.output) return;
-    const output = event.output;
-
-    if (output.discoveryId) {
-      if (output.phase === "completed" && Array.isArray(output.hubs)) {
-        state.discovery = output;
-        state.hubs = output.hubs;
-      }
-      queueDiscoveryRender();
-      queueComposerSync();
-      return;
-    }
-
-    if (output.pricingId) {
-      state.pricingPhase = output.phase ?? state.pricingPhase;
-      if (Array.isArray(output.selectedHubs)) state.selectedHubIds = output.selectedHubs;
-      queueDiscoveryRender();
-      queueComposerSync();
-    }
-  }
-
-  async function inspectStream(response) {
-    if (!response.body) return;
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      while (true) {
-        const match = buffer.match(/\r?\n\r?\n/);
-        if (!match || match.index == null) break;
-        const raw = buffer.slice(0, match.index);
-        buffer = buffer.slice(match.index + match[0].length);
-        const data = raw.split(/\r?\n/)
-          .filter((line) => line.startsWith("data:"))
-          .map((line) => line.slice(5).trimStart())
-          .join("\n");
-        if (!data || data === "[DONE]") continue;
-        try { captureEvent(JSON.parse(data)); } catch { /* The primary app owns stream errors. */ }
-      }
-    }
-    queueComposerSync();
-  }
-
-  globalThis.fetch = async (...args) => {
-    const response = await previousFetch(...args);
-    if (isChatRequest(args[0]) && response.body) inspectStream(response.clone()).catch(() => {});
-    return response;
-  };
 
   const start = () => {
     const discoveryTarget = document.getElementById("discovery-content");
