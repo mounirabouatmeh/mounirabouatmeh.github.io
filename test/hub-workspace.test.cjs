@@ -11,6 +11,12 @@ const identified = {
     { id: "frankfurt_de", city: "Frankfurt", airports: ["FRA"], coordinates: { lat: 50.1, lon: 8.7 } },
   ],
 };
+const trip = {
+  origin: "YUL", destination: "BEY",
+  departureWindow: { from: "2026-10-10", to: "2026-10-15" },
+  returnWindow: { from: "2026-11-20", to: "2026-11-22" },
+  destinationStay: { minNights: 35, maxNights: 40 },
+};
 const part = (mode, input, output, state = "output-available") => ({
   type: "tool-discovery", state, input: { mode, ...input }, output,
 });
@@ -53,15 +59,35 @@ test("later validation adds a hub without erasing earlier results", () => {
   assert.equal(result.statusById.paris_fr, "unassessed");
 });
 
-test("pending selected hubs are green, and a new baseline resets the list", () => {
+test("pending selected hubs are green; refreshing the same baseline keeps discovery after pricing", () => {
   const pending = buildHubWorkspace(conversation(
-    part("IDENTIFY", {}, identified),
-    part("VALIDATE", { selectedHubs: ["rome_it"] }, { phase: "starting" }, "input-available"),
+    { type: "tool-baseline", state: "output-available", input: trip, output: { phase: "completed" } },
+    part("IDENTIFY", trip, identified),
+    part("VALIDATE", { ...trip, selectedHubs: ["rome_it", "frankfurt_de"] }, {
+      phase: "completed", mode: "VALIDATE", validationStatus: "VALIDATED",
+      hubs: [
+        { id: "rome_it", splitFeasibleOptionCount: 30 },
+        { id: "frankfurt_de", splitFeasibleOptionCount: 0 },
+      ],
+    }),
+    { type: "tool-baseline", state: "output-available", input: { ...trip }, output: { phase: "completed" } },
+    { type: "tool-pricing", state: "output-available", output: { phase: "completed", candidates: [{}] } },
   ));
-  assert.equal(pending.statusById.rome_it, "selected");
+  assert.deepEqual(pending.hubs.map((hub) => hub.id), ["paris_fr", "rome_it", "frankfurt_de"]);
+  assert.deepEqual(pending.statusById, { paris_fr: "unassessed", rome_it: "selected", frankfurt_de: "failed" });
+  assert.equal(pending.validatedCount, 2);
+
+  const inProgress = buildHubWorkspace(conversation(
+    part("IDENTIFY", trip, identified),
+    part("VALIDATE", { ...trip, selectedHubs: ["rome_it"] }, { phase: "starting" }, "input-available"),
+  ));
+  assert.equal(inProgress.statusById.rome_it, "selected");
+});
+
+test("a baseline for a different trip clears old hubs while a new discovery is pending", () => {
   const nextTrip = buildHubWorkspace(conversation(
-    part("IDENTIFY", {}, identified),
-    { type: "tool-baseline", state: "input-available", input: { origin: "YUL" } },
+    part("IDENTIFY", trip, identified),
+    { type: "tool-baseline", state: "input-available", input: { ...trip, destination: "LHR" } },
   ));
   assert.equal(nextTrip.hubs.length, 0);
 });
