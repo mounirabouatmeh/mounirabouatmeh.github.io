@@ -491,7 +491,7 @@ function renderWorkspace() {
     } else {
       const earliest = addDays(input.departureWindow?.from, Number(input.destinationStay.minNights));
       const latest = addDays(input.departureWindow?.to, Number(input.destinationStay.maxNights));
-      if (earliest && latest) setConfirmedValue(el.intentReturn, `${earliest} → ${latest}`, true);
+      if (earliest && latest) setConfirmedValue(el.intentReturn, `${earliest} → ${latest} · derived`, true);
     }
   } else {
     setConfirmedValue(el.intentStay, "Conversation context", false);
