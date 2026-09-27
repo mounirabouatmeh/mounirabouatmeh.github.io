@@ -261,7 +261,7 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=19' demo/index.html
+          grep -q '/static-app.js?v=20' demo/index.html
           grep -q '/static-hub-state.js?v=2' demo/index.html
           grep -q '/static-issue14.js?v=5' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
@@ -284,16 +284,16 @@ jobs:
           grep -q "input.returnWindow?.from" static-intent-sync.js
           grep -q "Awaiting mini-destination confirmation" static-app.js
           grep -q "Identified · not yet validated" static-app.js
-          grep -q "Select this trip for Luna analysis & exact price confirmation" static-flow.js
+          grep -q "Send Luna to validate" static-flow.js
           grep -q "Advisor baseline confirmation authorization: YES" static-flow.js
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
           grep -q "Identified candidate · not yet validated" static-issue115.js
-          grep -q '/static-flow.js?v=3' demo/index.html
-          grep -q '/static-intent-sync.js?v=2' demo/index.html
+          grep -q '/static-flow.js?v=4' demo/index.html
+          grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=5' demo/index.html
           grep -q '/static-issue115.js?v=2' demo/index.html
-          grep -q 'static-issue135.css?v=1' demo/index.html
+          grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'CuberenceHubWorkspace' static-app.js static-issue14.js
           grep -q 'No feasible itinerary' static-issue14.js
 
