@@ -90,7 +90,7 @@
     }
 
     const derivedReturn = returnWindow(input);
-    if (returns && derivedReturn) returns.textContent = derivedReturn;
+    if (returns && derivedReturn) returns.textContent = input.returnWindow ? derivedReturn : `${derivedReturn} · derived`;
   }
 
   function baselineAuthorizationMessage() {
@@ -146,8 +146,12 @@
       return;
     }
 
-    const card = node("article", `baseline-overview-card issue135-baseline-card ${flowState.baselineExpanded ? "is-expanded" : ""}`);
-    const top = node("div", "baseline-overview-top");
+    const card = node("article", `baseline-overview-card candidate-card interactive-candidate issue135-baseline-card ${flowState.baselineExpanded ? "expanded is-expanded" : ""}`);
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-expanded", String(flowState.baselineExpanded));
+
+    const top = node("div", "candidate-top baseline-overview-top");
     const copy = node("div");
     copy.append(node("span", "baseline-kicker", "Standard trip · no mini-destination"));
     copy.append(node("strong", "baseline-price", money(baseline.price)));
@@ -159,7 +163,7 @@
     if (legs.length >= 2) {
       const outbound = legs[0];
       const inbound = legs[legs.length - 1];
-      const facts = node("div", "baseline-facts");
+      const facts = node("div", "candidate-facts baseline-facts");
       facts.append(node("span", null, `${outbound?.origin ?? ""} → ${outbound?.destination ?? ""}`));
       facts.append(node("span", null, `Depart ${outbound?.departure?.slice?.(0, 10) ?? "—"}`));
       facts.append(node("span", null, `Return ${inbound?.departure?.slice?.(0, 10) ?? "—"}`));
@@ -167,17 +171,25 @@
       card.append(facts);
     }
 
-    const expand = node("button", "issue135-baseline-expand", flowState.baselineExpanded ? "Hide flight details" : "View flight details");
-    expand.type = "button";
-    expand.setAttribute("aria-expanded", String(flowState.baselineExpanded));
-    expand.addEventListener("click", () => {
-      flowState.baselineExpanded = !flowState.baselineExpanded;
-      renderBaseline();
-    });
-    card.append(expand);
+    card.append(node("span", "candidate-expand-hint", flowState.baselineExpanded ? "Hide flight details ↑" : "View flight details ↓"));
 
     if (flowState.baselineExpanded) {
-      const details = node("div", "issue135-baseline-details");
+      const details = node("div", "issue135-baseline-details candidate-detail");
+
+      const selection = node("label", "issue23-selection-control issue135-baseline-selection");
+      const checkbox = node("input", "issue135-baseline-checkbox");
+      checkbox.type = "checkbox";
+      checkbox.checked = flowState.baselineConfirmationPending || ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(flowState.baselineConfirmation?.status);
+      checkbox.disabled = flowState.baselineConfirmationPending || Boolean(flowState.baselineConfirmation);
+      const selectionCopy = node("span", "issue23-selection-copy");
+      selectionCopy.append(node("strong", null, "Send Luna to validate"));
+      selectionCopy.append(node("small", null, "Luna will analyze and exact-confirm this standard trip."));
+      selection.append(checkbox, selectionCopy);
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) sendBaselineAuthorization();
+      });
+      details.append(selection);
+
       legs.forEach((leg, index) => {
         const legBlock = node("section", "issue135-baseline-leg");
         legBlock.append(node("b", null, `Leg ${index + 1}: ${leg?.origin ?? "—"} → ${leg?.destination ?? "—"}`));
@@ -186,32 +198,34 @@
         else legBlock.append(node("span", null, `${leg?.departure ?? "—"} → ${leg?.arrival ?? "—"}`));
         details.append(legBlock);
       });
+
+      if (flowState.baselineConfirmationPending) {
+        details.append(node("p", "issue135-baseline-confirmation is-running", "Exact-confirming the selected standard trip…"));
+      } else if (flowState.baselineConfirmation?.status === "CONFIRMED") {
+        details.append(node("p", "issue135-baseline-confirmation is-confirmed", `Exact fare confirmed: ${money(flowState.baselineConfirmation.confirmedOffer?.price)}`));
+      } else if (flowState.baselineConfirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
+        details.append(node("p", "issue135-baseline-confirmation is-unavailable", flowState.baselineConfirmation.message ?? "Exact matching fare unavailable; the original baseline remains the benchmark."));
+      } else if (flowState.baselineConfirmation?.status === "EXACT_CHECK_FAILED") {
+        details.append(node("p", "issue135-baseline-confirmation is-failed", flowState.baselineConfirmation.message ?? "Exact baseline confirmation needs attention."));
+      }
+
       card.append(details);
     }
 
-    const selection = node("label", "issue23-selection-control issue135-baseline-selection");
-    const checkbox = node("input", "issue135-baseline-checkbox");
-    checkbox.type = "checkbox";
-    checkbox.checked = flowState.baselineConfirmationPending || ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(flowState.baselineConfirmation?.status);
-    checkbox.disabled = flowState.baselineConfirmationPending || Boolean(flowState.baselineConfirmation);
-    const selectionCopy = node("span", "issue23-selection-copy");
-    selectionCopy.append(node("strong", null, "Select this trip for Luna analysis & exact price confirmation"));
-    selectionCopy.append(node("small", null, "The standard baseline is not exact-confirmed until you select it."));
-    selection.append(checkbox, selectionCopy);
-    checkbox.addEventListener("change", () => {
-      if (checkbox.checked) sendBaselineAuthorization();
+    const toggle = () => {
+      flowState.baselineExpanded = !flowState.baselineExpanded;
+      renderBaseline();
+    };
+    card.addEventListener("click", (event) => {
+      if (event.target.closest?.("input,label,button,a")) return;
+      toggle();
     });
-    card.append(selection);
-
-    if (flowState.baselineConfirmationPending) {
-      card.append(node("p", "issue135-baseline-confirmation is-running", "Exact-confirming the selected standard trip…"));
-    } else if (flowState.baselineConfirmation?.status === "CONFIRMED") {
-      card.append(node("p", "issue135-baseline-confirmation is-confirmed", `Exact fare confirmed: ${money(flowState.baselineConfirmation.confirmedOffer?.price)}`));
-    } else if (flowState.baselineConfirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
-      card.append(node("p", "issue135-baseline-confirmation is-unavailable", flowState.baselineConfirmation.message ?? "Exact matching fare unavailable; the original baseline remains the benchmark."));
-    } else if (flowState.baselineConfirmation?.status === "EXACT_CHECK_FAILED") {
-      card.append(node("p", "issue135-baseline-confirmation is-failed", flowState.baselineConfirmation.message ?? "Exact baseline confirmation needs attention."));
-    }
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.target.closest?.("input,label,button,a")) return;
+      event.preventDefault();
+      toggle();
+    });
 
     target.append(card);
   }
