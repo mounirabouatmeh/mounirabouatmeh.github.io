@@ -98,7 +98,7 @@
       selectedHubIds: [...selectedIds],
       validatedCount: validatedById.size,
       failedCount: hubs.filter((hub) => statusById[hub.id] === "failed").length,
-      analysisSummary: latestValidated?.analysisSummary ?? null,
+      assessmentSummary: latestValidated?.assessmentSummary ?? null,
     };
   }
 

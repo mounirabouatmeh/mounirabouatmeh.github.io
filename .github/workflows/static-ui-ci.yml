@@ -263,9 +263,9 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=21' demo/index.html
-          grep -q '/static-hub-state.js?v=3' demo/index.html
-          grep -q '/static-issue14.js?v=6' demo/index.html
+          grep -q '/static-app.js?v=22' demo/index.html
+          grep -q '/static-hub-state.js?v=4' demo/index.html
+          grep -q '/static-issue14.js?v=7' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
@@ -297,9 +297,12 @@ jobs:
           grep -q '/static-issue115.js?v=2' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
-          grep -q 'totalAnalyzedOptionCount' static-app.js static-hub-state.js static-issue14.js
-          grep -q 'splitAnalyzedOptionCount' static-app.js static-issue14.js
-          grep -q 'combinations analyzed' static-app.js static-issue14.js
+          grep -q 'totalAssessedOptionCount' static-app.js static-hub-state.js static-issue14.js
+          grep -q 'splitAssessedOptionCount' static-app.js static-issue14.js
+          grep -q 'splitRiskRejectedOptionCount' static-app.js static-issue14.js
+          grep -q 'combinations assessed' static-app.js static-issue14.js
+          grep -q 'Rejected — risk too high' static-app.js static-issue14.js
+          ! grep -q 'combinations analyzed' static-app.js static-issue14.js
           grep -q 'CuberenceHubWorkspace' static-app.js static-issue14.js
           grep -q 'No feasible itinerary' static-issue14.js
 

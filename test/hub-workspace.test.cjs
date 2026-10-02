@@ -27,15 +27,15 @@ test("all identified hubs stay listed after a selected set is validated", () => 
     part("IDENTIFY", {}, identified),
     part("VALIDATE", { selectedHubs: ["paris_fr", "frankfurt_de"] }, {
       phase: "completed", mode: "VALIDATE", validationStatus: "VALIDATED", discoveryId: "validate-1",
-      analysisSummary: {
-        totalAnalyzedOptionCount: 18,
+      assessmentSummary: {
+        totalAssessedOptionCount: 12,
         validOptionCount: 6,
         validWithRiskOptionCount: 4,
-        failedOptionCount: 8,
+        rejectedRiskOptionCount: 2,
       },
       hubs: [
-        { id: "paris_fr", splitFeasibleOptionCount: 6, feasibleHubNights: [1, 2, 3], splitAnalyzedOptionCount: 12, splitValidOptionCount: 4, splitValidWithRiskOptionCount: 2, splitFailedOptionCount: 6 },
-        { id: "frankfurt_de", splitFeasibleOptionCount: 0, feasibleHubNights: [], splitAnalyzedOptionCount: 6, splitValidOptionCount: 0, splitValidWithRiskOptionCount: 0, splitFailedOptionCount: 6 },
+        { id: "paris_fr", splitFeasibleOptionCount: 6, feasibleHubNights: [1, 2, 3], splitAssessedOptionCount: 8, splitValidOptionCount: 4, splitValidWithRiskOptionCount: 2, splitRiskRejectedOptionCount: 2 },
+        { id: "frankfurt_de", splitFeasibleOptionCount: 0, feasibleHubNights: [], splitAssessedOptionCount: 4, splitValidOptionCount: 0, splitValidWithRiskOptionCount: 0, splitRiskRejectedOptionCount: 4 },
       ],
     }),
   ));
@@ -45,13 +45,13 @@ test("all identified hubs stay listed after a selected set is validated", () => 
   });
   assert.deepEqual(result.hubs[0].airports, ["CDG", "ORY"]);
   assert.equal(result.discovery.discoveryId, "identify-1");
-  assert.deepEqual(result.analysisSummary, {
-    totalAnalyzedOptionCount: 18,
+  assert.deepEqual(result.assessmentSummary, {
+    totalAssessedOptionCount: 12,
     validOptionCount: 6,
     validWithRiskOptionCount: 4,
-    failedOptionCount: 8,
+    rejectedRiskOptionCount: 2,
   });
-  assert.equal(result.hubs[0].splitAnalyzedOptionCount, 12);
+  assert.equal(result.hubs[0].splitAssessedOptionCount, 8);
 });
 
 test("later validation adds a hub without erasing earlier results", () => {
