@@ -1,0 +1,50 @@
+/* Issue #141 — make backend validation volume visible to advisors. */
+.issue141-analysis-summary {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid #cfe0d7;
+  border-radius: 12px;
+  background: #f7fbf8;
+  display: grid;
+  gap: 10px;
+}
+.issue141-analysis-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.issue141-analysis-heading strong {
+  color: #173f31;
+  font-size: 14px;
+}
+.issue141-analysis-heading span {
+  color: #697872;
+  font-size: 11px;
+}
+.issue141-analysis-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.issue141-analysis-metrics > span {
+  border: 1px solid #dde6e2;
+  border-radius: 999px;
+  background: #fff;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.issue141-analysis-metrics .is-valid { color: #16643f; }
+.issue141-analysis-metrics .is-risk { color: #8a5a10; }
+.issue141-analysis-metrics .is-failed { color: #9a2d2d; }
+.issue141-hub-counts {
+  margin-top: 7px;
+  color: #586761;
+  font-size: 11px;
+  line-height: 1.45;
+}
+@media (max-width: 720px) {
+  .issue141-analysis-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
+}
