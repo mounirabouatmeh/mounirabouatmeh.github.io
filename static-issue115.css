@@ -70,3 +70,55 @@
 @media (prefers-reduced-motion: reduce) {
   .issue115-chat-target { animation: none; }
 }
+
+
+/* Issue #145 — validation-to-pricing funnel. */
+.issue145-pricing-funnel {
+  margin: 0 0 12px;
+  padding: 12px 13px;
+  border: 1px solid #d5e2dc;
+  border-radius: 12px;
+  background: #f8fbf9;
+}
+.issue145-funnel-flow {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1.2fr);
+  align-items: center;
+  gap: 7px;
+}
+.issue145-funnel-step {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 5px;
+  align-items: baseline;
+}
+.issue145-funnel-step strong {
+  color: #173f31;
+  font-size: 15px;
+  line-height: 1.1;
+}
+.issue145-funnel-step small {
+  grid-column: 1 / -1;
+  margin-top: 3px;
+  color: #65736d;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+.issue145-funnel-icon { font-size: 13px; }
+.issue145-funnel-arrow { color: #8a9892; font-size: 15px; font-weight: 800; }
+.issue145-funnel-note {
+  margin: 8px 0 0;
+  color: #586761;
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+@media (max-width: 520px) {
+  .issue145-pricing-funnel { padding: 11px 10px; }
+  .issue145-funnel-flow { gap: 4px; }
+  .issue145-funnel-step strong { font-size: 13px; }
+  .issue145-funnel-step small { font-size: 9px; }
+  .issue145-funnel-arrow { font-size: 12px; }
+}

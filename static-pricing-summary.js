@@ -37,11 +37,19 @@
 
     const output = latestPricing.output;
     const candidates = Array.isArray(output.candidates) ? output.candidates : [];
+    const candidateUniverse = output.page?.fullAnalysis?.candidateUniverse;
+    const universeColumns = Array.isArray(candidateUniverse?.columns) ? candidateUniverse.columns : [];
+    const statusIndex = universeColumns.indexOf("candidateStatus");
+    const universeRows = Array.isArray(candidateUniverse?.rows) ? candidateUniverse.rows : [];
+    const ticketOptimizedTotal = statusIndex >= 0
+      ? universeRows.filter((row) => ["VALID", "VALID_WITH_RISK"].includes(String(row?.[statusIndex]))).length
+      : Number(candidateUniverse?.total ?? candidates.length);
     const rejections = output.rejectionCounts && typeof output.rejectionCounts === "object" ? output.rejectionCounts : {};
     const baseline = output.baseline;
     const fingerprint = JSON.stringify([
       output.pricingId,
       candidates.length,
+      ticketOptimizedTotal,
       baseline?.price?.amount,
       rejections,
     ]);
@@ -56,7 +64,9 @@
 
     const heading = node("div", "pricing-result-heading");
     const headingCopy = node("div");
-    headingCopy.append(node("strong", null, candidates.length ? `${candidates.length} viable candidate${candidates.length === 1 ? "" : "s"}` : "0 viable candidates"));
+    headingCopy.append(node("strong", null, candidates.length
+      ? `Showing ${candidates.length.toLocaleString()} of ${ticketOptimizedTotal.toLocaleString()} ticket-optimized itineraries`
+      : "0 ticket-optimized itineraries"));
     headingCopy.append(node("span", null, `${output.strategy ?? "Pricing"} · ${(output.selectedHubs ?? []).join(" + ") || "selected hubs"}`));
     heading.append(headingCopy);
     heading.append(node("span", `pricing-result-state ${candidates.length ? "has-results" : "no-results"}`, "Completed"));
