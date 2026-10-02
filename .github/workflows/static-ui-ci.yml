@@ -281,6 +281,16 @@ jobs:
           grep -q "splitReturnOptions" static-issue115.js
           grep -q "/api/v1/health" static-issue115.js
 
+          # Issue #145: show the validation-to-pricing funnel and ticket-optimized terminology.
+          grep -q "pricingFunnelCounts" static-issue115.js
+          grep -q "totalAssessedOptionCount" static-issue115.js
+          grep -q "splitFeasibleOptionCount" static-issue115.js
+          grep -q "Ticket-optimized itineraries" static-issue115.js
+          grep -q "Same-carrier round-trip structure applied" static-issue115.js
+          grep -q "Showing .* of .* ticket-optimized itineraries" static-pricing-summary.js
+          grep -q '/static-pricing-summary.js?v=2' demo/index.html
+          grep -q '/static-issue115.css?v=3' demo/index.html
+
 
           # Issue #135: explicit return windows, mandatory mini-destination gate, staged hub validation, baseline selection.
           grep -q "input.returnWindow?.from" static-intent-sync.js
@@ -294,7 +304,7 @@ jobs:
           grep -q '/static-flow.js?v=4' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=5' demo/index.html
-          grep -q '/static-issue115.js?v=2' demo/index.html
+          grep -q '/static-issue115.js?v=3' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
           grep -q 'totalAssessedOptionCount' static-app.js static-hub-state.js static-issue14.js
