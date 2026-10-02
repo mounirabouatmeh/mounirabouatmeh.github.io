@@ -6,6 +6,7 @@
     statusById: {},
     validatedCount: 0,
     failedCount: 0,
+    analysisSummary: null,
     map: null,
     renderFingerprint: null,
     renderQueued: false,
@@ -58,7 +59,7 @@
 
   function renderHubList(target) {
     const current = target.querySelector(".issue14-hub-list");
-    const fingerprint = JSON.stringify(state.hubs.map((hub) => [hub.id, hubStatus(hub), hub.feasibleHubNights, hub.airports]));
+    const fingerprint = JSON.stringify(state.hubs.map((hub) => [hub.id, hubStatus(hub), hub.feasibleHubNights, hub.airports, hub.splitAnalyzedOptionCount, hub.splitValidOptionCount, hub.splitValidWithRiskOptionCount, hub.splitFailedOptionCount]));
     if (current?.dataset.fingerprint === fingerprint) return;
     current?.remove();
 
@@ -79,6 +80,14 @@
           ? `${hub.feasibleHubNights.join(", ")} night options · validated`
           : "Selected · validation in progress";
       card.append(node("small", null, `${nights}${airports}`));
+      if (status !== "unassessed" && Number.isFinite(Number(hub.splitAnalyzedOptionCount))) {
+        const analyzed = Number(hub.splitAnalyzedOptionCount ?? 0);
+        const valid = Number(hub.splitValidOptionCount ?? 0);
+        const risk = Number(hub.splitValidWithRiskOptionCount ?? 0);
+        const failed = Number(hub.splitFailedOptionCount ?? 0);
+        card.append(node("div", "issue141-hub-counts",
+          `🔎 ${analyzed.toLocaleString()} analyzed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ❌ ${failed.toLocaleString()} failed`));
+      }
       card.append(node("span", `issue14-status-label is-${status}`,
         status === "failed" ? "No feasible itinerary" : status === "selected" ? "Selected" : "Not assessed"));
       list.append(card);
@@ -102,6 +111,36 @@
     });
     bounds.push(point);
     return marker;
+  }
+
+  function renderAnalysisSummary(target) {
+    const summary = state.analysisSummary;
+    const total = Number(summary?.totalAnalyzedOptionCount);
+    const current = target.querySelector(".issue141-analysis-summary");
+    if (!Number.isFinite(total) || total <= 0) {
+      current?.remove();
+      return;
+    }
+    const fingerprint = JSON.stringify(summary);
+    if (current?.dataset.fingerprint === fingerprint) return;
+    current?.remove();
+
+    const valid = Number(summary?.validOptionCount ?? 0);
+    const risk = Number(summary?.validWithRiskOptionCount ?? 0);
+    const failed = Number(summary?.failedOptionCount ?? 0);
+    const card = node("section", "issue141-analysis-summary");
+    card.dataset.fingerprint = fingerprint;
+    card.setAttribute("aria-label", "Cuberence validation analysis summary");
+    const heading = node("div", "issue141-analysis-heading");
+    heading.append(node("strong", null, `🔎 ${total.toLocaleString()} combinations analyzed`));
+    heading.append(node("span", null, "Selected hubs · backend validation"));
+    card.append(heading);
+    const metrics = node("div", "issue141-analysis-metrics");
+    metrics.append(node("span", "is-valid", `✅ ${valid.toLocaleString()} Valid`));
+    metrics.append(node("span", "is-risk", `⚠️ ${risk.toLocaleString()} Valid with risk`));
+    metrics.append(node("span", "is-failed", `❌ ${failed.toLocaleString()} Rejected`));
+    card.append(metrics);
+    target.prepend(card);
   }
 
   function renderMap(target) {
@@ -237,9 +276,11 @@
     state.statusById = workspace.statusById;
     state.validatedCount = workspace.validatedCount;
     state.failedCount = workspace.failedCount;
+    state.analysisSummary = workspace.analysisSummary ?? null;
     const target = document.getElementById("discovery-content");
     if (!target) return;
     renderMap(target);
+    renderAnalysisSummary(target);
     renderHubList(target);
   }
 

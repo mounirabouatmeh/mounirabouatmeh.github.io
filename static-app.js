@@ -207,6 +207,26 @@ function asksToRevisitHubs(hubs, priced) {
   return mentionsHub && (/\b(price|try|check|use|switch|change|select|choose|test|run|instead)\b/.test(text) || /\bwhat about\b/.test(text));
 }
 
+function renderDiscoveryAnalysisSummary(summary) {
+  const total = Number(summary?.totalAnalyzedOptionCount);
+  if (!Number.isFinite(total) || total <= 0) return null;
+  const valid = Number(summary?.validOptionCount ?? 0);
+  const risk = Number(summary?.validWithRiskOptionCount ?? 0);
+  const failed = Number(summary?.failedOptionCount ?? 0);
+  const card = createNode("section", "issue141-analysis-summary");
+  card.setAttribute("aria-label", "Cuberence validation analysis summary");
+  const heading = createNode("div", "issue141-analysis-heading");
+  heading.append(createNode("strong", null, `🔎 ${total.toLocaleString()} combinations analyzed`));
+  heading.append(createNode("span", null, "Selected hubs · backend validation"));
+  card.append(heading);
+  const metrics = createNode("div", "issue141-analysis-metrics");
+  metrics.append(createNode("span", "is-valid", `✅ ${valid.toLocaleString()} Valid`));
+  metrics.append(createNode("span", "is-risk", `⚠️ ${risk.toLocaleString()} Valid with risk`));
+  metrics.append(createNode("span", "is-failed", `❌ ${failed.toLocaleString()} Rejected`));
+  card.append(metrics);
+  return card;
+}
+
 function renderDiscoveryMap(discovery, hubs, statusById) {
   const wrapper = createNode("section", "discovery-map-card");
   wrapper.setAttribute("aria-label", "Stayover hub map");
@@ -500,7 +520,7 @@ function renderWorkspace() {
 
   const hubWorkspace = globalThis.CuberenceHubState?.buildHubWorkspace(state.messages) ?? {
     discovery, hubs: Array.isArray(discovery?.hubs) ? discovery.hubs : [], statusById: {},
-    selectedHubIds: [], validatedCount: 0, failedCount: 0,
+    selectedHubIds: [], validatedCount: 0, failedCount: 0, analysisSummary: null,
   };
   const hubs = hubWorkspace.hubs;
   const statusById = hubWorkspace.statusById;
@@ -524,13 +544,16 @@ function renderWorkspace() {
 
   const discoveryFingerprint = JSON.stringify([
     hubWorkspace.discovery?.discoveryId,
-    hubs.map((hub) => [hub.id, hub.airports, hub.feasibleHubNights, hub.splitFeasibleOptionCount, statusById[hub.id]]),
+    hubs.map((hub) => [hub.id, hub.airports, hub.feasibleHubNights, hub.splitFeasibleOptionCount, hub.splitAnalyzedOptionCount, hub.splitValidOptionCount, hub.splitValidWithRiskOptionCount, hub.splitFailedOptionCount, statusById[hub.id]]),
+    hubWorkspace.analysisSummary,
     discoveryPart?.output?.phase,
   ]);
   if (discoveryFingerprint !== state.discoveryFingerprint) {
     state.discoveryFingerprint = discoveryFingerprint;
     el.discoveryContent.replaceChildren();
     if (hubs.length) {
+      const analysisSummary = renderDiscoveryAnalysisSummary(hubWorkspace.analysisSummary);
+      if (analysisSummary) el.discoveryContent.append(analysisSummary);
       el.discoveryContent.append(renderDiscoveryMap(hubWorkspace.discovery, hubs, statusById));
       const list = createNode("div", "hub-list");
       for (const hub of hubs) {
@@ -547,6 +570,14 @@ function renderWorkspace() {
             ? `${hub.feasibleHubNights.join(", ")} night options · selected`
             : "Selected · validation in progress";
         card.append(createNode("small", null, `${nights}${airports}`));
+        if (status !== "unassessed" && Number.isFinite(Number(hub.splitAnalyzedOptionCount))) {
+          const analyzed = Number(hub.splitAnalyzedOptionCount ?? 0);
+          const valid = Number(hub.splitValidOptionCount ?? 0);
+          const risk = Number(hub.splitValidWithRiskOptionCount ?? 0);
+          const failed = Number(hub.splitFailedOptionCount ?? 0);
+          card.append(createNode("div", "issue141-hub-counts",
+            `🔎 ${analyzed.toLocaleString()} analyzed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ❌ ${failed.toLocaleString()} failed`));
+        }
         list.append(card);
       }
       el.discoveryContent.append(list);
