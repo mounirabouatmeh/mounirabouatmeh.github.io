@@ -25,6 +25,58 @@
     return records().filter((record) => STRUCTURALLY_USABLE.has(String(record.candidateStatus)));
   }
 
+  function pricingFunnelCounts() {
+    const workspace = globalThis.CuberenceHubWorkspace?.();
+    const selectedHubIds = new Set((s.pricing?.selectedHubs ?? []).map((id) => String(id)));
+    const validatedHubs = Array.isArray(workspace?.hubs) ? workspace.hubs : [];
+    const relevantHubs = selectedHubIds.size
+      ? validatedHubs.filter((hub) => selectedHubIds.has(String(hub?.id)))
+      : validatedHubs.filter((hub) => workspace?.statusById?.[hub?.id] === "selected");
+    const assessedFromSummary = Number(workspace?.assessmentSummary?.totalAssessedOptionCount);
+    const assessedFromHubs = relevantHubs.reduce((total, hub) => total + Number(hub?.splitAssessedOptionCount ?? 0), 0);
+    const feasible = relevantHubs.reduce((total, hub) => total + Number(hub?.splitFeasibleOptionCount ?? 0), 0);
+    return {
+      assessed: Number.isFinite(assessedFromSummary) && assessedFromSummary > 0 ? assessedFromSummary : assessedFromHubs,
+      feasible,
+      optimized: usableRecords().length,
+    };
+  }
+
+  function renderPricingFunnel() {
+    const target = document.getElementById("pricing-content");
+    if (!target || !s.pricing?.page?.fullAnalysis?.candidateUniverse) return;
+    const counts = pricingFunnelCounts();
+    if (![counts.assessed, counts.feasible, counts.optimized].every((value) => Number.isFinite(value) && value >= 0)) return;
+
+    let funnel = target.querySelector(".issue145-pricing-funnel");
+    if (!funnel) {
+      funnel = node("section", "issue145-pricing-funnel");
+      funnel.setAttribute("aria-label", "Cuberence validation to pricing funnel");
+      const flow = node("div", "issue145-funnel-flow");
+      for (const [key, icon, label] of [
+        ["assessed", "🔎", "assessed"],
+        ["feasible", "✅", "feasible"],
+        ["optimized", "✈️", "ticket-optimized"],
+      ]) {
+        if (flow.children.length) flow.append(node("span", "issue145-funnel-arrow", "→"));
+        const step = node("div", "issue145-funnel-step");
+        step.dataset.issue145Step = key;
+        step.append(node("span", "issue145-funnel-icon", icon));
+        step.append(node("strong", "issue145-funnel-number"));
+        step.append(node("small", null, label));
+        flow.append(step);
+      }
+      funnel.append(flow);
+      funnel.append(node("p", "issue145-funnel-note", "Same-carrier round-trip structure applied before indicative pricing."));
+    }
+
+    for (const [key, value] of Object.entries(counts)) {
+      const number = funnel.querySelector(`[data-issue145-step="${key}"] .issue145-funnel-number`);
+      setText(number, Number(value).toLocaleString());
+    }
+    if (target.firstElementChild !== funnel) target.prepend(funnel);
+  }
+
   function recommendedIds() {
     const ids = new Set();
     const categories = s.pricing?.page?.fullAnalysis?.universeRecommendationCategories ?? {};
@@ -191,12 +243,13 @@
     const usable = usableRecords();
     const recommendations = recommendedIds();
     const badge = document.getElementById("pricing-badge");
-    if (badge && usable.length) setText(badge, `${usable.length} candidates`);
+    if (badge && usable.length) setText(badge, `${usable.length} optimized`);
+    renderPricingFunnel();
 
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
     if (filterRow && !document.querySelector(".issue115-view-switcher")) {
       const switcher = node("div", "issue115-view-switcher");
-      const all = node("button", "issue115-view-button", `All itineraries (${usable.length})`);
+      const all = node("button", "issue115-view-button", `Ticket-optimized itineraries (${usable.length})`);
       const recommended = node("button", "issue115-view-button", `Luna recommendations (${recommendations.size})`);
       all.type = recommended.type = "button";
       all.dataset.issue115View = "all";
@@ -206,7 +259,11 @@
       switcher.append(all, recommended);
       filterRow.before(switcher);
     }
-    for (const button of document.querySelectorAll("[data-issue115-view]")) button.classList.toggle("active", button.dataset.issue115View === view.mode);
+    for (const button of document.querySelectorAll("[data-issue115-view]")) {
+      button.classList.toggle("active", button.dataset.issue115View === view.mode);
+      if (button.dataset.issue115View === "all") setText(button, `Ticket-optimized itineraries (${usable.length})`);
+      if (button.dataset.issue115View === "recommended") setText(button, `Luna recommendations (${recommendations.size})`);
+    }
     const byNight = new Map();
     usable.forEach((record) => byNight.set(Number(record.hubNights), (byNight.get(Number(record.hubNights)) ?? 0) + 1));
     for (const button of document.querySelectorAll("#pricing-content .pricing-filter")) {
@@ -288,7 +345,7 @@
   }
 
   syncFns.unshift(queue);
-  globalThis.CuberenceIssue115 = { records, usableRecords, recommendedIds, structurallyValidNights, setView };
+  globalThis.CuberenceIssue115 = { records, usableRecords, recommendedIds, pricingFunnelCounts, structurallyValidNights, setView };
 
   async function loadEnvironment() {
     try {
