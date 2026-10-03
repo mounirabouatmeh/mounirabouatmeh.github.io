@@ -38,7 +38,7 @@
   const formatDateTime = (v, timeZone) => {
     if (typeof v !== "string" || !v) return "—";
 
-    // AeroDataBox exact schedules are canonical UTC instants. Convert only at
+    // Exact discovery schedules are canonical UTC instants. Convert only at
     // presentation time when the API supplies the airport's IANA timezone.
     if (typeof timeZone === "string" && timeZone) {
       const instant = new Date(v);
@@ -51,9 +51,9 @@
       }
     }
 
-    // Sabre schedule values already encode the airport-local wall clock plus
-    // an offset. Preserve that literal clock rather than converting it to the
-    // advisor/browser timezone (the contract established by issue #34).
+    // Confirmed fare-provider schedule values already encode the airport-local
+    // wall clock plus an offset. Preserve that literal clock rather than converting
+    // it to the advisor/browser timezone (the contract established by issue #34).
     const match = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/);
     if (!match) return v.replace("T", " ").replace(/:00(?=[+-]|Z|$)/, "");
     const [, year, month, day, hour, minute] = match;
