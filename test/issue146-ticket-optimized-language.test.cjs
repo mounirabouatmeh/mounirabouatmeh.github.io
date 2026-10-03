@@ -10,7 +10,7 @@ test("Step 4 header badge says Pricing complete without repeating the optimized 
 });
 
 test("the meaningful 414-style count remains in funnel and navigation terminology", () => {
-  assert.match(issue115, /ticket-optimized/);
-  assert.match(issue115, /Ticket-optimized itineraries/);
+  assert.match(issue115, /ticket-compatible/);
+  assert.match(issue115, /Ticket-compatible itineraries/);
   assert.match(issue115, /optimized:\s*usableRecords\(\)\.length/);
 });

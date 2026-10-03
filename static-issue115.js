@@ -65,7 +65,7 @@
       for (const [key, icon, label] of [
         ["assessed", "🔎", "assessed"],
         ["feasible", "✅", "feasible"],
-        ["optimized", "✈️", "ticket-optimized"],
+        ["optimized", "✈️", "ticket-compatible"],
       ]) {
         if (flow.children.length) flow.append(node("span", "issue145-funnel-arrow", "→"));
         const step = node("div", "issue145-funnel-step");
@@ -75,9 +75,8 @@
         step.append(node("small", null, label));
         flow.append(step);
       }
-      flow.append(node("span", "issue145-funnel-arrow", "→"));
       const status = node("div", "issue148-status-breakdown");
-      status.innerHTML = '<span data-issue148-status="valid"></span><span>·</span><span data-issue148-status="risk"></span><span>·</span><span data-issue148-status="not-valid"></span>';
+      status.innerHTML = '<span class="issue148-status-arrow">→</span><span data-issue148-status="valid"></span><span>·</span><span data-issue148-status="risk"></span><span>·</span><span data-issue148-status="not-valid"></span>';
       flow.append(status);
       funnel.append(flow);
       funnel.append(node("p", "issue145-funnel-note", "Same-carrier round-trip structure applied before indicative pricing."));
@@ -265,7 +264,7 @@
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
     if (filterRow && !document.querySelector(".issue115-view-switcher")) {
       const switcher = node("div", "issue115-view-switcher");
-      const all = node("button", "issue115-view-button", `Ticket-optimized itineraries (${usable.length})`);
+      const all = node("button", "issue115-view-button", `Ticket-compatible itineraries (${usable.length})`);
       const recommended = node("button", "issue115-view-button", `Luna recommendations (${recommendations.size})`);
       all.type = recommended.type = "button";
       all.dataset.issue115View = "all";
@@ -277,7 +276,7 @@
     }
     for (const button of document.querySelectorAll("[data-issue115-view]")) {
       button.classList.toggle("active", button.dataset.issue115View === view.mode);
-      if (button.dataset.issue115View === "all") setText(button, `Ticket-optimized itineraries (${usable.length})`);
+      if (button.dataset.issue115View === "all") setText(button, `Ticket-compatible itineraries (${usable.length})`);
       if (button.dataset.issue115View === "recommended") setText(button, `Luna recommendations (${recommendations.size})`);
     }
     const byNight = new Map();

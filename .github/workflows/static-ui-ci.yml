@@ -265,7 +265,7 @@ jobs:
           fi
           grep -q '/static-app.js?v=22' demo/index.html
           grep -q '/static-hub-state.js?v=4' demo/index.html
-          grep -q '/static-issue14.js?v=8' demo/index.html
+          grep -q '/static-issue14.js?v=9' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
@@ -281,25 +281,28 @@ jobs:
           grep -q "splitReturnOptions" static-issue115.js
           grep -q "/api/v1/health" static-issue115.js
 
-          # Issue #145: show the validation-to-pricing funnel and ticket-optimized terminology.
+          # Issue #145: show the validation-to-pricing funnel and ticket-compatible terminology.
           grep -q "pricingFunnelCounts" static-issue115.js
           grep -q "totalAssessedOptionCount" static-issue115.js
           grep -q "splitFeasibleOptionCount" static-issue115.js
-          grep -q "Ticket-optimized itineraries" static-issue115.js
+          grep -q "Ticket-compatible itineraries" static-issue115.js
           grep -q "Same-carrier round-trip structure applied" static-issue115.js
           grep -q 'setText(badge, "Pricing complete")' static-issue115.js
           ! grep -q 'optimized`);' static-issue115.js
 
-          # Issue #148: one canonical assessed → feasible → ticket-optimized → status funnel everywhere.
+          # Issue #148: one canonical assessed → feasible → ticket-compatible → status funnel everywhere.
           grep -q "validWithRisk" static-issue115.js
           grep -q "notValid" static-issue115.js
-          grep -q "ticket-optimized" static-issue14.js
+          grep -q "ticket-compatible" static-issue14.js
           grep -q "valid with risk" static-issue14.js
           grep -q "not valid" static-issue14.js
           grep -q "pricingFunnelCounts?.(hub.id)" static-issue14.js
-          grep -q "Showing .* of .* ticket-optimized itineraries" static-pricing-summary.js
-          grep -q '/static-pricing-summary.js?v=2' demo/index.html
-          grep -q '/static-issue115.css?v=4' demo/index.html
+          grep -q "pricingFingerprint" static-issue14.js
+          grep -q "issue148-status-arrow" static-issue115.js
+          grep -q "issue148-status-arrow{display:none}" static-issue115.css
+          grep -q "Showing .* of .* ticket-compatible itineraries" static-pricing-summary.js
+          grep -q '/static-pricing-summary.js?v=3' demo/index.html
+          grep -q '/static-issue115.css?v=5' demo/index.html
 
 
           # Issue #135: explicit return windows, mandatory mini-destination gate, staged hub validation, baseline selection.
@@ -314,7 +317,7 @@ jobs:
           grep -q '/static-flow.js?v=4' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=5' demo/index.html
-          grep -q '/static-issue115.js?v=5' demo/index.html
+          grep -q '/static-issue115.js?v=6' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
           grep -q 'totalAssessedOptionCount' static-app.js static-hub-state.js static-issue14.js
