@@ -35,19 +35,20 @@
         ? validatedHubs.filter((hub) => selectedHubIds.has(String(hub?.id)))
         : validatedHubs.filter((hub) => workspace?.statusById?.[hub?.id] === "selected");
     const assessedFromSummary = Number(workspace?.assessmentSummary?.totalAssessedOptionCount);
+    const rejectedFromSummary = Number(workspace?.assessmentSummary?.rejectedRiskOptionCount);
     const assessedFromHubs = relevantHubs.reduce((total, hub) => total + Number(hub?.splitAssessedOptionCount ?? 0), 0);
+    const rejectedFromHubs = relevantHubs.reduce((total, hub) => total + Number(hub?.splitRiskRejectedOptionCount ?? 0), 0);
     const feasible = relevantHubs.reduce((total, hub) => total + Number(hub?.splitFeasibleOptionCount ?? 0), 0);
     const scopedRecords = hubId ? records().filter((record) => String(record.hubId) === String(hubId)) : records();
     const valid = scopedRecords.filter((record) => String(record.candidateStatus) === "VALID").length;
     const validWithRisk = scopedRecords.filter((record) => String(record.candidateStatus) === "VALID_WITH_RISK").length;
-    const notValid = scopedRecords.filter((record) => String(record.candidateStatus) === "NOT_VALID").length;
     return {
       assessed: hubId ? assessedFromHubs : (Number.isFinite(assessedFromSummary) && assessedFromSummary > 0 ? assessedFromSummary : assessedFromHubs),
+      rejected: hubId ? rejectedFromHubs : (Number.isFinite(rejectedFromSummary) && rejectedFromSummary >= 0 ? rejectedFromSummary : rejectedFromHubs),
       feasible,
       optimized: scopedRecords.length,
       valid,
       validWithRisk,
-      notValid,
     };
   }
 
@@ -63,32 +64,34 @@
       funnel.setAttribute("aria-label", "Cuberence validation to pricing funnel");
       const flow = node("div", "issue145-funnel-flow");
       for (const [key, icon, label] of [
-        ["assessed", "🔎", "assessed"],
+        ["assessed", "🔎", "trip combinations identified"],
+        ["rejected", "⛔", "rejected · connection risk too high"],
         ["feasible", "✅", "feasible"],
-        ["optimized", "✈️", "ticket-compatible"],
+        ["optimized", "✈️", "ticket-compatible itineraries"],
       ]) {
-        if (flow.children.length) flow.append(node("span", "issue145-funnel-arrow", "→"));
+        const chunk = node("div", "issue154-funnel-chunk");
+        if (flow.children.length) chunk.append(node("span", "issue145-funnel-arrow", "→"));
         const step = node("div", "issue145-funnel-step");
         step.dataset.issue145Step = key;
         step.append(node("span", "issue145-funnel-icon", icon));
         step.append(node("strong", "issue145-funnel-number"));
         step.append(node("small", null, label));
-        flow.append(step);
+        chunk.append(step);
+        flow.append(chunk);
       }
       const status = node("div", "issue148-status-breakdown");
-      status.innerHTML = '<span class="issue148-status-arrow">→</span><span data-issue148-status="valid"></span><span>·</span><span data-issue148-status="risk"></span><span>·</span><span data-issue148-status="not-valid"></span>';
+      status.innerHTML = '<span class="issue148-status-arrow">→</span><span data-issue148-status="valid"></span><span>·</span><span data-issue148-status="risk"></span>';
       flow.append(status);
       funnel.append(flow);
       funnel.append(node("p", "issue145-funnel-note", "Same-carrier round-trip structure applied before indicative pricing."));
     }
 
-    for (const key of ["assessed", "feasible", "optimized"]) {
+    for (const key of ["assessed", "rejected", "feasible", "optimized"]) {
       const number = funnel.querySelector(`[data-issue145-step="${key}"] .issue145-funnel-number`);
       setText(number, Number(counts[key]).toLocaleString());
     }
     setText(funnel.querySelector('[data-issue148-status="valid"]'), `✅ ${counts.valid.toLocaleString()} valid`);
     setText(funnel.querySelector('[data-issue148-status="risk"]'), `⚠️ ${counts.validWithRisk.toLocaleString()} valid with risk`);
-    setText(funnel.querySelector('[data-issue148-status="not-valid"]'), `⛔ ${counts.notValid.toLocaleString()} not valid`);
     if (target.firstElementChild !== funnel) target.prepend(funnel);
   }
 
