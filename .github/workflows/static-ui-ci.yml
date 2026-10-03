@@ -38,6 +38,7 @@ on:
       - static-issue32.css
       - static-issue135.css
       - static-issue141.css
+      - static-issue115.css
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -76,6 +77,8 @@ jobs:
         run: node --test test/hub-workspace.test.cjs
       - name: Verify airport-local flight-time rendering
         run: node --test test/issue152-timezone-display.test.cjs
+      - name: Verify canonical trip-combination funnel
+        run: node --test test/issue154-canonical-trip-funnel.test.cjs
       - name: Check required live UI files
         run: |
           test -s index.html
@@ -270,7 +273,7 @@ jobs:
           fi
           grep -q '/static-app.js?v=22' demo/index.html
           grep -q '/static-hub-state.js?v=4' demo/index.html
-          grep -q '/static-issue14.js?v=9' demo/index.html
+          grep -q '/static-issue14.js?v=10' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
           # Issue #120: Luna's single-asterisk destination descriptions must render as real emphasis.
           grep -q 'document.createElement("em")' static-markdown.js
@@ -295,19 +298,20 @@ jobs:
           grep -q 'setText(badge, "Pricing complete")' static-issue115.js
           ! grep -q 'optimized`);' static-issue115.js
 
-          # Issue #148: one canonical assessed → feasible → ticket-compatible → status funnel everywhere.
+          # Issue #154: one canonical identified → rejected → feasible → ticket-compatible → status funnel everywhere.
+          grep -q "trip combinations identified" static-issue115.js static-issue14.js
+          grep -q "connection risk too high" static-issue115.js static-issue14.js
           grep -q "validWithRisk" static-issue115.js
-          grep -q "notValid" static-issue115.js
-          grep -q "ticket-compatible" static-issue14.js
+          grep -q "ticket-compatible itineraries" static-issue115.js static-issue14.js
           grep -q "valid with risk" static-issue14.js
-          grep -q "not valid" static-issue14.js
+          ! grep -q 'data-issue148-status="not-valid"' static-issue115.js
+          ! grep -q " not valid" static-issue14.js
           grep -q "pricingFunnelCounts?.(hub.id)" static-issue14.js
           grep -q "pricingFingerprint" static-issue14.js
-          grep -q "issue148-status-arrow" static-issue115.js
-          grep -q "issue148-status-arrow{display:none}" static-issue115.css
+          grep -q "issue154-funnel-chunk" static-issue115.js static-issue115.css
           grep -q "Showing .* of .* ticket-compatible itineraries" static-pricing-summary.js
           grep -q '/static-pricing-summary.js?v=3' demo/index.html
-          grep -q '/static-issue115.css?v=5' demo/index.html
+          grep -q '/static-issue115.css?v=6' demo/index.html
 
 
           # Issue #135: explicit return windows, mandatory mini-destination gate, staged hub validation, baseline selection.
@@ -323,7 +327,7 @@ jobs:
           grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=6' demo/index.html
           grep -q '/static-issue23-candidates.js?v=5' demo/index.html
-          grep -q '/static-issue115.js?v=6' demo/index.html
+          grep -q '/static-issue115.js?v=7' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
           grep -q 'totalAssessedOptionCount' static-app.js static-hub-state.js static-issue14.js

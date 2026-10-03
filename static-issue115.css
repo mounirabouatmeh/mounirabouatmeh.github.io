@@ -81,10 +81,16 @@
   background: #f8fbf9;
 }
 .issue145-funnel-flow {
-  display: grid;
-  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1.2fr);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+}
+.issue154-funnel-chunk {
+  display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
 }
 .issue145-funnel-step {
   min-width: 0;
@@ -126,4 +132,4 @@
 .issue148-status-breakdown{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:10px;font-weight:750;color:#405149}
 .issue148-status-arrow{color:#8a9892;font-size:15px;font-weight:800}
 .issue148-canonical-line{font-size:13px;font-weight:750;line-height:1.6;color:#173f31}
-@media(max-width:520px){.issue145-funnel-flow{grid-template-columns:1fr auto 1fr auto 1.2fr;row-gap:8px}.issue148-status-breakdown{grid-column:1/-1}.issue148-status-arrow{display:none}.issue148-canonical-line{font-size:12px}}
+@media(max-width:520px){.issue145-funnel-flow{gap:8px 7px}.issue154-funnel-chunk{max-width:100%}.issue148-status-breakdown{width:100%}.issue148-status-arrow{display:none}.issue148-canonical-line{font-size:12px}}

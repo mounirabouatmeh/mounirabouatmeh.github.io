@@ -92,8 +92,8 @@
         const optimizedHub = globalThis.CuberenceIssue115?.pricingFunnelCounts?.(hub.id);
         card.append(node("div", "issue141-hub-counts",
           optimizedHub?.optimized > 0
-            ? `🔎 ${optimizedHub.assessed.toLocaleString()} assessed → ✅ ${optimizedHub.feasible.toLocaleString()} feasible → ✈️ ${optimizedHub.optimized.toLocaleString()} ticket-compatible → ✅ ${optimizedHub.valid.toLocaleString()} valid · ⚠️ ${optimizedHub.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimizedHub.notValid.toLocaleString()} not valid`
-            : `🔎 ${assessed.toLocaleString()} assessed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ⛔ ${rejected.toLocaleString()} rejected — risk too high`));
+            ? `🔎 ${optimizedHub.assessed.toLocaleString()} trip combinations identified → ⛔ ${optimizedHub.rejected.toLocaleString()} rejected — connection risk too high → ✅ ${optimizedHub.feasible.toLocaleString()} feasible → ✈️ ${optimizedHub.optimized.toLocaleString()} ticket-compatible itineraries → ✅ ${optimizedHub.valid.toLocaleString()} valid · ⚠️ ${optimizedHub.validWithRisk.toLocaleString()} valid with risk`
+            : `🔎 ${assessed.toLocaleString()} trip combinations identified → ⛔ ${rejected.toLocaleString()} rejected — connection risk too high → ✅ ${(valid + risk).toLocaleString()} feasible`));
       }
       card.append(node("span", `issue14-status-label is-${status}`,
         status === "failed" ? "No feasible itinerary" : status === "selected" ? "Selected" : "Not assessed"));
@@ -141,18 +141,12 @@
     card.setAttribute("aria-label", "Cuberence validation assessment summary");
     if (optimized?.optimized > 0) {
       const line = node("div", "issue148-canonical-line",
-        `🔎 ${optimized.assessed.toLocaleString()} assessed → ✅ ${optimized.feasible.toLocaleString()} feasible → ✈️ ${optimized.optimized.toLocaleString()} ticket-compatible → ✅ ${optimized.valid.toLocaleString()} valid · ⚠️ ${optimized.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimized.notValid.toLocaleString()} not valid`);
+        `🔎 ${optimized.assessed.toLocaleString()} trip combinations identified → ⛔ ${optimized.rejected.toLocaleString()} rejected — connection risk too high → ✅ ${optimized.feasible.toLocaleString()} feasible → ✈️ ${optimized.optimized.toLocaleString()} ticket-compatible itineraries → ✅ ${optimized.valid.toLocaleString()} valid · ⚠️ ${optimized.validWithRisk.toLocaleString()} valid with risk`);
       card.append(line);
     } else {
-      const heading = node("div", "issue141-analysis-heading");
-      heading.append(node("strong", null, `🔎 ${total.toLocaleString()} combinations assessed`));
-      heading.append(node("span", null, "Selected hubs · connection-risk validation"));
-      card.append(heading);
-      const metrics = node("div", "issue141-analysis-metrics");
-      metrics.append(node("span", "is-valid", `✅ ${valid.toLocaleString()} Valid`));
-      metrics.append(node("span", "is-risk", `⚠️ ${risk.toLocaleString()} Valid with risk`));
-      metrics.append(node("span", "is-failed", `⛔ ${rejected.toLocaleString()} Rejected — risk too high`));
-      card.append(metrics);
+      const line = node("div", "issue148-canonical-line",
+        `🔎 ${total.toLocaleString()} trip combinations identified → ⛔ ${rejected.toLocaleString()} rejected — connection risk too high → ✅ ${(valid + risk).toLocaleString()} feasible`);
+      card.append(line);
     }
     target.prepend(card);
   }
