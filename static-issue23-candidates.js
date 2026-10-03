@@ -38,7 +38,7 @@
     const detail = node("div", "issue23-flight-detail");
     detail.append(node("strong", null, flightDesignator(flight)));
     detail.append(node("span", null, `${flight.origin ?? "—"} → ${flight.destination ?? "—"}`));
-    detail.append(node("small", null, `${formatDateTime(flight.departure)} → ${formatDateTime(flight.arrival)}`));
+    detail.append(node("small", null, `${formatDateTime(flight.departure, flight.originTimeZone)} → ${formatDateTime(flight.arrival, flight.destinationTimeZone)}`));
     row.append(detail);
     return row;
   }
