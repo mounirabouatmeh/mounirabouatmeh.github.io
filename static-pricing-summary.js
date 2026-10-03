@@ -65,8 +65,8 @@
     const heading = node("div", "pricing-result-heading");
     const headingCopy = node("div");
     headingCopy.append(node("strong", null, candidates.length
-      ? `Showing ${candidates.length.toLocaleString()} of ${ticketOptimizedTotal.toLocaleString()} ticket-optimized itineraries`
-      : "0 ticket-optimized itineraries"));
+      ? `Showing ${candidates.length.toLocaleString()} of ${ticketOptimizedTotal.toLocaleString()} ticket-compatible itineraries`
+      : "0 ticket-compatible itineraries"));
     headingCopy.append(node("span", null, `${output.strategy ?? "Pricing"} · ${(output.selectedHubs ?? []).join(" + ") || "selected hubs"}`));
     heading.append(headingCopy);
     heading.append(node("span", `pricing-result-state ${candidates.length ? "has-results" : "no-results"}`, "Completed"));
