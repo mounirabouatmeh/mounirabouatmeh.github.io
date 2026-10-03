@@ -59,7 +59,11 @@
 
   function renderHubList(target) {
     const current = target.querySelector(".issue14-hub-list");
-    const fingerprint = JSON.stringify(state.hubs.map((hub) => [hub.id, hubStatus(hub), hub.feasibleHubNights, hub.airports, hub.splitAssessedOptionCount, hub.splitValidOptionCount, hub.splitValidWithRiskOptionCount, hub.splitRiskRejectedOptionCount]));
+    const pricingFingerprint = state.hubs.map((hub) => globalThis.CuberenceIssue115?.pricingFunnelCounts?.(hub.id) ?? null);
+    const fingerprint = JSON.stringify([
+      state.hubs.map((hub) => [hub.id, hubStatus(hub), hub.feasibleHubNights, hub.airports, hub.splitAssessedOptionCount, hub.splitValidOptionCount, hub.splitValidWithRiskOptionCount, hub.splitRiskRejectedOptionCount]),
+      pricingFingerprint,
+    ]);
     if (current?.dataset.fingerprint === fingerprint) return;
     current?.remove();
 
@@ -88,7 +92,7 @@
         const optimizedHub = globalThis.CuberenceIssue115?.pricingFunnelCounts?.(hub.id);
         card.append(node("div", "issue141-hub-counts",
           optimizedHub?.optimized > 0
-            ? `🔎 ${optimizedHub.assessed.toLocaleString()} assessed → ✅ ${optimizedHub.feasible.toLocaleString()} feasible → ✈️ ${optimizedHub.optimized.toLocaleString()} ticket-optimized → ✅ ${optimizedHub.valid.toLocaleString()} valid · ⚠️ ${optimizedHub.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimizedHub.notValid.toLocaleString()} not valid`
+            ? `🔎 ${optimizedHub.assessed.toLocaleString()} assessed → ✅ ${optimizedHub.feasible.toLocaleString()} feasible → ✈️ ${optimizedHub.optimized.toLocaleString()} ticket-compatible → ✅ ${optimizedHub.valid.toLocaleString()} valid · ⚠️ ${optimizedHub.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimizedHub.notValid.toLocaleString()} not valid`
             : `🔎 ${assessed.toLocaleString()} assessed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ⛔ ${rejected.toLocaleString()} rejected — risk too high`));
       }
       card.append(node("span", `issue14-status-label is-${status}`,
@@ -137,7 +141,7 @@
     card.setAttribute("aria-label", "Cuberence validation assessment summary");
     if (optimized?.optimized > 0) {
       const line = node("div", "issue148-canonical-line",
-        `🔎 ${optimized.assessed.toLocaleString()} assessed → ✅ ${optimized.feasible.toLocaleString()} feasible → ✈️ ${optimized.optimized.toLocaleString()} ticket-optimized → ✅ ${optimized.valid.toLocaleString()} valid · ⚠️ ${optimized.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimized.notValid.toLocaleString()} not valid`);
+        `🔎 ${optimized.assessed.toLocaleString()} assessed → ✅ ${optimized.feasible.toLocaleString()} feasible → ✈️ ${optimized.optimized.toLocaleString()} ticket-compatible → ✅ ${optimized.valid.toLocaleString()} valid · ⚠️ ${optimized.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimized.notValid.toLocaleString()} not valid`);
       card.append(line);
     } else {
       const heading = node("div", "issue141-analysis-heading");
