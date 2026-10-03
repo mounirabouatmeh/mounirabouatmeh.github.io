@@ -25,20 +25,29 @@
     return records().filter((record) => STRUCTURALLY_USABLE.has(String(record.candidateStatus)));
   }
 
-  function pricingFunnelCounts() {
+  function pricingFunnelCounts(hubId = null) {
     const workspace = globalThis.CuberenceHubWorkspace?.();
     const selectedHubIds = new Set((s.pricing?.selectedHubs ?? []).map((id) => String(id)));
     const validatedHubs = Array.isArray(workspace?.hubs) ? workspace.hubs : [];
-    const relevantHubs = selectedHubIds.size
-      ? validatedHubs.filter((hub) => selectedHubIds.has(String(hub?.id)))
-      : validatedHubs.filter((hub) => workspace?.statusById?.[hub?.id] === "selected");
+    const relevantHubs = hubId
+      ? validatedHubs.filter((hub) => String(hub?.id) === String(hubId))
+      : selectedHubIds.size
+        ? validatedHubs.filter((hub) => selectedHubIds.has(String(hub?.id)))
+        : validatedHubs.filter((hub) => workspace?.statusById?.[hub?.id] === "selected");
     const assessedFromSummary = Number(workspace?.assessmentSummary?.totalAssessedOptionCount);
     const assessedFromHubs = relevantHubs.reduce((total, hub) => total + Number(hub?.splitAssessedOptionCount ?? 0), 0);
     const feasible = relevantHubs.reduce((total, hub) => total + Number(hub?.splitFeasibleOptionCount ?? 0), 0);
+    const scopedRecords = hubId ? records().filter((record) => String(record.hubId) === String(hubId)) : records();
+    const valid = scopedRecords.filter((record) => String(record.candidateStatus) === "VALID").length;
+    const validWithRisk = scopedRecords.filter((record) => String(record.candidateStatus) === "VALID_WITH_RISK").length;
+    const notValid = scopedRecords.filter((record) => String(record.candidateStatus) === "NOT_VALID").length;
     return {
-      assessed: Number.isFinite(assessedFromSummary) && assessedFromSummary > 0 ? assessedFromSummary : assessedFromHubs,
+      assessed: hubId ? assessedFromHubs : (Number.isFinite(assessedFromSummary) && assessedFromSummary > 0 ? assessedFromSummary : assessedFromHubs),
       feasible,
-      optimized: usableRecords().length,
+      optimized: scopedRecords.length,
+      valid,
+      validWithRisk,
+      notValid,
     };
   }
 
@@ -66,14 +75,21 @@
         step.append(node("small", null, label));
         flow.append(step);
       }
+      flow.append(node("span", "issue145-funnel-arrow", "→"));
+      const status = node("div", "issue148-status-breakdown");
+      status.innerHTML = '<span data-issue148-status="valid"></span><span>·</span><span data-issue148-status="risk"></span><span>·</span><span data-issue148-status="not-valid"></span>';
+      flow.append(status);
       funnel.append(flow);
       funnel.append(node("p", "issue145-funnel-note", "Same-carrier round-trip structure applied before indicative pricing."));
     }
 
-    for (const [key, value] of Object.entries(counts)) {
+    for (const key of ["assessed", "feasible", "optimized"]) {
       const number = funnel.querySelector(`[data-issue145-step="${key}"] .issue145-funnel-number`);
-      setText(number, Number(value).toLocaleString());
+      setText(number, Number(counts[key]).toLocaleString());
     }
+    setText(funnel.querySelector('[data-issue148-status="valid"]'), `✅ ${counts.valid.toLocaleString()} valid`);
+    setText(funnel.querySelector('[data-issue148-status="risk"]'), `⚠️ ${counts.validWithRisk.toLocaleString()} valid with risk`);
+    setText(funnel.querySelector('[data-issue148-status="not-valid"]'), `⛔ ${counts.notValid.toLocaleString()} not valid`);
     if (target.firstElementChild !== funnel) target.prepend(funnel);
   }
 
