@@ -321,7 +321,8 @@ jobs:
           grep -q "Identified candidate · not yet validated" static-issue115.js
           grep -q '/static-flow.js?v=4' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
-          grep -q '/static-issue23-state.js?v=5' demo/index.html
+          grep -q '/static-issue23-state.js?v=6' demo/index.html
+          grep -q '/static-issue23-candidates.js?v=5' demo/index.html
           grep -q '/static-issue115.js?v=6' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
