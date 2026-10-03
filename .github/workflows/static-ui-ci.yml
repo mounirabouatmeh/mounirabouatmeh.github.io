@@ -281,23 +281,26 @@ jobs:
           grep -q "splitReturnOptions" static-issue115.js
           grep -q "/api/v1/health" static-issue115.js
 
-          # Issue #145: show the validation-to-pricing funnel and ticket-optimized terminology.
+          # Issue #145: show the validation-to-pricing funnel and ticket-compatible terminology.
           grep -q "pricingFunnelCounts" static-issue115.js
           grep -q "totalAssessedOptionCount" static-issue115.js
           grep -q "splitFeasibleOptionCount" static-issue115.js
-          grep -q "Ticket-optimized itineraries" static-issue115.js
+          grep -q "Ticket-compatible itineraries" static-issue115.js
           grep -q "Same-carrier round-trip structure applied" static-issue115.js
           grep -q 'setText(badge, "Pricing complete")' static-issue115.js
           ! grep -q 'optimized`);' static-issue115.js
 
-          # Issue #148: one canonical assessed → feasible → ticket-optimized → status funnel everywhere.
+          # Issue #148: one canonical assessed → feasible → ticket-compatible → status funnel everywhere.
           grep -q "validWithRisk" static-issue115.js
           grep -q "notValid" static-issue115.js
-          grep -q "ticket-optimized" static-issue14.js
+          grep -q "ticket-compatible" static-issue14.js
           grep -q "valid with risk" static-issue14.js
           grep -q "not valid" static-issue14.js
           grep -q "pricingFunnelCounts?.(hub.id)" static-issue14.js
-          grep -q "Showing .* of .* ticket-optimized itineraries" static-pricing-summary.js
+          grep -q "pricingFingerprint" static-issue14.js
+          grep -q "issue148-status-arrow" static-issue115.js
+          grep -q "issue148-status-arrow{display:none}" static-issue115.css
+          grep -q "Showing .* of .* ticket-compatible itineraries" static-pricing-summary.js
           grep -q '/static-pricing-summary.js?v=2' demo/index.html
           grep -q '/static-issue115.css?v=4' demo/index.html
 
