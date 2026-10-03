@@ -27,20 +27,38 @@
   let queued = false;
   const node = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const money = (v) => v && typeof v.amount === "number" ? `${v.currency ?? ""} ${v.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.trim() : "—";
-  const formatDateTime = (v) => {
+  const dateTimeFormatter = (timeZone) => new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone,
+  });
+  const formatDateTime = (v, timeZone) => {
     if (typeof v !== "string" || !v) return "—";
+
+    // Exact discovery schedules are canonical UTC instants. Convert only at
+    // presentation time when the API supplies the airport's IANA timezone.
+    if (typeof timeZone === "string" && timeZone) {
+      const instant = new Date(v);
+      if (!Number.isNaN(instant.getTime())) {
+        try {
+          return dateTimeFormatter(timeZone).format(instant);
+        } catch {
+          // Unknown timezone metadata must not break the itinerary display.
+        }
+      }
+    }
+
+    // Confirmed fare-provider schedule values already encode the airport-local
+    // wall clock plus an offset. Preserve that literal clock rather than converting
+    // it to the advisor/browser timezone (the contract established by issue #34).
     const match = v.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?$/);
     if (!match) return v.replace("T", " ").replace(/:00(?=[+-]|Z|$)/, "");
     const [, year, month, day, hour, minute] = match;
     const localClock = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)));
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-      timeZone: "UTC",
-    }).format(localClock);
+    return dateTimeFormatter("UTC").format(localClock);
   };
   const candidateName = (c) => c?.hub?.name ?? c?.hub?.city ?? c?.hub?.id ?? "Stayover";
   const candidateNumber = (candidateOrId) => {

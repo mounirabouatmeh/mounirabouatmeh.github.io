@@ -10,6 +10,7 @@ on:
       - static-hub-state.js
       - static-issue14-land.js
       - test/hub-workspace.test.cjs
+      - test/issue152-timezone-display.test.cjs
       - static-app.css
       - static-markdown.js
       - static-markdown.css
@@ -73,6 +74,8 @@ jobs:
           node --check static-intent-sync.js
       - name: Verify staged hub status transitions
         run: node --test test/hub-workspace.test.cjs
+      - name: Verify airport-local flight-time rendering
+        run: node --test test/issue152-timezone-display.test.cjs
       - name: Check required live UI files
         run: |
           test -s index.html
@@ -186,6 +189,8 @@ jobs:
           grep -q "issue23-status-cloud" static-issue23.css
           grep -q "pricingStatus" static-issue23-state.js
           grep -q "EXACT_CHECK_PENDING" static-issue23-candidates.js
+          grep -q "flight.originTimeZone" static-issue23-candidates.js
+          grep -q "flight.destinationTimeZone" static-issue23-candidates.js
           grep -q "Confirming the exact selected flights and fare" static-issue23-workflow.js
           grep -q "Final recommendation complete" static-issue23-workflow.js
 
@@ -316,7 +321,8 @@ jobs:
           grep -q "Identified candidate · not yet validated" static-issue115.js
           grep -q '/static-flow.js?v=4' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
-          grep -q '/static-issue23-state.js?v=5' demo/index.html
+          grep -q '/static-issue23-state.js?v=6' demo/index.html
+          grep -q '/static-issue23-candidates.js?v=5' demo/index.html
           grep -q '/static-issue115.js?v=6' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
