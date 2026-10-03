@@ -243,7 +243,7 @@
     const usable = usableRecords();
     const recommendations = recommendedIds();
     const badge = document.getElementById("pricing-badge");
-    if (badge && usable.length) setText(badge, `${usable.length} optimized`);
+    if (badge && universe()) setText(badge, "Pricing complete");
     renderPricingFunnel();
 
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
