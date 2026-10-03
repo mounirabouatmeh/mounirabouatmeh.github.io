@@ -77,6 +77,8 @@ jobs:
         run: node --test test/hub-workspace.test.cjs
       - name: Verify airport-local flight-time rendering
         run: node --test test/issue152-timezone-display.test.cjs
+      - name: Verify canonical trip-combination funnel
+        run: node --test test/issue154-canonical-trip-funnel.test.cjs
       - name: Check required live UI files
         run: |
           test -s index.html
