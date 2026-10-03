@@ -85,8 +85,11 @@
         const valid = Number(hub.splitValidOptionCount ?? 0);
         const risk = Number(hub.splitValidWithRiskOptionCount ?? 0);
         const rejected = Number(hub.splitRiskRejectedOptionCount ?? 0);
+        const optimizedHub = globalThis.CuberenceIssue115?.pricingFunnelCounts?.(hub.id);
         card.append(node("div", "issue141-hub-counts",
-          `🔎 ${assessed.toLocaleString()} assessed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ⛔ ${rejected.toLocaleString()} rejected — risk too high`));
+          optimizedHub?.optimized > 0
+            ? `🔎 ${optimizedHub.assessed.toLocaleString()} assessed → ✅ ${optimizedHub.feasible.toLocaleString()} feasible → ✈️ ${optimizedHub.optimized.toLocaleString()} ticket-optimized → ✅ ${optimizedHub.valid.toLocaleString()} valid · ⚠️ ${optimizedHub.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimizedHub.notValid.toLocaleString()} not valid`
+            : `🔎 ${assessed.toLocaleString()} assessed · ✅ ${valid.toLocaleString()} valid · ⚠️ ${risk.toLocaleString()} risk · ⛔ ${rejected.toLocaleString()} rejected — risk too high`));
       }
       card.append(node("span", `issue14-status-label is-${status}`,
         status === "failed" ? "No feasible itinerary" : status === "selected" ? "Selected" : "Not assessed"));
@@ -114,6 +117,7 @@
   }
 
   function renderAssessmentSummary(target) {
+    const optimized = globalThis.CuberenceIssue115?.pricingFunnelCounts?.();
     const summary = state.assessmentSummary;
     const total = Number(summary?.totalAssessedOptionCount);
     const current = target.querySelector(".issue141-analysis-summary");
@@ -121,7 +125,7 @@
       current?.remove();
       return;
     }
-    const fingerprint = JSON.stringify(summary);
+    const fingerprint = JSON.stringify([summary, optimized]);
     if (current?.dataset.fingerprint === fingerprint) return;
     current?.remove();
 
@@ -131,15 +135,21 @@
     const card = node("section", "issue141-analysis-summary");
     card.dataset.fingerprint = fingerprint;
     card.setAttribute("aria-label", "Cuberence validation assessment summary");
-    const heading = node("div", "issue141-analysis-heading");
-    heading.append(node("strong", null, `🔎 ${total.toLocaleString()} combinations assessed`));
-    heading.append(node("span", null, "Selected hubs · connection-risk validation"));
-    card.append(heading);
-    const metrics = node("div", "issue141-analysis-metrics");
-    metrics.append(node("span", "is-valid", `✅ ${valid.toLocaleString()} Valid`));
-    metrics.append(node("span", "is-risk", `⚠️ ${risk.toLocaleString()} Valid with risk`));
-    metrics.append(node("span", "is-failed", `⛔ ${rejected.toLocaleString()} Rejected — risk too high`));
-    card.append(metrics);
+    if (optimized?.optimized > 0) {
+      const line = node("div", "issue148-canonical-line",
+        `🔎 ${optimized.assessed.toLocaleString()} assessed → ✅ ${optimized.feasible.toLocaleString()} feasible → ✈️ ${optimized.optimized.toLocaleString()} ticket-optimized → ✅ ${optimized.valid.toLocaleString()} valid · ⚠️ ${optimized.validWithRisk.toLocaleString()} valid with risk · ⛔ ${optimized.notValid.toLocaleString()} not valid`);
+      card.append(line);
+    } else {
+      const heading = node("div", "issue141-analysis-heading");
+      heading.append(node("strong", null, `🔎 ${total.toLocaleString()} combinations assessed`));
+      heading.append(node("span", null, "Selected hubs · connection-risk validation"));
+      card.append(heading);
+      const metrics = node("div", "issue141-analysis-metrics");
+      metrics.append(node("span", "is-valid", `✅ ${valid.toLocaleString()} Valid`));
+      metrics.append(node("span", "is-risk", `⚠️ ${risk.toLocaleString()} Valid with risk`));
+      metrics.append(node("span", "is-failed", `⛔ ${rejected.toLocaleString()} Rejected — risk too high`));
+      card.append(metrics);
+    }
     target.prepend(card);
   }
 
@@ -386,6 +396,9 @@
         attributeFilter: ["class"],
       });
     }
+
+    const pricingTarget = document.getElementById("pricing-content");
+    if (pricingTarget) new MutationObserver(queueDiscoveryRender).observe(pricingTarget, { childList: true, subtree: true });
 
     const conversation = document.getElementById("conversation");
     if (conversation) {
