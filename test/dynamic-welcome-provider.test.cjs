@@ -7,15 +7,15 @@ const app = fs.readFileSync("static-app.js", "utf8");
 const promptContext = vm.createContext({});
 vm.runInContext(app.slice(app.indexOf("function sampleTravelPrompt("), app.indexOf("function renderConversation(")), promptContext);
 
-test("the welcome example uses future dates with a 21-day return gap", () => {
+test("the welcome example uses future dates with the requested return cadence", () => {
   assert.equal(promptContext.sampleTravelPrompt(new Date(2026, 9, 12)),
-    "I have a client: 1 adult flying from YUL to BEY October 20–22, 2026, returning November 10–12, and open to a short European stopover. Economy class, pricing in CAD.");
-  assert.match(promptContext.sampleTravelPrompt(new Date(2027, 0, 1)), /January 9–11, 2027, returning January 30–February 1/);
+    "I have a client: 1 adult flying from YUL to BEY October 20–22, 2026, returning November 13–15, and open to a short European stopover. Economy class, pricing in CAD.");
+  assert.match(promptContext.sampleTravelPrompt(new Date(2027, 0, 1)), /January 9–11, 2027, returning February 2–4/);
 });
 
 test("the welcome example includes years when the trip crosses New Year", () => {
-  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 15)), /December 23–25, 2026, returning January 13–15, 2027/);
-  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 22)), /December 30, 2026–January 1, 2027, returning January 20–22/);
+  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 15)), /December 23–25, 2026, returning January 16–18, 2027/);
+  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 22)), /December 30, 2026–January 1, 2027, returning January 23–25/);
 });
 
 function node(tag, className, text) {
