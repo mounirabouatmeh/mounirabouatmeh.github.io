@@ -54,3 +54,12 @@ test('confirmed card summary links use exact offers and never proxy URLs', () =>
  assert.deepEqual(Array.from(links.children, link => link.href), ['https://www.kiwi.com/exact-outer', 'https://www.kiwi.com/exact-inner']);
  assert.equal(ctx.testViews.kiwiOfferLinks({ offers: candidate.offers }, false), null);
 });
+
+test('top-level exact pricing supplies links only for its selected candidate', () => {
+ ctx.CuberenceIssue23.s.confirmation = { candidateId: 'selected', confirmedPricing: {
+  outerOffer: kiwi('outer', 'https://www.kiwi.com/top-level-exact') } };
+ const links = ctx.testViews.kiwiOfferLinks({ id: 'selected', offers: [kiwi('proxy', 'https://www.kiwi.com/proxy')] }, false);
+ assert.equal(links.children[0].href, 'https://www.kiwi.com/top-level-exact');
+ assert.equal(ctx.testViews.kiwiOfferLinks({ id: 'other' }, false), null);
+ ctx.CuberenceIssue23.s.confirmation = null;
+});
