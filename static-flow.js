@@ -134,6 +134,12 @@
     }
   }
 
+  function baselineDepartureDate(leg, provider) {
+    const timeZone = leg?.segments?.[0]?.originTimeZone;
+    const localTimestamp = baselineTimestamp(leg?.departure, timeZone, provider);
+    return localTimestamp === "—" ? "—" : `${localTimestamp.slice(0, 10)}${provider === "KIWI" && !timeZone ? " UTC" : ""}`;
+  }
+
   function renderBaselineSegment(segment, provider) {
     const row = node("div", "baseline-segment-row");
     const carrier = [segment?.marketingCarrier, segment?.flightNumber].filter(Boolean).join("");
@@ -195,8 +201,8 @@
       const inbound = legs[legs.length - 1];
       const facts = node("div", "candidate-facts baseline-facts");
       facts.append(node("span", null, `${outbound?.origin ?? ""} → ${outbound?.destination ?? ""}`));
-      facts.append(node("span", null, `Depart ${baselineTimestamp(outbound?.departure, outbound?.segments?.[0]?.originTimeZone, baseline.provider).replace(/^(\\d{4}-\\d{2}-\\d{2}).*$/, "$1")}${baseline.provider === "KIWI" && !outbound?.segments?.[0]?.originTimeZone ? " UTC" : ""}`));
-      facts.append(node("span", null, `Return ${baselineTimestamp(inbound?.departure, inbound?.segments?.[0]?.originTimeZone, baseline.provider).replace(/^(\\d{4}-\\d{2}-\\d{2}).*$/, "$1")}${baseline.provider === "KIWI" && !inbound?.segments?.[0]?.originTimeZone ? " UTC" : ""}`));
+      facts.append(node("span", null, `Depart ${baselineDepartureDate(outbound, baseline.provider)}`));
+      facts.append(node("span", null, `Return ${baselineDepartureDate(inbound, baseline.provider)}`));
       if (baseline.validatingCarrier) facts.append(node("span", null, `Carrier ${baseline.validatingCarrier}`));
       card.append(facts);
     }
