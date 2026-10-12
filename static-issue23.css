@@ -366,3 +366,9 @@
     animation: none;
   }
 }
+
+
+.kiwi-ticket-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.kiwi-ticket-link{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:7px 10px;margin:5px 0;border:1px solid #b6d9c8;border-radius:8px;background:#effaf4;color:#145e3d;font-size:12px;font-weight:700;text-decoration:none}
+.kiwi-ticket-link:hover{background:#ddf3e6;text-decoration:underline}
+.kiwi-ticket-link:focus-visible{outline:3px solid #176c47;outline-offset:2px}

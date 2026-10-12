@@ -158,6 +158,9 @@
     top.append(copy);
     top.append(node("span", "baseline-provider", `${baseline.provider ?? "Sabre"}${baseline.environment ? ` ${baseline.environment}` : ""}`));
     card.append(top);
+    const linkedOffer = flowState.baselineConfirmation?.confirmedOffer ?? baseline;
+    const kiwiLink = globalThis.CuberenceKiwiTicketLink?.(linkedOffer, "View standard trip on Kiwi ↗");
+    if (kiwiLink) card.append(kiwiLink);
 
     const legs = Array.isArray(baseline.legs) ? baseline.legs : [];
     if (legs.length >= 2) {

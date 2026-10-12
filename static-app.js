@@ -1,5 +1,24 @@
 const CHAT_API = "https://cuberence-travel-api.vercel.app/api/v1/chat";
 
+
+// Booking links always belong to the returned offer, including exact confirmations.
+function kiwiTicketLink(offer, label = "View ticket on Kiwi ↗") {
+  if (offer?.provider !== "KIWI" || !offer.kiwi?.bookingUrl) return null;
+  let url;
+  try { url = new URL(offer.kiwi.bookingUrl); } catch { return null; }
+  if (url.protocol !== "https:" || url.username || url.password ||
+      !(url.hostname === "kiwi.com" || url.hostname.endsWith(".kiwi.com"))) return null;
+  const link = createNode("a", "kiwi-ticket-link", label);
+  link.href = url.href;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.title = "Open this round-trip ticket on Kiwi.com; live fares may change.";
+  link.addEventListener("click", event => event.stopPropagation());
+  link.addEventListener("keydown", event => event.stopPropagation());
+  return link;
+}
+globalThis.CuberenceKiwiTicketLink = kiwiTicketLink;
+
 const state = {
   messages: [],
   busy: false,
@@ -369,6 +388,8 @@ function renderCandidateDetails(candidate, evaluation) {
     ticketHead.append(createNode("strong", null, `Ticket ${offerIndex + 1}`));
     ticketHead.append(createNode("span", "result-value", money(offer.price)));
     ticket.append(ticketHead);
+    const kiwiLink = kiwiTicketLink(offer);
+    if (kiwiLink) ticket.append(kiwiLink);
     const legs = Array.isArray(offer.legs) ? offer.legs : [];
     for (const [legIndex, leg] of legs.entries()) {
       const legBlock = createNode("div", "flight-leg-block");
@@ -459,10 +480,11 @@ function renderPricingCandidates(pricing, candidates) {
       renderWorkspace();
     };
     card.addEventListener("click", (event) => {
-      if (event.target.closest("button")) return;
+      if (event.target.closest("button,a,input,label")) return;
       toggle();
     });
     card.addEventListener("keydown", (event) => {
+      if (event.target.closest("button,a,input,label")) return;
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         toggle();
@@ -823,3 +845,4 @@ el.stop.addEventListener("click", () => state.abortController?.abort());
 
 globalThis.CuberenceHubWorkspace = () => globalThis.CuberenceHubState.buildHubWorkspace(state.messages);
 render();
+
