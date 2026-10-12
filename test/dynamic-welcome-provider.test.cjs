@@ -9,13 +9,23 @@ vm.runInContext(app.slice(app.indexOf("function sampleTravelPrompt("), app.index
 
 test("the welcome example uses future dates with the requested return cadence", () => {
   assert.equal(promptContext.sampleTravelPrompt(new Date(2026, 9, 12)),
-    "I have a client: 1 adult flying from YUL to BEY October 20–22, 2026, returning November 13–15, and open to a short European stopover. Economy class, pricing in CAD.");
-  assert.match(promptContext.sampleTravelPrompt(new Date(2027, 0, 1)), /January 9–11, 2027, returning February 2–4/);
+    "I have a client: 1 adult flying from YUL to BEY October 26–28, 2026, returning November 16–17, and open to a short European stopover. Economy class, pricing in CAD.");
+  assert.match(promptContext.sampleTravelPrompt(new Date(2027, 0, 1)), /January 15–17, 2027, returning February 5–6/);
 });
 
 test("the welcome example includes years when the trip crosses New Year", () => {
-  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 15)), /December 23–25, 2026, returning January 16–18, 2027/);
-  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 22)), /December 30, 2026–January 1, 2027, returning January 23–25/);
+  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 15)), /December 29–31, 2026, returning January 19–20, 2027/);
+  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 11, 22)), /January 5–7, 2027, returning January 26–27/);
+});
+
+test("late-month welcome windows roll across month boundaries cleanly", () => {
+  assert.match(promptContext.sampleTravelPrompt(new Date(2026, 10, 16)),
+    /November 30–December 2, 2026, returning December 21–22/);
+});
+
+test("legacy candidate-selection enhancement does not replace the sample or intercept its button", () => {
+  const selection = fs.readFileSync("static-issue23-selection.js", "utf8");
+  assert.doesNotMatch(selection, /const SAMPLE|function syncWelcome|dataset\\.issue23Bound|stopImmediatePropagation/);
 });
 
 function node(tag, className, text) {
@@ -42,11 +52,11 @@ test("Use this example copies the displayed request and refreshes dates after mi
   const button = copy.children[2];
   button.listeners.click();
   assert.equal(example.textContent, `For example: “${input.value}”`);
-  assert.match(input.value, /October 20–22/);
+  assert.match(input.value, /October 26–28/);
   currentDate = new Date(2026, 9, 13);
   button.listeners.click();
   assert.equal(example.textContent, `For example: “${input.value}”`);
-  assert.match(input.value, /October 21–23/);
+  assert.match(input.value, /October 27–29/);
 });
 const kiwi = url => ({ provider: "KIWI", kiwi: { bookingUrl: url }, price: { amount: 1900, currency: "CAD" }, legs: [] });
 function flowHarness() {
