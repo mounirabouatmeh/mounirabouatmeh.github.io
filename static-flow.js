@@ -158,9 +158,15 @@
     top.append(copy);
     top.append(node("span", "baseline-provider", `${baseline.provider ?? "Sabre"}${baseline.environment ? ` ${baseline.environment}` : ""}`));
     card.append(top);
-    const linkedOffer = flowState.baselineConfirmation?.confirmedOffer ?? baseline;
-    const kiwiLink = globalThis.CuberenceKiwiTicketLink?.(linkedOffer, "View standard trip on Kiwi ↗");
-    if (kiwiLink) card.append(kiwiLink);
+    const confirmedOffer = flowState.baselineConfirmation?.confirmedOffer;
+    const exactLink = globalThis.CuberenceKiwiTicketLink?.(confirmedOffer, "View confirmed standard trip on Kiwi ↗");
+    const kiwiLink = exactLink ?? globalThis.CuberenceKiwiTicketLink?.(baseline,
+      confirmedOffer ? "View baseline fare on Kiwi (indicative) ↗" : "View standard trip on Kiwi ↗");
+    if (kiwiLink) {
+      const links = node("div", "kiwi-ticket-links baseline-ticket-links");
+      links.append(kiwiLink);
+      card.append(links);
+    }
 
     const legs = Array.isArray(baseline.legs) ? baseline.legs : [];
     if (legs.length >= 2) {
@@ -321,6 +327,12 @@
 
   function captureEvent(event) {
     if (event?.type === "tool-input-available" && event.toolName === "baseline" && event.input) {
+      flowState.baselineId = null;
+      flowState.baseline = null;
+      flowState.baselineExpanded = false;
+      flowState.baselineConfirmation = null;
+      flowState.baselineConfirmationPending = false;
+      flowState.baselineWarnings = [];
       flowState.intentInput = event.input;
       flowState.currency = typeof event.input.currency === "string" ? event.input.currency.toUpperCase() : flowState.currency;
       flowState.baselinePhase = "starting";
@@ -360,6 +372,12 @@
     }
 
     if (output.baselineId && !output.pricingId) {
+      if (flowState.baselineId && flowState.baselineId !== output.baselineId) {
+        flowState.baseline = null;
+        flowState.baselineConfirmation = null;
+        flowState.baselineConfirmationPending = false;
+        flowState.baselineWarnings = [];
+      }
       flowState.baselineId = output.baselineId;
       flowState.baselinePhase = output.phase ?? flowState.baselinePhase;
       flowState.baselineMessage = output.message ?? flowState.baselineMessage;
@@ -453,6 +471,8 @@
       })).observe(conversation, { childList: true, subtree: true, characterData: true });
     }
   };
+
+  globalThis.addEventListener("cuberence-kiwi-links-ready", renderBaseline);
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();

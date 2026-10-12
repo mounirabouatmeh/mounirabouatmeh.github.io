@@ -8,6 +8,7 @@
   const HEALTH_URL = "https://cuberence-travel-api.vercel.app/api/v1/health";
   const view = { mode: "all", requestedCandidateId: null };
   let environment = "";
+  let pricingProvider = "";
   let queued = false;
   const setText = (element, value) => { if (element && element.textContent !== value) element.textContent = value; };
 
@@ -196,8 +197,8 @@
   function environmentBadge(location) {
     const badge = node("span", `issue115-environment ${environment ? `is-${environment.toLowerCase()}` : "is-loading"}`);
     badge.dataset.issue115Environment = location;
-    badge.textContent = environment ? `Sabre ${environment}` : "Sabre environment…";
-    badge.title = environment ? `Sabre ${environment} environment reported by the backend` : "Reading the active backend environment";
+    badge.textContent = pricingProvider === "KIWI" ? "Kiwi pricing" : environment ? `Sabre ${environment}` : "Pricing provider…";
+    badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : environment ? `Sabre ${environment} environment reported by the backend` : "Reading the active pricing provider";
     return badge;
   }
 
@@ -207,8 +208,9 @@
     const pricingTitle = document.querySelector('[data-workspace-stage="pricing"] .section-title-row');
     if (pricingTitle && !pricingTitle.querySelector('[data-issue115-environment="pricing"]')) pricingTitle.append(environmentBadge("pricing"));
     for (const badge of document.querySelectorAll("[data-issue115-environment]")) {
-      badge.className = `issue115-environment ${environment ? `is-${environment.toLowerCase()}` : "is-loading"}`;
-      setText(badge, environment ? `Sabre ${environment}` : "Sabre environment…");
+      badge.className = `issue115-environment ${pricingProvider === "KIWI" ? "is-kiwi" : environment ? `is-${environment.toLowerCase()}` : "is-loading"}`;
+      setText(badge, pricingProvider === "KIWI" ? "Kiwi pricing" : environment ? `Sabre ${environment}` : "Pricing provider…");
+      badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : environment ? `Sabre ${environment} environment reported by the backend` : "Reading the active pricing provider";
     }
   }
 
@@ -367,11 +369,13 @@
 
   async function loadEnvironment() {
     try {
-      const response = await fetch(HEALTH_URL, { headers: { accept: "application/json" } });
+      const response = await fetch(HEALTH_URL, { headers: { accept: "application/json" }, cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const health = await response.json();
+      pricingProvider = String(health?.providers?.pricingProvider ?? "SABRE").toUpperCase();
       const raw = String(health?.providers?.sabreEnvironment ?? "").toUpperCase();
-      environment = raw === "PRODUCTION" ? "PROD" : raw === "CERT" ? "CERT" : "UNKNOWN";
-    } catch { environment = "UNKNOWN"; }
+      environment = pricingProvider === "KIWI" ? "" : raw === "PRODUCTION" ? "PROD" : raw === "CERT" ? "CERT" : "UNKNOWN";
+    } catch { pricingProvider = ""; environment = "UNKNOWN"; }
     queue();
   }
 
@@ -384,3 +388,4 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 })();
+

@@ -6,7 +6,7 @@ function node(tag, className, text) {
   return { tag, className, text, children: [], listeners: {}, append(...children) { this.children.push(...children); },
     addEventListener(type, handler) { this.listeners[type] = handler; }, get childElementCount() { return this.children.length; } };
 }
-const ctx = vm.createContext({ URL, createNode: node });
+const ctx = vm.createContext({ URL, Event, dispatchEvent() {}, createNode: node });
 const app = fs.readFileSync('static-app.js', 'utf8');
 vm.runInContext(app.slice(app.indexOf('function kiwiTicketLink('), app.indexOf('\nconst state')), ctx);
 const kiwi = (id, url) => ({ id, provider: 'KIWI', kiwi: { bookingUrl: url }, price: { amount: 100, currency: 'CAD' }, legs: [{ origin: 'YUL', destination: 'CDG', segments: [] }] });
