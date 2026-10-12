@@ -64,11 +64,23 @@
     return block;
   }
 
+  function kiwiOfferLinks(candidate, indicative = true) {
+    const block = node("div", "kiwi-ticket-links");
+    for (const offer of candidate?.offers ?? []) {
+      const outbound = offer.legs?.[0];
+      const route = outbound ? `${outbound.origin} ↔ ${outbound.destination}` : "Ticket";
+      const link = globalThis.CuberenceKiwiTicketLink?.(offer,
+        `${route} on Kiwi${indicative ? " (indicative)" : ""} ↗`);
+      if (link) block.append(link);
+    }
+    return block.childElementCount ? block : null;
+  }
+
   function proxyBlock(candidate) {
     const proxy = candidate?.proxyPricing;
     if (!proxy) return null;
     const block = node("div", "issue23-proxy-evidence");
-    block.append(node("strong", null, "Indicative Sabre economics"));
+    block.append(node("strong", null, "Indicative ticket pricing"));
     const count = Number.isFinite(proxy.outer?.proxyOfferCount) && Number.isFinite(proxy.inner?.proxyOfferCount)
       ? proxy.outer.proxyOfferCount + proxy.inner.proxyOfferCount
       : null;
@@ -78,13 +90,17 @@
       count != null ? `Proxy offers: ${count}` : null,
     ].filter(Boolean).join(" · ");
     block.append(node("span", null, details || "Proxy pricing evidence available."));
+    const links = kiwiOfferLinks(candidate);
+    if (links) block.append(links);
     return block;
   }
 
-  function unpricedBlock() {
+  function unpricedBlock(candidate) {
     const block = node("div", "issue23-proxy-evidence issue103-unpriced-evidence");
     block.append(node("strong", null, "Exact price required"));
-    block.append(node("span", null, "Cuberence found the direct flight schedule, but no direct Sabre proxy fare is available. Select this candidate to run the exact flight/fare check."));
+    block.append(node("span", null, "Cuberence found the direct flight schedule, but no direct indicative fare is available. Select this candidate to run the exact flight/fare check."));
+    const links = kiwiOfferLinks(candidate);
+    if (links) block.append(links);
     return block;
   }
 
@@ -106,7 +122,7 @@
     if (!pricing?.outerOffer && !pricing?.innerOffer) return null;
     const block = node("section", "issue23-confirmed-offers");
     const heading = node("div", "issue23-subheading");
-    heading.append(node("strong", null, "Exact Sabre-confirmed tickets"));
+    heading.append(node("strong", null, "Exact-confirmed tickets"));
     heading.append(node("span", null, "Final fare evidence"));
     block.append(heading);
     [["Outer ticket", pricing.outerOffer], ["Inner ticket", pricing.innerOffer]].forEach(([label, offer]) => {
@@ -116,6 +132,8 @@
       top.append(node("strong", null, label));
       top.append(node("span", null, money(offer.price)));
       ticket.append(top);
+      const kiwiLink = globalThis.CuberenceKiwiTicketLink?.(offer);
+      if (kiwiLink) ticket.append(kiwiLink);
       for (const leg of offer.legs ?? []) {
         for (const segment of leg.segments ?? []) {
           const row = flightRow(segment, `${leg.origin ?? segment.origin} → ${leg.destination ?? segment.destination}`);
@@ -218,6 +236,10 @@
         : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     }
 
+    card.querySelectorAll(":scope > .kiwi-ticket-links").forEach(element => element.remove());
+    const ticketLinks = kiwiOfferLinks(effective, status !== "CONFIRMED");
+    if (ticketLinks && top) top.after(ticketLinks);
+
     const detail = card.querySelector(".candidate-detail");
     if (!detail) return;
     const displayedPrice = status === "UNPRICED"
@@ -270,7 +292,7 @@
         anchor = block;
       }
     } else if (status === "UNPRICED") {
-      const exactRequired = unpricedBlock();
+      const exactRequired = unpricedBlock(candidate);
       anchor.after(exactRequired);
       anchor = exactRequired;
     } else {

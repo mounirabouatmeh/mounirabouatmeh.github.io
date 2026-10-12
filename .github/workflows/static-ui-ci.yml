@@ -7,6 +7,7 @@ on:
       - demo/index.html
       - cuberence-logo-v2.png
       - static-app.js
+      - test/kiwi-ticket-links.test.cjs
       - static-hub-state.js
       - static-issue14-land.js
       - test/hub-workspace.test.cjs
@@ -73,6 +74,8 @@ jobs:
           node --check static-issue25.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
+      - name: Verify Kiwi offer booking links
+        run: node --test test/kiwi-ticket-links.test.cjs
       - name: Verify staged hub status transitions
         run: node --test test/hub-workspace.test.cjs
       - name: Verify airport-local flight-time rendering
@@ -271,7 +274,7 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=22' demo/index.html
+          grep -q '/static-app.js?v=23' demo/index.html
           grep -q '/static-hub-state.js?v=4' demo/index.html
           grep -q '/static-issue14.js?v=10' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
@@ -323,10 +326,10 @@ jobs:
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
           grep -q "Identified candidate · not yet validated" static-issue115.js
-          grep -q '/static-flow.js?v=4' demo/index.html
+          grep -q '/static-flow.js?v=5' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=6' demo/index.html
-          grep -q '/static-issue23-candidates.js?v=5' demo/index.html
+          grep -q '/static-issue23-candidates.js?v=6' demo/index.html
           grep -q '/static-issue115.js?v=7' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
@@ -342,3 +345,4 @@ jobs:
 
 # Issue #120 validation is intentionally kept in this workflow because the live /demo
 # is static and must not regress to forced streaming scroll or duplicate busy copy.
+
