@@ -114,12 +114,33 @@
     renderFlow();
   }
 
-  function renderBaselineSegment(segment) {
+  // Fare-provider timestamps are canonical UTC for Kiwi, but each segment
+  // departs and arrives in the local calendar/time of its own airport.
+  function baselineTimestamp(value, timeZone, provider) {
+    if (typeof value !== "string" || !value) return "—";
+    const fallback = value.replace("T", " ").slice(0, 16);
+    if (!timeZone) return provider === "KIWI" && value.endsWith("Z") ? `${fallback} UTC` : fallback;
+    const instant = new Date(value);
+    if (!Number.isFinite(instant.getTime())) return fallback;
+    try {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+      }).formatToParts(instant);
+      const part = (type) => parts.find((item) => item.type === type)?.value;
+      return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}`;
+    } catch {
+      return provider === "KIWI" && value.endsWith("Z") ? `${fallback} UTC` : fallback;
+    }
+  }
+
+  function renderBaselineSegment(segment, provider) {
     const row = node("div", "baseline-segment-row");
     const carrier = [segment?.marketingCarrier, segment?.flightNumber].filter(Boolean).join("");
     row.append(node("strong", null, carrier || "Flight"));
     row.append(node("span", null, `${segment?.origin ?? "—"} → ${segment?.destination ?? "—"}`));
-    row.append(node("small", null, `${segment?.departure?.replace?.("T", " ").slice?.(0, 16) ?? "—"} → ${segment?.arrival?.replace?.("T", " ").slice?.(0, 16) ?? "—"}`));
+    row.append(node("small", null,
+      `${baselineTimestamp(segment?.departure, segment?.originTimeZone, provider)} → ${baselineTimestamp(segment?.arrival, segment?.destinationTimeZone, provider)}`));
     return row;
   }
 
@@ -174,8 +195,8 @@
       const inbound = legs[legs.length - 1];
       const facts = node("div", "candidate-facts baseline-facts");
       facts.append(node("span", null, `${outbound?.origin ?? ""} → ${outbound?.destination ?? ""}`));
-      facts.append(node("span", null, `Depart ${outbound?.departure?.slice?.(0, 10) ?? "—"}`));
-      facts.append(node("span", null, `Return ${inbound?.departure?.slice?.(0, 10) ?? "—"}`));
+      facts.append(node("span", null, `Depart ${baselineTimestamp(outbound?.departure, outbound?.segments?.[0]?.originTimeZone, baseline.provider).replace(/^(\\d{4}-\\d{2}-\\d{2}).*$/, "$1")}${baseline.provider === "KIWI" && !outbound?.segments?.[0]?.originTimeZone ? " UTC" : ""}`));
+      facts.append(node("span", null, `Return ${baselineTimestamp(inbound?.departure, inbound?.segments?.[0]?.originTimeZone, baseline.provider).replace(/^(\\d{4}-\\d{2}-\\d{2}).*$/, "$1")}${baseline.provider === "KIWI" && !inbound?.segments?.[0]?.originTimeZone ? " UTC" : ""}`));
       if (baseline.validatingCarrier) facts.append(node("span", null, `Carrier ${baseline.validatingCarrier}`));
       card.append(facts);
     }
@@ -203,7 +224,7 @@
         const legBlock = node("section", "issue135-baseline-leg");
         legBlock.append(node("b", null, `Leg ${index + 1}: ${leg?.origin ?? "—"} → ${leg?.destination ?? "—"}`));
         const segments = Array.isArray(leg?.segments) ? leg.segments : [];
-        if (segments.length) segments.forEach((segment) => legBlock.append(renderBaselineSegment(segment)));
+        if (segments.length) segments.forEach((segment) => legBlock.append(renderBaselineSegment(segment, baseline.provider)));
         else legBlock.append(node("span", null, `${leg?.departure ?? "—"} → ${leg?.arrival ?? "—"}`));
         details.append(legBlock);
       });
