@@ -46,3 +46,11 @@ test('confirmed ticket links come from exact offers rather than earlier proxies'
  const links = block.children.flatMap(ticket => ticket.children).filter(child => child.tag === 'a');
  assert.deepEqual(links.map(link => link.href), ['https://www.kiwi.com/exact-outer', 'https://www.kiwi.com/exact-inner']);
 });
+
+test('confirmed card summary links use exact offers and never proxy URLs', () => {
+ const candidate = { offers: [kiwi('proxy', 'https://www.kiwi.com/proxy')], confirmedPricing: {
+   outerOffer: kiwi('exact-outer', 'https://www.kiwi.com/exact-outer'), innerOffer: kiwi('exact-inner', 'https://www.kiwi.com/exact-inner') } };
+ const links = ctx.testViews.kiwiOfferLinks(candidate, false);
+ assert.deepEqual(Array.from(links.children, link => link.href), ['https://www.kiwi.com/exact-outer', 'https://www.kiwi.com/exact-inner']);
+ assert.equal(ctx.testViews.kiwiOfferLinks({ offers: candidate.offers }, false), null);
+});
