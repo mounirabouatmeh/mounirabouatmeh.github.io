@@ -2,7 +2,6 @@
   const C = globalThis.CuberenceIssue23;
   if (!C) return;
   const { s, candidateName, candidateNumber, candidateStatus, canAuthorizeConfirmation, syncFns, queue } = C;
-  const SAMPLE = "I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.";
   function confirmationAuthorizationMessage(candidate) {
     const number = candidateNumber(candidate);
     return [
@@ -44,26 +43,6 @@
     input.dispatchEvent(new Event("input", { bubbles: true }));
     form.requestSubmit();
     queue();
-  }
-
-  function syncWelcome() {
-    const card = document.querySelector("#conversation .welcome-card");
-    if (!card) return;
-    const paragraph = card.querySelector("p");
-    const copy = `For example: “${SAMPLE}”`;
-    if (paragraph && paragraph.textContent !== copy) paragraph.textContent = copy;
-    const button = card.querySelector(".sample-prompt");
-    if (!button || button.dataset.issue23Bound) return;
-    button.dataset.issue23Bound = "true";
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const input = document.getElementById("message-input");
-      if (!input) return;
-      input.value = SAMPLE;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      input.focus();
-    }, true);
   }
 
   function bindPricing() {
@@ -115,10 +94,8 @@
     });
   }
 
-  syncFns.push(syncWelcome);
   const start = () => {
     bindPricing();
-    syncWelcome();
   };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
