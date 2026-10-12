@@ -66,8 +66,10 @@
 
   function kiwiOfferLinks(candidate, indicative = true) {
     const block = node("div", "kiwi-ticket-links");
+    const exactPricing = candidate?.confirmedPricing ??
+      (candidate?.id && s.confirmation?.candidateId === candidate.id ? s.confirmation.confirmedPricing : undefined);
     const offers = indicative ? candidate?.offers ?? []
-      : [candidate?.confirmedPricing?.outerOffer, candidate?.confirmedPricing?.innerOffer].filter(Boolean);
+      : [exactPricing?.outerOffer, exactPricing?.innerOffer].filter(Boolean);
     for (const offer of offers) {
       const outbound = offer.legs?.[0];
       const route = outbound ? `${outbound.origin} ↔ ${outbound.destination}` : "Ticket";
