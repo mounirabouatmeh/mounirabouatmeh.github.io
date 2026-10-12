@@ -132,15 +132,17 @@ function formatDateTime(value) {
 }
 
 function sampleTravelPrompt(now = new Date()) {
-  // Calendar arithmetic in UTC keeps the dynamic example stable across DST and month/year boundaries.
-  // The return window follows the requested demo cadence: Oct 20–22 -> Nov 13–15 (24 days from window start).
-  const departure = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 8));
+  // Derive the future windows from the advisor's current local calendar date.
+  // 3-day departure window starts in 14 days; the 2-day return window
+  // starts 21 days after the departure window's first day.
+  // UTC calendar arithmetic prevents DST changes from shifting the dates.
+  const departure = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 14));
   const departureEnd = new Date(departure);
   departureEnd.setUTCDate(departureEnd.getUTCDate() + 2);
   const returning = new Date(departure);
-  returning.setUTCDate(returning.getUTCDate() + 24);
+  returning.setUTCDate(returning.getUTCDate() + 21);
   const returnEnd = new Date(returning);
-  returnEnd.setUTCDate(returnEnd.getUTCDate() + 2);
+  returnEnd.setUTCDate(returnEnd.getUTCDate() + 1);
   const month = date => date.toLocaleString("en-US", { month: "long", timeZone: "UTC" });
   const range = (from, to, includeYear) => {
     if (from.getUTCFullYear() !== to.getUTCFullYear()) {
