@@ -8,6 +8,7 @@ on:
       - cuberence-logo-v2.png
       - static-app.js
       - test/kiwi-ticket-links.test.cjs
+      - test/dynamic-welcome-provider.test.cjs
       - static-hub-state.js
       - static-issue14-land.js
       - test/hub-workspace.test.cjs
@@ -40,6 +41,7 @@ on:
       - static-issue135.css
       - static-issue141.css
       - static-issue115.css
+      - static-issue115.js
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -146,8 +148,8 @@ jobs:
           grep -q "hasExplicitReturnWindow" static-intent-sync.js
           grep -q "latest} · derived" static-app.js
           grep -q "Luna then asks whether to explore 1–3 night mini-destinations" demo/index.html
-          grep -q "October 10–15, 2026" static-app.js
-          grep -q "returning November 20–22" static-app.js
+          grep -q "function sampleTravelPrompt" static-app.js
+          node --test test/dynamic-welcome-provider.test.cjs
           grep -q "pricingNightFilter" static-app.js
           grep -q "renderCandidateDetails" static-app.js
           grep -q "renderDiscoveryMap" static-app.js
@@ -274,7 +276,7 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=23' demo/index.html
+          grep -q '/static-app.js?v=24' demo/index.html
           grep -q '/static-hub-state.js?v=4' demo/index.html
           grep -q '/static-issue14.js?v=10' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
@@ -314,7 +316,7 @@ jobs:
           grep -q "issue154-funnel-chunk" static-issue115.js static-issue115.css
           grep -q "Showing .* of .* ticket-compatible itineraries" static-pricing-summary.js
           grep -q '/static-pricing-summary.js?v=3' demo/index.html
-          grep -q '/static-issue115.css?v=6' demo/index.html
+          grep -q '/static-issue115.css?v=7' demo/index.html
 
 
           # Issue #135: explicit return windows, mandatory mini-destination gate, staged hub validation, baseline selection.
@@ -326,11 +328,11 @@ jobs:
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
           grep -q "Identified candidate · not yet validated" static-issue115.js
-          grep -q '/static-flow.js?v=5' demo/index.html
+          grep -q '/static-flow.js?v=6' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
           grep -q '/static-issue23-state.js?v=6' demo/index.html
           grep -q '/static-issue23-candidates.js?v=7' demo/index.html
-          grep -q '/static-issue115.js?v=7' demo/index.html
+          grep -q '/static-issue115.js?v=8' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
           grep -q 'static-issue141.css?v=1' demo/index.html
           grep -q 'totalAssessedOptionCount' static-app.js static-hub-state.js static-issue14.js

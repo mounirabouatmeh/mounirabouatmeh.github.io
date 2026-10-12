@@ -18,6 +18,7 @@ function kiwiTicketLink(offer, label = "View ticket on Kiwi ↗") {
   return link;
 }
 globalThis.CuberenceKiwiTicketLink = kiwiTicketLink;
+globalThis.dispatchEvent(new Event("cuberence-kiwi-links-ready"));
 
 const state = {
   messages: [],
@@ -130,6 +131,27 @@ function formatDateTime(value) {
   return value.replace("T", " ").replace(/:00(?=[+-]|Z|$)/, "");
 }
 
+function sampleTravelPrompt(now = new Date()) {
+  // Calendar arithmetic in UTC keeps the dynamic example stable across DST and month/year boundaries.
+  // The return window follows the requested demo cadence: Oct 20–22 -> Nov 13–15 (24 days from window start).
+  const departure = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + 8));
+  const departureEnd = new Date(departure);
+  departureEnd.setUTCDate(departureEnd.getUTCDate() + 2);
+  const returning = new Date(departure);
+  returning.setUTCDate(returning.getUTCDate() + 24);
+  const returnEnd = new Date(returning);
+  returnEnd.setUTCDate(returnEnd.getUTCDate() + 2);
+  const month = date => date.toLocaleString("en-US", { month: "long", timeZone: "UTC" });
+  const range = (from, to, includeYear) => {
+    if (from.getUTCFullYear() !== to.getUTCFullYear()) {
+      return `${month(from)} ${from.getUTCDate()}, ${from.getUTCFullYear()}–${month(to)} ${to.getUTCDate()}, ${to.getUTCFullYear()}`;
+    }
+    const end = from.getUTCMonth() === to.getUTCMonth() ? to.getUTCDate() : `${month(to)} ${to.getUTCDate()}`;
+    return `${month(from)} ${from.getUTCDate()}–${end}${includeYear ? `, ${to.getUTCFullYear()}` : ""}`;
+  };
+  return `I have a client: 1 adult flying from YUL to BEY ${range(departure, departureEnd, true)}, returning ${range(returning, returnEnd, departureEnd.getUTCFullYear() !== returnEnd.getUTCFullYear())}, and open to a short European stopover. Economy class, pricing in CAD.`;
+}
+
 function renderConversation() {
   el.conversation.replaceChildren();
 
@@ -143,11 +165,18 @@ function renderConversation() {
     welcome.append(welcomeLogo);
     const copy = createNode("div");
     copy.append(createNode("h2", null, "Start with the client’s travel intent."));
-    copy.append(createNode("p", null, "For example: “I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.”"));
+    const example = createNode("p", null);
+    const refreshExample = () => {
+      const prompt = sampleTravelPrompt();
+      example.textContent = `For example: “${prompt}”`;
+      return prompt;
+    };
+    refreshExample();
+    copy.append(example);
     const sample = createNode("button", "sample-prompt", "Use this example");
     sample.type = "button";
     sample.addEventListener("click", () => {
-      el.input.value = "I have a client: 1 adult flying from YUL to BEY October 10–15, 2026, returning November 20–22, and open to a short European stopover. Economy class, pricing in CAD.";
+      el.input.value = refreshExample();
       el.input.focus();
       updateComposer();
     });
