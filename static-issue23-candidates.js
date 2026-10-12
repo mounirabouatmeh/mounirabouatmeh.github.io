@@ -66,7 +66,9 @@
 
   function kiwiOfferLinks(candidate, indicative = true) {
     const block = node("div", "kiwi-ticket-links");
-    for (const offer of candidate?.offers ?? []) {
+    const offers = indicative ? candidate?.offers ?? []
+      : [candidate?.confirmedPricing?.outerOffer, candidate?.confirmedPricing?.innerOffer].filter(Boolean);
+    for (const offer of offers) {
       const outbound = offer.legs?.[0];
       const route = outbound ? `${outbound.origin} ↔ ${outbound.destination}` : "Ticket";
       const link = globalThis.CuberenceKiwiTicketLink?.(offer,
