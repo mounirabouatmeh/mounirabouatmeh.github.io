@@ -197,8 +197,8 @@
   function environmentBadge(location) {
     const badge = node("span", `issue115-environment ${environment ? `is-${environment.toLowerCase()}` : "is-loading"}`);
     badge.dataset.issue115Environment = location;
-    badge.textContent = pricingProvider === "KIWI" ? "Kiwi pricing" : environment ? `Sabre ${environment}` : "Pricing provider…";
-    badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : environment ? `Sabre ${environment} environment reported by the backend` : "Reading the active pricing provider";
+    badge.textContent = pricingProvider === "KIWI" ? "Kiwi pricing" : (pricingProvider === "SABRE" || environment) ? "Sabre pricing" : "Pricing provider…";
+    badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : (pricingProvider === "SABRE" || environment) ? "Sabre is the active pricing provider for this agency" : "Reading the active pricing provider";
     return badge;
   }
 
@@ -209,8 +209,8 @@
     if (pricingTitle && !pricingTitle.querySelector('[data-issue115-environment="pricing"]')) pricingTitle.append(environmentBadge("pricing"));
     for (const badge of document.querySelectorAll("[data-issue115-environment]")) {
       badge.className = `issue115-environment ${pricingProvider === "KIWI" ? "is-kiwi" : environment ? `is-${environment.toLowerCase()}` : "is-loading"}`;
-      setText(badge, pricingProvider === "KIWI" ? "Kiwi pricing" : environment ? `Sabre ${environment}` : "Pricing provider…");
-      badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : environment ? `Sabre ${environment} environment reported by the backend` : "Reading the active pricing provider";
+      setText(badge, pricingProvider === "KIWI" ? "Kiwi pricing" : (pricingProvider === "SABRE" || environment) ? "Sabre pricing" : "Pricing provider…");
+      badge.title = pricingProvider === "KIWI" ? "Kiwi is the active pricing provider for this agency" : (pricingProvider === "SABRE" || environment) ? "Sabre is the active pricing provider for this agency" : "Reading the active pricing provider";
     }
   }
 
