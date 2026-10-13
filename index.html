@@ -8,7 +8,7 @@
   <link rel="icon" href="/cuberence-logo-clean-v7.png" type="image/png" sizes="any">
   <link rel="shortcut icon" href="/cuberence-logo-clean-v7.png" type="image/png">
   <link rel="apple-touch-icon" href="/cuberence-logo-clean-v7.png">
-  <link rel="stylesheet" href="/static-home.css?v=18">
+  <link rel="stylesheet" href="/static-home.css?v=19">
   <style>
     .demo-request-modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;padding:20px}.demo-request-modal:target{display:grid}.demo-request-backdrop{position:absolute;inset:0;background:rgba(7,26,51,.58);backdrop-filter:blur(5px)}.demo-request-card{position:relative;z-index:1;width:min(560px,100%);padding:34px;border:1px solid #dbe4ee;border-radius:26px;background:#fff;box-shadow:0 30px 90px rgba(7,26,51,.28)}.demo-request-card h2{margin:0 0 14px;font-size:32px;line-height:1.08;letter-spacing:-.035em}.demo-request-card>p:not(.eyebrow){color:#64748b;font-size:17px}.demo-request-close{position:absolute;right:18px;top:16px;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid #dbe4ee;background:#fff;font-size:24px;line-height:1;color:#52647d}.demo-contact-address{display:block;margin:22px 0;padding:14px 16px;border:1px solid #dbe4ee;border-radius:14px;background:#f7f9fc;font-weight:800;color:#17345d;text-align:center}.demo-request-actions{display:flex;gap:10px;flex-wrap:wrap}.demo-request-actions .button{flex:1;min-width:150px}.demo-request-note{margin:18px 0 0!important;font-size:13px!important;color:#7b8798!important}@media(max-width:640px){.demo-request-card{padding:28px 20px}.demo-request-card h2{font-size:28px}.demo-request-actions{flex-direction:column}.demo-request-actions .button{width:100%}}
   </style>
@@ -238,59 +238,67 @@
         <h2>Explore more routes. Compare smarter. Recommend with confidence.</h2>
       </div>
 
-      <div class="capabilities-grid">
-        <article class="capability-card cap-wide cap-inventory">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">✈</span><span class="cap-number">01 · Your inventory</span></div>
-          <h3>Integrate your agency’s air inventory</h3>
-          <div class="cap-visual provider-row">
+      <div class="capability-journey" role="list" aria-label="Cuberence four-stage workflow">
+        <article class="journey-stage journey-stage-connect" role="listitem">
+          <div class="journey-stage-top">
+            <span class="journey-stage-number">01</span>
+            <span class="journey-stage-kicker">Your inventory</span>
+          </div>
+          <h3>Connect</h3>
+          <p class="journey-stage-intro">Work with your agency’s air inventory.</p>
+          <div class="journey-stage-detail journey-stage-providers">
             <span class="provider-badge live">Sabre · supported</span>
             <span class="provider-badge roadmap">Amadeus + others · roadmap</span>
           </div>
         </article>
 
-        <article class="capability-card">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">▦</span><span class="cap-number">02 · Dates</span></div>
-          <h3>Flexible departure dates</h3>
-          <div class="cap-visual cap-chip-row" aria-label="Illustrative flexible date choices">
-            <span>Oct 26</span><span class="selected">Oct 27</span><span>Oct 28</span>
+        <article class="journey-stage journey-stage-discover" role="listitem">
+          <div class="journey-stage-top">
+            <span class="journey-stage-number">02</span>
+            <span class="journey-stage-kicker">Explore possibilities</span>
+          </div>
+          <h3>Discover</h3>
+          <div class="journey-feature-list">
+            <div class="journey-feature">
+              <span>Flexible departure</span>
+              <div class="journey-inline-chips" aria-label="Sample departure dates"><small>Oct 26</small><small class="selected">Oct 27</small><small>Oct 28</small></div>
+            </div>
+            <div class="journey-feature">
+              <span>Stay duration</span>
+              <div class="journey-inline-chips" aria-label="Stay lengths"><small>1 night</small><small class="selected">2 nights</small><small>3 nights</small></div>
+            </div>
+            <div class="journey-feature">
+              <span>Mini-destinations</span>
+              <div class="journey-inline-chips cities" aria-label="Example destinations"><small>Paris</small><small>Milan</small><small>Istanbul</small></div>
+            </div>
           </div>
         </article>
 
-        <article class="capability-card">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">◷</span><span class="cap-number">03 · Duration</span></div>
-          <h3>Flexible mini-stays</h3>
-          <div class="cap-visual cap-chip-row" aria-label="One to three nights">
-            <span>1 night</span><span class="selected">2 nights</span><span>3 nights</span>
+        <article class="journey-stage journey-stage-compare" role="listitem">
+          <div class="journey-stage-top">
+            <span class="journey-stage-number">03</span>
+            <span class="journey-stage-kicker">Price context</span>
+          </div>
+          <h3>Compare</h3>
+          <p class="journey-stage-intro">See the original-trip baseline beside mini-stay flight options.</p>
+          <div class="journey-price-pair" aria-label="Baseline versus mini-stay indicative fare comparison">
+            <div><span>Original trip</span><strong>Baseline fare</strong></div>
+            <span class="journey-versus">VS</span>
+            <div><span>With mini-stay</span><strong>Indicative fare</strong></div>
           </div>
         </article>
 
-        <article class="capability-card">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">≋</span><span class="cap-number">04 · Baseline</span></div>
-          <h3>Benchmark the original trip</h3>
-          <div class="cap-visual cap-mini-panel"><span>Original itinerary</span><strong>Baseline fare estimate</strong></div>
-        </article>
-
-        <article class="capability-card">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">✦</span><span class="cap-number">05 · Discovery</span></div>
-          <h3>Choose from mini-destinations</h3>
-          <div class="cap-visual cap-city-row" aria-label="Illustrative mini-destination shortlist"><span>Paris</span><span>Milan</span><span>Istanbul</span></div>
-        </article>
-
-        <article class="capability-card">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">↔</span><span class="cap-number">06 · Compare</span></div>
-          <h3>Compare indicative flight prices</h3>
-          <div class="cap-visual cap-price-compare">
-            <span>Original trip</span><span aria-hidden="true">vs</span><span>Mini-stay option</span>
+        <article class="journey-stage journey-stage-validate" role="listitem">
+          <div class="journey-stage-top">
+            <span class="journey-stage-number">04</span>
+            <span class="journey-stage-kicker">Real-world feasibility</span>
           </div>
-        </article>
-
-        <article class="capability-card cap-wide cap-evaluation">
-          <div class="capability-top"><span class="cap-icon" aria-hidden="true">✓</span><span class="cap-number">07 · Validation</span></div>
-          <h3>Evaluate the stay, not just the flight</h3>
-          <div class="cap-visual cap-eval-row">
-            <span><strong>Airport transfers</strong><small>Getting to and from the city</small></span>
-            <span><strong>Usable city hours</strong><small>Time available to explore</small></span>
-            <span><strong>Connection risk</strong><small>Schedule and buffer checks</small></span>
+          <h3>Validate</h3>
+          <p class="journey-stage-intro">Evaluate the stay, not just the flights.</p>
+          <div class="journey-checks">
+            <div><span aria-hidden="true">✓</span><strong>Airport transfers</strong></div>
+            <div><span aria-hidden="true">✓</span><strong>Usable city hours</strong></div>
+            <div><span aria-hidden="true">✓</span><strong>Connection risk</strong></div>
           </div>
         </article>
       </div>
