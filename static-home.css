@@ -144,3 +144,16 @@
  .capabilities-section{padding:70px 18px}
  .capabilities-section .section-heading{margin-bottom:27px}
 }
+
+/* Issue #106 — sharper example economics and advisor-action workflow */
+.hero-example-options{display:grid;gap:5px;margin-top:2px}
+.hero-example-options strong{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.hero-example-options em{font-style:normal;font-size:12px;font-weight:900;color:#245fd8;white-space:nowrap}
+.journey-checks-compact{margin-top:12px;gap:6px}
+.journey-checks-compact>div{padding:8px 9px}
+.journey-checks-compact>div strong{font-size:11px}
+.journey-pitch{display:grid;gap:8px;margin-top:auto;padding:14px;border:1px solid #cce6db;border-radius:14px;background:#f0faf5}
+.journey-pitch>span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:850;color:#5f806f}
+.journey-pitch>strong{font-size:17px;line-height:1.2;color:#11704f}
+.journey-pitch>p{margin:0;font-size:13px;line-height:1.45;color:#36584a}
+@media(max-width:650px){.hero-example-options strong{align-items:flex-start;flex-direction:column;gap:1px}.journey-pitch{margin-top:8px}}
