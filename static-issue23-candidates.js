@@ -37,6 +37,16 @@
     row.append(node("span", "issue23-flight-role", role));
     const detail = node("div", "issue23-flight-detail");
     detail.append(node("strong", null, flightDesignator(flight)));
+    const marketingCarrier = String(flight.marketingCarrier ?? "").trim().toUpperCase();
+    const operatingCarrier = String(flight.operatingCarrier ?? "").trim().toUpperCase();
+    const codeshareStatus = String(flight.codeshareStatus ?? "").trim();
+    if (operatingCarrier && marketingCarrier && operatingCarrier !== marketingCarrier) {
+      detail.append(node("small", "codeshare-operator-label",
+        `Marketed by ${marketingCarrier} · Operated by ${operatingCarrier}`));
+    } else if (codeshareStatus === "IS_CODESHARED") {
+      detail.append(node("small", "codeshare-operator-label",
+        `Marketed by ${marketingCarrier || "airline"} · Operating airline not verified`));
+    }
     detail.append(node("span", null, `${flight.origin ?? "—"} → ${flight.destination ?? "—"}`));
     detail.append(node("small", null, `${formatDateTime(flight.departure, flight.originTimeZone)} → ${formatDateTime(flight.arrival, flight.destinationTimeZone)}`));
     row.append(detail);
