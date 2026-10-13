@@ -172,3 +172,8 @@
 /* Issue #110 — fare credibility explainer */
 .fare-explainer{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:start;margin-top:14px;padding-top:14px;border-top:1px solid #dce6f3;color:#687991;font-size:12px;line-height:1.5}.fare-explainer strong{color:#17345d;white-space:nowrap}
 @media(max-width:700px){.fare-explainer{grid-template-columns:1fr;gap:5px}.fare-explainer strong{white-space:normal}}
+
+/* Issue #114 — final pre-Calendly conversion tightening */
+.revenue-bridge{max-width:930px;margin:26px auto 0;padding:18px 22px;border:1px solid #cfe0fb;border-radius:16px;background:#f4f8ff;text-align:center;color:#53647c;font-size:16px;line-height:1.45}.revenue-bridge strong{color:#17345d}
+.category-contrast{padding:54px clamp(22px,7vw,110px);background:#0d2f5f;text-align:center}.category-contrast p,.category-contrast strong{display:block;max-width:1050px;margin-left:auto;margin-right:auto}.category-contrast p{margin-top:0;margin-bottom:8px;color:#b9cbe4;font-size:clamp(20px,2.3vw,29px);line-height:1.25;font-weight:650}.category-contrast strong{color:#fff;font-size:clamp(28px,3.5vw,46px);line-height:1.08;letter-spacing:-.035em}
+@media(max-width:700px){.revenue-bridge{padding:16px 18px;font-size:15px}.category-contrast{padding:46px 18px}}
