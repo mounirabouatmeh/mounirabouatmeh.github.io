@@ -73,3 +73,54 @@
  .example-card .example-outcome{margin:0 18px 18px}
 }
 @media(prefers-reduced-motion:reduce){.example-toggle-symbol{transition:none}}
+
+
+/* Issue #100 — concise story, capability-led product section */
+.opportunity-section{padding:56px clamp(22px,7vw,110px) 78px}
+.opportunity-heading{max-width:1180px;margin:0 auto 22px;text-align:left}
+.opportunity-eyebrow{font-size:13px!important;line-height:1.4!important;letter-spacing:.15em!important;text-transform:uppercase;color:#4f6b93;font-weight:850;margin:0!important}
+.inventory-callout{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid #cee2d8;color:#176c50;font-size:13px;font-weight:800}
+.inventory-callout a{display:inline-flex;align-items:center;gap:5px;color:#245fd8;text-decoration:underline;text-underline-offset:4px}
+.inventory-callout a:hover{color:#17345d}
+.inventory-callout a:focus-visible{outline:3px solid #1666ff;outline-offset:4px;border-radius:3px}
+.capabilities-section{padding:96px clamp(22px,7vw,110px);background:linear-gradient(180deg,#fff,#f5f9ff)}
+.capabilities-section .section-heading{margin-bottom:35px}
+.capabilities-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;max-width:1180px;margin:auto}
+.capability-card{display:flex;flex-direction:column;min-width:0;min-height:212px;padding:25px;border:1px solid #dbe4ee;border-radius:23px;background:#fff;box-shadow:0 14px 36px rgba(21,43,80,.05)}
+.capability-card.cap-wide{grid-column:span 2}
+.capability-card.cap-inventory{border-color:#bfd1f5;background:linear-gradient(135deg,#f1f6ff,#fff)}
+.capability-card.cap-evaluation{border-color:#cde6d9;background:linear-gradient(135deg,#f4fbf8,#fff)}
+.capability-top{display:flex;align-items:center;gap:11px}
+.cap-icon{display:grid;place-items:center;flex:0 0 auto;width:40px;height:40px;background:#e9f1ff;border-radius:12px;color:#245fd8;font-size:21px;font-weight:800;line-height:1}
+.cap-evaluation .cap-icon{background:#e3f6ec;color:#0b8a60}
+.cap-number{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:850;color:#677c99}
+.capability-card h3{font-size:clamp(19px,1.8vw,24px);line-height:1.17;letter-spacing:-.025em;margin:17px 0 22px;color:#17345d}
+.cap-visual{margin-top:auto}
+.cap-visual.provider-row{margin-top:auto}
+.cap-chip-row,.cap-city-row{display:flex;flex-wrap:wrap;gap:7px}
+.cap-chip-row span,.cap-city-row span{padding:8px 10px;border:1px solid #d8e2ee;border-radius:11px;background:#f7fafd;font-size:12px;font-weight:800;color:#526986;white-space:nowrap}
+.cap-chip-row .selected{background:#e7f0ff;border-color:#b6d0ff;color:#245fd8}
+.cap-city-row span{background:#eef5ff;border-color:#d0e1ff;color:#245fd8}
+.cap-mini-panel{display:flex;flex-direction:column;gap:6px;padding:11px 13px;border:1px solid #d8e4f3;background:#f7faff;border-radius:13px}
+.cap-mini-panel span{font-size:11px;color:#677c99;text-transform:uppercase;letter-spacing:.06em;font-weight:800}
+.cap-mini-panel strong{font-size:15px;color:#245fd8}
+.cap-price-compare{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.cap-price-compare span:not(:nth-child(2)){background:#f1f6ff;border-radius:10px;padding:9px 11px;color:#17345d;font-size:12px;font-weight:850}
+.cap-price-compare span:nth-child(2){font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#8799ad;font-weight:850}
+.cap-eval-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.cap-eval-row>span{display:flex;flex-direction:column;gap:5px;padding:12px 13px;border:1px solid #cfe7db;background:#fff;border-radius:13px}
+.cap-eval-row strong{font-size:14px;color:#176c50}
+.cap-eval-row small{font-size:12px;line-height:1.35;color:#6b8192}
+.capability-disclaimer{max-width:890px;margin:21px auto 0;text-align:center;color:#8290a4;font-size:12px}
+.capabilities-section .section-actions{margin-top:26px}
+@media(max-width:990px){.capabilities-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ .opportunity-section{padding:44px 18px 66px}
+ .opportunity-heading{margin-bottom:18px}
+ .capabilities-section{padding:70px 18px}
+ .capabilities-section .section-heading{margin-bottom:27px}
+ .capabilities-grid{grid-template-columns:minmax(0,1fr);gap:13px}
+ .capability-card,.capability-card.cap-wide{grid-column:auto;padding:21px;min-height:190px}
+ .cap-eval-row{grid-template-columns:1fr}
+ .capability-card h3{font-size:21px;margin:15px 0 19px}
+}
