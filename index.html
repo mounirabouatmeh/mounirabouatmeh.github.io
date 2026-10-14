@@ -8,7 +8,7 @@
   <link rel="icon" href="/cuberence-logo-clean-v7.png" type="image/png" sizes="any">
   <link rel="shortcut icon" href="/cuberence-logo-clean-v7.png" type="image/png">
   <link rel="apple-touch-icon" href="/cuberence-logo-clean-v7.png">
-  <link rel="stylesheet" href="/static-home.css?v=22">
+  <link rel="stylesheet" href="/static-home.css?v=23">
 </head>
 <body>
   <header class="topbar">
@@ -45,15 +45,14 @@
         <p class="eyebrow">For travel advisors and agency owners</p>
         <h1 class="hero-category">Find the hidden trip inside every trip.</h1>
         <p class="hero-value">Turn every travel request into a richer experience for your client <span>&amp;</span> unlock more sales opportunities.</p>
-        <p class="hero-lead"><strong class="hero-seconds">In seconds</strong>, Cuberence uncovers <strong>1–3-night mini-destinations</strong> you can propose to your clients — helping you create standout travel offers, deliver richer experiences and unlock more sales opportunities.</p>
+        <p class="hero-lead"><strong class="hero-seconds">In seconds</strong>, Cuberence uncovers <strong>1–3-night mini-destinations</strong> you can propose as part of the trip to your client’s requested destination — helping you create standout travel offers, deliver richer experiences and unlock more sales opportunities.</p>
         <div class="hero-example" aria-label="Illustrative Cuberence value example">
-          <span class="hero-example-label">One client request can reveal more than one opportunity</span>
           <div class="hero-example-flow">
             <span><small>Your client wants</small><strong>Montréal → Bangkok</strong></span>
             <b aria-hidden="true">→</b>
-            <span class="hero-example-highlight"><small>Cuberence uncovers</small><span class="hero-example-options"><strong>Milan · 1 night <em>−$230</em></strong><strong>Istanbul · 2 nights <em>+$100</em></strong></span></span>
+            <span class="hero-example-highlight"><small>Cuberence uncovers for you</small><span class="hero-example-options"><strong>Milan · 1 night <em>−$230</em></strong><strong>Istanbul · 2 nights <em>+$100</em></strong></span></span>
             <b aria-hidden="true">→</b>
-            <span><small>You can sell</small><strong>Hotel + transfer + tour</strong></span>
+            <span><small>You can sell at the mini-destination</small><strong>Hotel + transfer + tour</strong></span>
           </div>
           <small class="hero-example-note">Illustrative fare differences. Fares vary by route, date, carrier and availability.</small>
           <div class="fare-explainer"><strong>How can a mini-destination cost less?</strong><span>Different date, route, carrier and available fare combinations can price differently. Cuberence compares each option with your client’s original-trip baseline.</span></div>
@@ -75,7 +74,7 @@
       <div class="commercial-examples" aria-label="Illustrative Cuberence commercial examples">
         <article class="commercial-example featured">
           <div class="commercial-example-top">
-            <span class="example-tag">Cost saver</span>
+            <span class="example-tag tag-cost-saver">Cost saver</span>
             <strong class="delta saving">−$230</strong>
           </div>
           <div class="commercial-route"><span>Montréal → Bangkok</span><b>→</b><strong>Milan · 1 night</strong></div>
@@ -85,7 +84,7 @@
 
         <article class="commercial-example">
           <div class="commercial-example-top">
-            <span class="example-tag">Add an experience</span>
+            <span class="example-tag tag-experience">Experience enricher</span>
             <strong class="delta premium">+$100</strong>
           </div>
           <div class="commercial-route"><span>Montréal → Bangkok</span><b>→</b><strong>Istanbul · 2 nights</strong></div>
@@ -93,7 +92,15 @@
           <div class="sell-stack"><small>You can sell</small><div><span>Hotel</span><span>Airport transfer</span><span>City tour</span></div></div>
         </article>
 
-        
+        <article class="commercial-example value-optimized">
+          <div class="commercial-example-top">
+            <span class="example-tag tag-trip-value">Overall trip value optimized</span>
+            <strong class="delta delta-value">2 destinations</strong>
+          </div>
+          <div class="commercial-route"><span>Montréal → Bangkok</span><b>→</b><strong>Milan + Bangkok</strong></div>
+          <p class="commercial-message">If your client also wants to visit Italy, explore adding Milan to a trip they already plan to take. The extra airfare may cost less than a separate ticket — compare the full trip cost before recommending it.</p>
+          <div class="sell-stack"><small>Make the most of the stop</small><div><span>Extra country</span><span>Local stays</span><span>Experiences</span></div></div>
+        </article>
       </div>
 
       <div class="revenue-bridge">One flight request you were already handling. <strong>Another city to offer — plus hotels, transfers and tours your agency can sell.</strong></div>
@@ -156,31 +163,69 @@
           <article role="listitem"><span>03</span><div><strong>Select &amp; pitch</strong><p>Choose the strongest option and present it clearly to your client.</p></div></article>
         </div>
 
-        <div class="product-frame" aria-label="Illustrative Cuberence advisor interface">
-          <div class="product-frame-bar"><div><i></i><i></i><i></i></div><strong>Cuberence · Advisor workspace</strong><span>Illustrative</span></div>
-          <div class="product-query">
-            <small>Client request</small>
-            <strong>YUL → BKK · Oct 26–31 · flexible by 3 days</strong>
+        <div class="product-frame workspace-frame" aria-label="Illustrative Cuberence workspace map and itinerary assessment">
+          <div class="product-frame-bar"><div><i></i><i></i><i></i></div><strong>Cuberence · Advisor workspace</strong><span>Illustrative assessment</span></div>
+          <div class="workspace-context">
+            <div><small>Example client request</small><strong>Montréal → Bangkok · Flexible dates · 1–3-night stopover</strong></div>
+            <span class="workspace-context-badge">Europe discovery</span>
           </div>
-          <div class="product-results-head"><span>Mini-destination</span><span>Air difference</span><span>Usable city time</span><span>Transfer</span><span>Risk</span></div>
-          <div class="product-result selected">
-            <div><strong>Milan</strong><small>1 night</small></div><div class="result-saving">−$230</div><div>16h</div><div>35 min</div><div><span class="risk low">Low</span></div>
+          <div class="workspace-stats" role="list" aria-label="Illustrative itinerary screening funnel">
+            <div role="listitem"><small>Combinations identified</small><strong>1,600</strong></div>
+            <div role="listitem"><small>Rejected · high connection risk</small><strong>66</strong></div>
+            <div role="listitem"><small>Feasible combinations</small><strong>1,534</strong></div>
+            <div role="listitem" class="stat-highlight"><small>Ticket-compatible itineraries</small><strong>414</strong></div>
           </div>
-          <div class="product-result">
-            <div><strong>Istanbul</strong><small>2 nights</small></div><div>+$100</div><div>31h</div><div>45 min</div><div><span class="risk low">Low</span></div>
+          <div class="workspace-review">
+            <div class="workspace-map-panel">
+              <div class="workspace-pane-heading"><div><small>Discovery map</small><strong>Mini-destination opportunities</strong></div><span>Europe</span></div>
+              <svg class="workspace-map" viewBox="0 0 690 340" role="img" aria-label="Stylized map of Europe highlighting Paris, Milan and Istanbul">
+                <defs>
+                  <linearGradient id="workspace-water" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f1f7fc"/><stop offset="100%" stop-color="#d9eaf7"/></linearGradient>
+                  <linearGradient id="workspace-land" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fcfeff"/><stop offset="100%" stop-color="#e3edf3"/></linearGradient>
+                </defs>
+                <rect width="690" height="340" rx="12" fill="url(#workspace-water)"/>
+                <g stroke="#bdd5e7" stroke-width=".7" opacity=".55"><path d="M0 62H690 M0 124H690 M0 186H690 M0 248H690 M0 310H690 M88 0V340 M176 0V340 M264 0V340 M352 0V340 M440 0V340 M528 0V340 M616 0V340" fill="none"/></g>
+                <g fill="url(#workspace-land)" stroke="#b5c9d8" stroke-width="1.3" stroke-linejoin="round">
+                  <path d="M0 56L65 42 90 56 107 85 142 88 167 108 180 133 204 141 219 165 207 190 173 201 152 229 160 251 139 270 119 255 94 248 64 261 40 245 0 259Z"/>
+                  <path d="M151 0L193 0 197 25 177 49 173 75 151 91 137 86 143 56Z"/>
+                  <path d="M209 0L247 0 234 30 258 58 260 79 240 104 232 129 205 131 194 101 210 71Z"/>
+                  <path d="M278 0L304 0 288 33 309 61 300 92 316 111 310 132 286 137 270 113 259 81 265 43Z"/>
+                  <path d="M329 0H690V82L670 98 644 91 624 104 598 103 573 122 548 107 521 123 496 113 468 127 437 118 413 131 391 121 363 136 340 113 322 97 317 74 327 42Z"/>
+                  <path d="M182 129L215 116 246 123 262 139 279 151 302 149 316 162 306 183 287 184 276 205 260 213 244 207 219 224 203 213 181 205 170 179Z"/>
+                  <path d="M297 169L316 161 344 174 356 185 366 210 383 214 379 227 361 229 344 216 333 203 315 198 305 187Z"/>
+                  <path d="M260 214L277 200 291 214 299 241 315 250 327 272 342 282 344 294 331 292 319 276 299 264 289 244 267 231Z"/>
+                  <path d="M346 171L368 160 403 166 421 178 436 184 447 199 438 216 418 211 399 229 388 214 364 211 358 191Z"/>
+                  <path d="M447 210L474 203 499 210 526 206 548 221 586 213 618 228 644 227 690 217V287L659 292 627 277 594 280 565 271 535 273 508 254 477 259 460 244Z"/>
+                  <path d="M211 91L228 77 239 89 235 108 216 116 204 109Z"/>
+                  <path d="M159 110L171 98 179 113 172 129 161 126Z"/>
+                  <path d="M347 271L359 265 371 276 363 290Z"/>
+                  <path d="M384 276L406 274 422 282 413 295 391 290Z"/>
+                </g>
+                <g fill="#708da3" font-size="12" font-weight="600" opacity=".8"><text x="28" y="166">Atlantic</text><text x="28" y="181">Ocean</text><text x="315" y="300">Mediterranean Sea</text><text x="500" y="185">Black Sea</text></g>
+                <g opacity=".46" fill="none" stroke="#4785e6" stroke-width="2" stroke-dasharray="5 8"><path d="M195 176Q250 158 307 222"/><path d="M307 222Q422 144 539 227"/></g>
+                <g font-family="Inter,Arial,sans-serif" font-weight="750">
+                  <circle cx="195" cy="176" r="21" fill="#1666ff" opacity=".11"/><circle cx="195" cy="176" r="9" fill="#1666ff" stroke="#fff" stroke-width="3"/><text x="150" y="160" font-size="14" fill="#17345d">Paris</text>
+                  <circle cx="307" cy="222" r="25" fill="#0f9f6e" opacity=".13"/><circle cx="307" cy="222" r="10" fill="#0f9f6e" stroke="#fff" stroke-width="3"/><text x="265" y="252" font-size="14" fill="#17345d">Milan</text>
+                  <circle cx="539" cy="227" r="22" fill="#1666ff" opacity=".11"/><circle cx="539" cy="227" r="9" fill="#1666ff" stroke="#fff" stroke-width="3"/><text x="544" y="213" font-size="14" fill="#17345d">Istanbul</text>
+                </g>
+              </svg>
+              <div class="workspace-map-legend"><span><i class="dot dot-blue"></i> Candidate city</span><span><i class="dot dot-green"></i> Selected illustration</span></div>
+            </div>
+            <div class="workspace-assessment">
+              <div class="workspace-pane-heading"><div><small>Validation outcome</small><strong>414 ticket-compatible</strong></div></div>
+              <div class="workspace-validity">
+                <div class="valid"><strong>36</strong><span>Valid</span></div>
+                <div class="valid-risk"><strong>378</strong><span>Valid with risk</span></div>
+              </div>
+              <div class="workspace-assessment-note">Risk status flags options for advisor review — not an automatic recommendation to book.</div>
+              <div class="workspace-dimensions"><strong>What you can assess</strong><span>Airfare difference vs. baseline</span><span>Connection and transfer risk</span><span>Usable time in the city</span><span>Stay duration · 1–3 nights</span></div>
+            </div>
           </div>
-          <div class="product-result">
-            <div><strong>Paris</strong><small>2 nights</small></div><div>+$250</div><div>28h</div><div>50 min</div><div><span class="risk medium">Review</span></div>
-          </div>
-          <div class="product-pitch">
-            <small>Selected opportunity</small>
-            <strong>Milan · 1 night · −$230</strong>
-            <p>“You can add a night in Milan and save about $230 on the flight. We can also arrange your hotel, transfer and city experience.”</p>
-          </div>
+          <div class="workspace-footerline"><strong>From hundreds of combinations to options worth presenting.</strong><span>Illustrative sample · not a live availability or fare quote</span></div>
         </div>
       </div>
 
-      <p class="capability-disclaimer">Illustrative interface and values. Flight prices remain indicative until validated in your booking environment; availability and connection conditions vary.</p>
+      <p class="capability-disclaimer">Illustrative assessment and map using example funnel counts, not a live pricing result. Validate fares, schedules, connections and availability in your booking environment before quoting.</p>
       <div class="section-actions"><a class="button button-primary" href="https://app.simplymeet.me/cuberence" target="_blank" rel="noopener noreferrer">Book a demo</a></div>
     </section>
 
