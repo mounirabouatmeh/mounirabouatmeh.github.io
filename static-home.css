@@ -232,3 +232,11 @@
 
 /* One consistent blue style for all three commercial value labels */
 .commercial-example .example-tag.tag-unified-blue{background:#1666ff;color:#fff;border:1px solid #1666ff;box-shadow:0 3px 10px rgba(22,102,255,.16);font-size:10px;letter-spacing:.065em;font-weight:850;padding:8px 11px;white-space:normal;text-align:center;max-width:100%}
+
+/* Approved Cuberence workspace visual — replaces inaccurate hand-drawn map */
+.approved-workspace-figure{margin:0;width:100%;min-width:0;padding:12px;border:1px solid #cedcec;border-radius:25px;background:#fff;box-shadow:0 24px 70px rgba(21,43,80,.12)}
+.approved-workspace-zoom{display:block;border-radius:16px;overflow:hidden;cursor:zoom-in;outline-offset:5px}
+.approved-workspace-zoom:focus-visible{outline:3px solid #1666ff}
+.approved-workspace-zoom img{display:block;width:100%;height:auto;aspect-ratio:1200 / 676;object-fit:contain;background:#f3f8fc}
+.approved-workspace-figure figcaption{margin:11px 7px 3px;color:#64748b;font-size:12px;line-height:1.5}
+@media(max-width:700px){.approved-workspace-figure{padding:5px;border-radius:15px}.approved-workspace-zoom{border-radius:11px}.approved-workspace-figure figcaption{margin:9px 7px 5px;font-size:11px}}
