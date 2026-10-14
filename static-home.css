@@ -240,3 +240,9 @@
 .approved-workspace-zoom img{display:block;width:100%;height:auto;aspect-ratio:1200 / 676;object-fit:contain;background:#f3f8fc}
 .approved-workspace-figure figcaption{margin:11px 7px 3px;color:#64748b;font-size:12px;line-height:1.5}
 @media(max-width:700px){.approved-workspace-figure{padding:5px;border-radius:15px}.approved-workspace-zoom{border-radius:11px}.approved-workspace-figure figcaption{margin:9px 7px 5px;font-size:11px}}
+
+/* Workflow: make the advisor / Cuberence roles explicit */
+.product-steps .workflow-owner{display:block;margin:0 0 5px;color:#245fd8;text-transform:uppercase;letter-spacing:.1em;font-size:10px;font-weight:850}
+.product-steps article:nth-child(2){border-color:#b8d0fc;background:#f5f9ff;box-shadow:0 12px 32px rgba(22,102,255,.07)}
+.product-steps article:nth-child(2)>span{background:#1666ff;color:#fff}
+.product-steps article:nth-child(2) .workflow-owner{color:#1758c4}
