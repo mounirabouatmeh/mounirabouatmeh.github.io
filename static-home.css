@@ -246,3 +246,10 @@
 .product-steps article:nth-child(2){border-color:#b8d0fc;background:#f5f9ff;box-shadow:0 12px 32px rgba(22,102,255,.07)}
 .product-steps article:nth-child(2)>span{background:#1666ff;color:#fff}
 .product-steps article:nth-child(2) .workflow-owner{color:#1758c4}
+
+/* Commercial examples: reinforce additional agency commission potential */
+.revenue-bridge{display:grid;justify-items:center;gap:7px;padding:22px 26px}
+.revenue-bridge .revenue-bridge-heading{color:#245fd8;font-size:11px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.revenue-bridge strong{display:block;max-width:780px;font-size:clamp(17px,1.8vw,21px);line-height:1.35}
+.revenue-bridge .revenue-bridge-detail{display:block;max-width:760px;color:#637692;font-size:13px;line-height:1.55}
+@media(max-width:700px){.revenue-bridge{gap:8px;padding:18px 16px}.revenue-bridge strong{font-size:17px}.revenue-bridge .revenue-bridge-detail{font-size:12px}}
