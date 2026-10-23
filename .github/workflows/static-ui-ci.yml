@@ -155,7 +155,7 @@ jobs:
           grep -q "baseline-content" demo/index.html
           grep -q 'toolName === "baseline"' static-flow.js
           grep -q "output.baselineId" static-flow.js
-          grep -q "Send Luna to validate" static-flow.js
+          grep -q "Ask Luna to explain this trip" static-flow.js
           grep -q "View flight details ↓" static-flow.js
           grep -q "interactive-candidate issue135-baseline-card" static-flow.js
           grep -q "hasExplicitReturnWindow" static-intent-sync.js
@@ -337,7 +337,7 @@ jobs:
           grep -q "Awaiting mini-destination confirmation" static-app.js
           grep -q "Identified · not yet validated" static-app.js
           grep -q "Send Luna to validate" static-flow.js
-          grep -q "Advisor baseline confirmation authorization: YES" static-flow.js
+          grep -q "Call baselineDetails exactly once" static-flow.js
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
           grep -q "Identified candidate · not yet validated" static-issue115.js
