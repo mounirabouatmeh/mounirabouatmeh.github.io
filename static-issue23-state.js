@@ -123,6 +123,12 @@
       s.pricingId = null;
       resetPostPricingState();
       Object.assign(s.phases, { pricing: "running", summary: "waiting", confirmation: "waiting", final: "waiting" });
+    } else if (tool === "baselineDetails") {
+      s.baselinePathSelected = true;
+      s.baselineConfirmationAuthorizedPending = false;
+      s.confirmation = null;
+      s.confirmationCandidateId = null;
+      Object.assign(s.phases, { baseline: "complete", discovery: "waiting", pricing: "waiting", summary: "running", confirmation: "waiting", final: "waiting" });
     } else if (tool === "baselineConfirmation") {
       s.baselineConfirmationAuthorizedPending = false;
       s.baselinePathSelected = true;
@@ -141,7 +147,13 @@
 
   function toolOutput(tool, data) {
     if (!data) return;
-    if (tool === "baselineConfirmation" || (data.baselineId && ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && !data.candidateId)) {
+    if (tool === "baselineDetails" || (data.baselineId && data.status === "DETAILS" && !data.candidateId)) {
+      s.baselinePathSelected = true;
+      s.baselineId = data.baselineId ?? s.baselineId;
+      s.baselineConfirmationAuthorizedPending = false;
+      s.confirmation = null; // baseline inspection is NOT fare confirmation
+      Object.assign(s.phases, { baseline: "complete", discovery: "waiting", pricing: "waiting", summary: "complete", confirmation: "waiting", final: "waiting" });
+    } else if (tool === "baselineConfirmation" || (data.baselineId && ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && !data.candidateId)) {
       s.baselinePathSelected = true;
       s.baselineConfirmationAuthorizedPending = false;
       s.confirmation = data;
@@ -206,7 +218,10 @@
     }
     if (e.type === "tool-output-error") {
       const tool = e.toolName ?? s.toolNames.get(e.toolCallId);
-      if (tool === "baselineConfirmation") {
+      if (tool === "baselineDetails") {
+        s.baselineConfirmationAuthorizedPending = false;
+        s.phases.summary = "error";
+      } else if (tool === "baselineConfirmation") {
         s.baselineConfirmationAuthorizedPending = false;
         s.phases.confirmation = "error";
         s.phases.final = "waiting";

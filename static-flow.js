@@ -95,10 +95,9 @@
 
   function baselineAuthorizationMessage() {
     return [
-      "I selected the standard Baseline for Luna analysis and exact price confirmation.",
+      "I selected the standard Baseline for Luna to explain the existing flight details.",
       flowState.baselineId ? `Baseline ID: ${flowState.baselineId}` : null,
-      "Advisor baseline confirmation authorization: YES",
-      "This checkbox selection is my explicit authorization to analyze and exact-confirm this standard no-mini-destination trip only. Call baselineConfirmation exactly once for this baselineId. Do not start or rerun Hub Discovery, Indicative Pricing, or candidate confirmation as a side effect.",
+      "This is a read-only request. Call baselineDetails exactly once to retrieve the already saved itinerary and explain airline/flight numbers, airport-local times, layovers, duration and indicative fare. Do not call Kiwi, Sabre, baselineConfirmation, candidate confirmation, Discovery or Pricing. Do not claim the fare has been re-checked.",
     ].filter(Boolean).join("\n");
   }
 
@@ -107,21 +106,11 @@
     const input = document.getElementById("message-input");
     const form = document.getElementById("composer");
     if (!input || !form) return;
-    const baselineId = flowState.baselineId;
     flowState.baselineConfirmationPending = true;
     renderFlow();
-    try {
-      const proof = await globalThis.CuberenceIssue180.issueLunaProof({ baselineId });
-      if (flowState.baselineId !== baselineId) return;
-      input.value = baselineAuthorizationMessage() + "\nConfirmation authorization proof: " + proof;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      form.requestSubmit();
-    } catch (error) {
-      flowState.baselineConfirmationPending = false;
-      document.querySelectorAll("#baseline-content input[type=checkbox]").forEach((checkbox) => { checkbox.checked = false; });
-      renderFlow();
-      window.alert(error?.message || "Unable to authorize baseline confirmation. Please try again.");
-    }
+    input.value = baselineAuthorizationMessage();
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    form.requestSubmit();
   }
 
   // Fare-provider timestamps are canonical UTC for Kiwi, but each segment
@@ -225,11 +214,11 @@
       const selection = node("label", "issue23-selection-control issue135-baseline-selection");
       const checkbox = node("input", "issue135-baseline-checkbox");
       checkbox.type = "checkbox";
-      checkbox.checked = flowState.baselineConfirmationPending || ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(flowState.baselineConfirmation?.status);
+      checkbox.checked = flowState.baselineConfirmationPending || flowState.baselineConfirmation?.status === "DETAILS";
       checkbox.disabled = flowState.baselineConfirmationPending || Boolean(flowState.baselineConfirmation);
       const selectionCopy = node("span", "issue23-selection-copy");
-      selectionCopy.append(node("strong", null, "Send Luna to validate"));
-      selectionCopy.append(node("small", null, "Luna will analyze and exact-confirm this standard trip."));
+      selectionCopy.append(node("strong", null, "Ask Luna to explain this trip"));
+      selectionCopy.append(node("small", null, "Uses the saved itinerary only. No additional Kiwi or Sabre calls."));
       selection.append(checkbox, selectionCopy);
       checkbox.addEventListener("change", () => {
         if (checkbox.checked) sendBaselineAuthorization();
@@ -246,7 +235,9 @@
       });
 
       if (flowState.baselineConfirmationPending) {
-        details.append(node("p", "issue135-baseline-confirmation is-running", "Exact-confirming the selected standard trip…"));
+        details.append(node("p", "issue135-baseline-confirmation is-running", "Luna is opening the saved trip details…"));
+      } else if (flowState.baselineConfirmation?.status === "DETAILS") {
+        details.append(node("p", "issue135-baseline-confirmation is-confirmed", "Saved trip details sent to Luna · fare remains indicative; no new search."));
       } else if (flowState.baselineConfirmation?.status === "CONFIRMED") {
         details.append(node("p", "issue135-baseline-confirmation is-confirmed", `Exact fare confirmed: ${money(flowState.baselineConfirmation.confirmedOffer?.price)}`));
       } else if (flowState.baselineConfirmation?.status === "EXACT_PRICE_UNAVAILABLE") {
@@ -400,7 +391,7 @@
     if (event?.type !== "tool-output-available" || !event.output) return;
     const output = event.output;
 
-    if (output.baselineId && ["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(output.status)) {
+    if (output.baselineId && ["DETAILS", "CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(output.status)) {
       flowState.baselineId = output.baselineId;
       flowState.baselineConfirmation = output;
       flowState.baselineConfirmationPending = false;

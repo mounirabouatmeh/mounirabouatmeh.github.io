@@ -29,33 +29,31 @@ test("the confirmation proof issuer requests an authenticated same-origin, uncac
   });
 });
 
-test("the baseline checkbox waits for a server-issued proof before submitting Luna", async () => {
+test("baseline details selection submits once with no confirmation proof or provider request", async () => {
   const source = fs.readFileSync("static-flow.js", "utf8");
-  const start = source.indexOf("  async function sendBaselineAuthorization() {");
+  const start = source.indexOf("  function baselineAuthorizationMessage() {");
   const end = source.indexOf("  // Fare-provider timestamps", start);
   assert.ok(start > 0 && end > start);
-  let resume;
-  const pending = new Promise(resolve => { resume = resolve; });
-  let submitted = 0;
+  const submitted = [];
   const input = {value: "", dispatchEvent() {}};
-  const form = {requestSubmit() { submitted += 1; }};
+  const form = {requestSubmit() { submitted.push(input.value); }};
   const flowState = {baselineId: "baseline-1", baselineConfirmationPending: false};
   const ctx = vm.createContext({
     flowState,
     document: {getElementById: id => id === "message-input" ? input : id === "composer" ? form : null},
     Event: class Event {},
     renderFlow() {},
-    baselineAuthorizationMessage: () => "Advisor baseline confirmation authorization: YES",
-    CuberenceIssue180: {issueLunaProof: async () => pending},
-    alert() {},
+    CuberenceIssue180: {issueLunaProof: async () => {throw Error("Unexpected exact confirmation proof");}},
   });
   vm.runInContext(source.slice(start, end) + "\nthis.invoke = sendBaselineAuthorization;", ctx);
-  const promise = ctx.invoke();
-  assert.equal(submitted, 0, "must not start Luna before signed proof arrives");
-  resume("signed.proof");
-  await promise;
-  assert.equal(submitted, 1);
-  assert.match(input.value, /Confirmation authorization proof: signed\.proof/);
+  await ctx.invoke();
+  assert.equal(submitted.length, 1);
+  assert.match(input.value, /call baselineDetails exactly once/i);
+  assert.match(input.value, /read-only/i);
+  assert.doesNotMatch(input.value, /Confirmation authorization proof:/);
+  assert.doesNotMatch(input.value, /Advisor baseline confirmation authorization: YES/);
+  await ctx.invoke();
+  assert.equal(submitted.length, 1, "pending selection must not submit twice");
 });
 
 test("the off-page candidate approval also waits for a server-issued proof", async () => {
