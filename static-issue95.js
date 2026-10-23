@@ -162,8 +162,8 @@
     ].filter(Boolean).join("\n");
   }
 
-  function sendAuthorization(candidate, checkbox) {
-    if (!candidate || !canAuthorizeConfirmation(candidate)) {
+  async function sendAuthorization(candidate, checkbox) {
+    if (!candidate || !canAuthorizeConfirmation(candidate) || !s.pricingId) {
       checkbox.checked = false;
       queue();
       return;
@@ -176,16 +176,31 @@
       if (other !== checkbox) other.checked = false;
     });
     s.selectedCandidateId = candidate.id;
-    s.lastSentCandidateId = candidate.id;
     s.confirmationAuthorizedPending = true;
-    s.phases.summary = "complete";
-    s.phases.confirmation = "ready";
-    s.phases.final = "waiting";
-
-    input.value = authorizationMessage(candidate);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    form.requestSubmit();
     queue();
+    try {
+      const proof = await globalThis.CuberenceIssue180.issueLunaProof({
+        pricingId: s.pricingId,
+        candidateId: candidate.id,
+      });
+      if (s.selectedCandidateId !== candidate.id) return;
+      s.lastSentCandidateId = candidate.id;
+      s.phases.summary = "complete";
+      s.phases.confirmation = "ready";
+      s.phases.final = "waiting";
+
+      input.value = authorizationMessage(candidate) + "\nConfirmation authorization proof: " + proof;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      form.requestSubmit();
+      queue();
+    } catch (error) {
+      s.selectedCandidateId = null;
+      s.lastSentCandidateId = null;
+      s.confirmationAuthorizedPending = false;
+      checkbox.checked = false;
+      queue();
+      window.alert(error?.message || "Unable to authorize exact confirmation. Please try again.");
+    }
   }
 
   function selectionControl(candidate) {
