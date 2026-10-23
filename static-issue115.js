@@ -123,8 +123,12 @@
     if (!candidate || s.streamBusy || s.confirmationAuthorizedPending) return false;
     const structuralStatus = String(recordFor(candidate)?.candidateStatus ?? candidate.candidateStatus ?? "");
     if (!STRUCTURALLY_USABLE.has(structuralStatus)) return false;
-    if (NON_ACTIONABLE_PRICING.has(String(C.candidateStatus(candidate)))) return false;
-    if (!["PROXY", "UNPRICED"].includes(String(C.candidateStatus(candidate)))) return false;
+    const pricingStatus = String(C.candidateStatus(candidate));
+    const exactErrorCode = String(C.effectiveCandidate(candidate)?.exactCheckFailure?.code ?? "");
+    const retryable = pricingStatus === "EXACT_CHECK_FAILED" &&
+      /^(SABRE|KIWI)_EXACT_CHECK_ERROR$/.test(exactErrorCode);
+    if (NON_ACTIONABLE_PRICING.has(pricingStatus) && !retryable) return false;
+    if (!["PROXY", "UNPRICED"].includes(pricingStatus) && !retryable) return false;
     return s.phases.summary === "complete" && s.phases.confirmation !== "running";
   };
 
@@ -308,7 +312,11 @@
       if (!recommended) marker?.remove();
       if (String(record?.pricingStatus ?? C.candidateStatus(candidate)) === "EXACT_CHECK_FAILED") {
         let notice = card.querySelector(".issue115-external-pricing");
-        if (!notice) { notice = node("p", "issue115-external-pricing", "Exact check failed — price externally. This itinerary remains visible but cannot be confirmed or recommended."); card.append(notice); }
+        if (!notice) { notice = node("p", "issue115-external-pricing"); card.append(notice); }
+        const errorCode = String(C.effectiveCandidate(candidate)?.exactCheckFailure?.code ?? "");
+        notice.textContent = /^(SABRE|KIWI)_EXACT_CHECK_ERROR$/.test(errorCode)
+          ? "The fare provider could not complete this check. You may select this candidate again to retry with fresh approval."
+          : "Exact check failed its final policy validation. This itinerary remains visible, but cannot be exact-confirmed without correcting the issue.";
       }
     });
 
