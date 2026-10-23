@@ -289,7 +289,7 @@ jobs:
             echo "Issue #120 removes scrollTop interception; advisor controls the chat viewport"
             exit 1
           fi
-          grep -q '/static-app.js?v=26' demo/index.html
+          grep -q '/static-app.js?v=28' demo/index.html
           grep -q '/static-hub-state.js?v=4' demo/index.html
           grep -q '/static-issue14.js?v=10' demo/index.html
           grep -q '/static-issue14.css?v=2' demo/index.html
