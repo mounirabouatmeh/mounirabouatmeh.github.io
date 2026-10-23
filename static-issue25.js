@@ -8,11 +8,11 @@
   function loadIssue95Support() {
     if (document.querySelector('script[data-issue95-support]')) return;
     const guard = document.createElement("script");
-    guard.src = "./static-issue95-guard.js?v=1";
+    guard.src = "https://www.cuberence.com/static-issue95-guard.js?v=1";
     guard.async = false;
     guard.dataset.issue95Support = "true";
     const support = document.createElement("script");
-    support.src = "./static-issue95.js?v=1";
+    support.src = "https://www.cuberence.com/static-issue95.js?v=2";
     support.async = false;
     support.dataset.issue95Support = "true";
     document.head.append(guard, support);

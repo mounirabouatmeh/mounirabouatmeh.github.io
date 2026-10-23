@@ -1,5 +1,28 @@
 const CHAT_API = "https://cuberence-travel-api.vercel.app/api/v1/chat";
 
+/**
+ * Exact confirmation requires a short-lived, advisor-bound proof minted by the
+ * authenticated App server after the advisor actively selects a checkbox.
+ * The proof is removed from the model prompt by /api/luna/chat and passed as
+ * a signed request-scoped header to the exact-confirmation API.
+ */
+globalThis.CuberenceIssue180 = {
+  async issueLunaProof(target) {
+    const response = await fetch("/api/luna/confirmation-authorization", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      cache: "no-store",
+      body: JSON.stringify(target),
+    });
+    if (!response.ok) throw new Error("Unable to authorize exact confirmation. Please retry.");
+    const data = await response.json();
+    if (typeof data?.proof !== "string" || !data.proof) throw new Error("Confirmation authorization is unavailable.");
+    return data.proof;
+  },
+};
+
+
 
 // Booking links always belong to the returned offer, including exact confirmations.
 function kiwiTicketLink(offer, label = "View ticket on Kiwi ↗") {
