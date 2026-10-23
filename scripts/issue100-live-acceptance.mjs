@@ -1,7 +1,9 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
-const URL = 'https://www.cuberence.com/';
+// The marketing homepage does not load the advisor-workspace runtime.
+ // Exercise the public demo shell, which actually owns CuberenceIssue23.
+const URL = 'https://www.cuberence.com/demo/';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } });
 
