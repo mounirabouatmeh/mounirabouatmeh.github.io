@@ -341,9 +341,9 @@ jobs:
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
           grep -q "Identified candidate · not yet validated" static-issue115.js
-          grep -q '/static-flow.js?v=7' demo/index.html
+          grep -q '/static-flow.js?v=9' demo/index.html
           grep -q '/static-intent-sync.js?v=3' demo/index.html
-          grep -q '/static-issue23-state.js?v=6' demo/index.html
+          grep -q '/static-issue23-state.js?v=7' demo/index.html
           grep -q '/static-issue23-candidates.js?v=8' demo/index.html
           grep -q '/static-issue115.js?v=9' demo/index.html
           grep -q 'static-issue135.css?v=2' demo/index.html
