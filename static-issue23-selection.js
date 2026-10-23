@@ -27,22 +27,37 @@
     });
   }
 
-  function sendConfirmationAuthorization(candidateId) {
+  async function sendConfirmationAuthorization(candidateId) {
     if (!candidateId || candidateId !== s.selectedCandidateId || candidateId === s.lastSentCandidateId || s.streamBusy) return;
     const candidate = s.pricing?.candidates?.find((item) => item?.id === candidateId);
     const input = document.getElementById("message-input");
     const form = document.getElementById("composer");
-    if (!candidate || !input || !form || !canAuthorizeConfirmation(candidate)) return;
+    if (!candidate || !input || !form || !canAuthorizeConfirmation(candidate) || !s.pricingId) return;
 
-    s.lastSentCandidateId = candidateId;
     s.confirmationAuthorizedPending = true;
-    s.phases.summary = "complete";
-    s.phases.confirmation = "ready";
-    s.phases.final = "waiting";
-    input.value = confirmationAuthorizationMessage(candidate);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    form.requestSubmit();
     queue();
+    try {
+      const proof = await globalThis.CuberenceIssue180.issueLunaProof({
+        pricingId: s.pricingId,
+        candidateId,
+      });
+      if (s.selectedCandidateId !== candidateId) return;
+      s.lastSentCandidateId = candidateId;
+      s.phases.summary = "complete";
+      s.phases.confirmation = "ready";
+      s.phases.final = "waiting";
+      input.value = confirmationAuthorizationMessage(candidate) + "\nConfirmation authorization proof: " + proof;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      form.requestSubmit();
+      queue();
+    } catch (error) {
+      s.lastSentCandidateId = null;
+      s.confirmationAuthorizedPending = false;
+      s.selectedCandidateId = null;
+      document.querySelectorAll("#pricing-content .issue23-itinerary-checkbox").forEach((checkbox) => { checkbox.checked = false; });
+      queue();
+      window.alert(error?.message || "Unable to authorize exact confirmation. Please try again.");
+    }
   }
 
   function bindPricing() {
