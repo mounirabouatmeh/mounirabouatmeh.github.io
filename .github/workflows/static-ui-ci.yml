@@ -336,7 +336,7 @@ jobs:
           grep -q "input.returnWindow?.from" static-intent-sync.js
           grep -q "Awaiting mini-destination confirmation" static-app.js
           grep -q "Identified · not yet validated" static-app.js
-          grep -q "Send Luna to validate" static-flow.js
+          grep -q "Ask Luna to explain this trip" static-flow.js
           grep -q "Call baselineDetails exactly once" static-flow.js
           grep -q "baselineConfirmation" static-issue23-state.js
           grep -q "Hubs identified — choose one, several, or all for complete validation" static-issue23-workflow.js
