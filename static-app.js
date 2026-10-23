@@ -116,6 +116,7 @@ function toolLabel(part) {
   if (part.type === "tool-baseline") return "Baseline";
   if (part.type === "tool-discovery") return "Discovery";
   if (part.type === "tool-pricing") return "Pricing";
+  if (part.type === "tool-baselineDetails") return "Saved baseline flight details";
   if (part.type === "tool-baselineConfirmation") return "Baseline exact confirmation";
   return "Cuberence";
 }
