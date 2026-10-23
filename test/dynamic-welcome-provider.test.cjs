@@ -132,8 +132,13 @@ test("Kiwi agencies show Kiwi pricing in both badges despite retained Sabre CERT
   }
 });
 
-test("Sabre agencies retain their CERT or production badge and failed configuration is unknown", async () => {
-  assert.equal((await providerBadge({ providers: { pricingProvider: "SABRE", sabreEnvironment: "CERT" } }))[0].textContent, "Sabre CERT");
-  assert.equal((await providerBadge({ providers: { sabreEnvironment: "PRODUCTION" } }))[0].textContent, "Sabre PROD");
-  assert.equal((await providerBadge({ providers: { pricingProvider: "KIWI" } }, false))[0].textContent, "Sabre UNKNOWN");
+test("provider badges display supplier rather than internal Sabre environment", async () => {
+  const cert = (await providerBadge({ providers: { pricingProvider: "SABRE", sabreEnvironment: "CERT" } }))[0];
+  const prod = (await providerBadge({ providers: { pricingProvider: "SABRE", sabreEnvironment: "PRODUCTION" } }))[0];
+  const unknown = (await providerBadge({ providers: { pricingProvider: "KIWI" } }, false))[0];
+  assert.equal(cert.textContent, "Sabre pricing");
+  assert.equal(prod.textContent, "Sabre pricing");
+  assert.equal(unknown.textContent, "Sabre pricing");
+  assert.doesNotMatch(cert.textContent, /CERT|PROD|UNKNOWN/);
+  assert.match(cert.title, /Sabre is the active pricing provider/);
 });
