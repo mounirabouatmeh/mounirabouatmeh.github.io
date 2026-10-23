@@ -102,16 +102,26 @@
     ].filter(Boolean).join("\n");
   }
 
-  function sendBaselineAuthorization() {
+  async function sendBaselineAuthorization() {
     if (!flowState.baselineId || flowState.baselineConfirmationPending) return;
     const input = document.getElementById("message-input");
     const form = document.getElementById("composer");
     if (!input || !form) return;
+    const baselineId = flowState.baselineId;
     flowState.baselineConfirmationPending = true;
-    input.value = baselineAuthorizationMessage();
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    form.requestSubmit();
     renderFlow();
+    try {
+      const proof = await globalThis.CuberenceIssue180.issueLunaProof({ baselineId });
+      if (flowState.baselineId !== baselineId) return;
+      input.value = baselineAuthorizationMessage() + "\nConfirmation authorization proof: " + proof;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      form.requestSubmit();
+    } catch (error) {
+      flowState.baselineConfirmationPending = false;
+      document.querySelectorAll("#baseline-content input[type=checkbox]").forEach((checkbox) => { checkbox.checked = false; });
+      renderFlow();
+      window.alert(error?.message || "Unable to authorize baseline confirmation. Please try again.");
+    }
   }
 
   // Fare-provider timestamps are canonical UTC for Kiwi, but each segment
