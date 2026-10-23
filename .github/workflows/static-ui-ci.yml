@@ -9,6 +9,7 @@ on:
       - static-app.js
       - test/kiwi-ticket-links.test.cjs
       - test/dynamic-welcome-provider.test.cjs
+      - test/issue180-confirmation-ui.test.cjs
       - static-hub-state.js
       - static-issue14-land.js
       - test/hub-workspace.test.cjs
@@ -94,6 +95,8 @@ jobs:
         run: node --test test/kiwi-baseline-timezone.test.cjs
       - name: Verify canonical trip-combination funnel
         run: node --test test/issue154-canonical-trip-funnel.test.cjs
+      - name: Verify confirmation checkbox authorization proof
+        run: node --test test/issue180-confirmation-ui.test.cjs
       - name: Check required live UI files
         run: |
           test -s index.html
