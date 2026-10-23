@@ -44,6 +44,8 @@ on:
       - static-issue141.css
       - static-issue115.css
       - static-issue115.js
+      - static-issue95.js
+      - static-issue95-guard.js
       - static-welcome-copy.js
       - static-intent-sync.js
       - .github/workflows/static-ui-ci.yml
@@ -76,6 +78,8 @@ jobs:
           node --check static-issue23-candidates.js
           node --check static-issue23-selection.js
           node --check static-issue25.js
+          node --check static-issue95.js
+          node --check static-issue95-guard.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
       - name: Verify Kiwi offer booking links
