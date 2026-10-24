@@ -6,7 +6,11 @@ const ui = fs.readFileSync("static-issue23-candidates.js", "utf8");
 const state = fs.readFileSync("static-issue23-state.js", "utf8");
 
 test("both providers' changed timetables are presented as alternatives, never selected-fare confirmation", () => {
-  assert.match(ui, /SCHEDULE_CHANGED: "Schedule changed · not confirmed"/);
+  assert.match(ui, /Sabre CERT timetable difference/);
+  assert.match(ui, /Sabre CERT test timetable differs/);
+  assert.match(ui, /Cuberence flight schedule remains unchanged/);
+  assert.match(ui, /Test fare evidence only/);
+  assert.doesNotMatch(ui, /AeroDataBox/i);
   assert.match(ui, /"Advisor-selected schedule \(NOT fare-confirmed\)"/);
   assert.match(ui, /"The advisor has not authorized replacing the selected itinerary/);
   assert.match(ui, /change\.provider/);
