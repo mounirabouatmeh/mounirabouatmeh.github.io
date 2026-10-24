@@ -58,7 +58,8 @@
     if (!exact) return null;
     const block = node("section", "issue23-schedule-block");
     const heading = node("div", "issue23-subheading");
-    heading.append(node("strong", null, status === "CONFIRMED" ? "Confirmed flight schedule" : "Cuberence flight schedule"));
+    heading.append(node("strong", null, status === "CONFIRMED" ? "Confirmed flight schedule" :
+      status === "SCHEDULE_CHANGED" ? "Advisor-selected schedule (NOT fare-confirmed)" : "Cuberence flight schedule"));
     if (status === "UNPRICED") heading.append(node("span", null, "Direct schedule available — exact price required"));
     else if (status !== "CONFIRMED") heading.append(node("span", null, "Schedule truth — fare still indicative"));
     block.append(heading);
@@ -159,6 +160,48 @@
     return block;
   }
 
+
+  // A priced alternative is never labeled a confirmed fare for the
+  // advisor-selected timetable. Use the selected airport timezones for both
+  // timestamps, including Kiwi UTC and Sabre offset-bearing values.
+  function scheduleChangeBlock(candidate) {
+    const change = candidate?.scheduleChange ?? (candidate?.id && s.confirmation?.candidateId === candidate.id
+      ? s.confirmation.scheduleChange : undefined);
+    if (!change) return null;
+    const block = node("section", "issue23-schedule-changed issue23-exact-failure");
+    block.append(node("strong", null, "Schedule changed — selected itinerary NOT confirmed"));
+    block.append(node("span", null,
+      `${change.provider ?? "Fare provider"} priced a different timetable at ${money(change.alternativePrice)}. This price applies only to the changed flights, not the itinerary you selected.`));
+    const selected = candidate?.exactSchedule;
+    const selectedByRole = {
+      HOME_TO_HUB: selected?.outerOutbound,
+      HUB_TO_DESTINATION: selected?.innerOutbound,
+      DESTINATION_TO_HUB: selected?.innerReturn,
+      HUB_TO_HOME: selected?.outerReturn,
+    };
+    for (const difference of change.differences ?? []) {
+      const flight = selectedByRole[difference.role] ?? {};
+      const title = node("strong", null, `${difference.flightNumber ?? "Flight"} · ${difference.airports ?? ""}`);
+      block.append(title);
+      const formatted = (item, zone) => {
+        if (!item) return;
+        // Do not silently display a raw UTC instant as an airport-local time.
+        const dateText = value => zone ? formatDateTime(value, zone) : String(value);
+        const delta = Number.isFinite(item.differenceMinutes)
+          ? ` (${item.differenceMinutes > 0 ? "+" : ""}${item.differenceMinutes} min)` : " (time could not be compared)";
+        block.append(node("span", null,
+          `${item === difference.departure ? "Departure" : "Arrival"}: selected ${dateText(item.selected)} → priced ${dateText(item.priced)}${delta}`));
+      };
+      formatted(difference.departure, flight.originTimeZone);
+      formatted(difference.arrival, flight.destinationTimeZone);
+    }
+    const a = change.alternativeAssessment;
+    if (a) block.append(node("span", null,
+      `Revalidated alternative: ${String(a.candidateStatus ?? "UNKNOWN").replaceAll("_", " ")} · ${a.hubNights} hub nights · ${a.usableCityHours} usable city hours · return self-connect ${a.returnSelfConnectMinutes ?? "unknown"} minutes. Risks: ${(a.risks ?? []).join(", ") || "none reported"}.`));
+    block.append(node("span", null, "The advisor has not authorized replacing the selected itinerary. No alternative has been booked."));
+    return block;
+  }
+
   function updateFact(detail, label, value, replacementLabel) {
     for (const fact of detail?.querySelectorAll(".candidate-detail-fact") ?? []) {
       const key = fact.querySelector("span");
@@ -198,6 +241,7 @@
 
     if (!small) return;
     if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
+    else if (status === "SCHEDULE_CHANGED") small.textContent = "Provider pricing returned changed flight times. The selected itinerary is NOT fare-confirmed.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
     else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
     else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
@@ -241,13 +285,16 @@
         PROXY: "Indicative price",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: "Confirmed fare",
+        SCHEDULE_CHANGED: "Schedule changed · not confirmed",
         EXACT_PRICE_UNAVAILABLE: "Exact fare unavailable",
         EXACT_CHECK_FAILED: "Exact check failed",
       })[status] ?? status;
       const price = top.querySelector(".candidate-price");
       if (price) price.textContent = status === "UNPRICED"
         ? "Exact check"
-        : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+        : status === "SCHEDULE_CHANGED"
+          ? "See revised fare"
+          : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     }
 
     card.querySelectorAll(":scope > .kiwi-ticket-links").forEach(element => element.remove());
@@ -258,21 +305,25 @@
     if (!detail) return;
     const displayedPrice = status === "UNPRICED"
       ? "Exact confirmation required"
-      : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
-    const priceLabel = status === "CONFIRMED" ? "Confirmed total" : status === "UNPRICED" ? "Price" : "Indicative total";
+      : status === "SCHEDULE_CHANGED"
+        ? "Selected itinerary not fare-confirmed"
+        : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+    const priceLabel = status === "CONFIRMED" ? "Confirmed total" : status === "SCHEDULE_CHANGED" ? "Selected fare" : status === "UNPRICED" ? "Price" : "Indicative total";
     updateFact(detail, "Total", displayedPrice, priceLabel);
     updateFact(
       detail,
       "Ticket structure",
       status === "CONFIRMED"
         ? "2 separate tickets · exact fare confirmed"
+        : status === "SCHEDULE_CHANGED"
+          ? "2 separate tickets · alternate timetable priced · selected schedule not confirmed"
         : status === "EXACT_PRICE_UNAVAILABLE"
           ? "2 separate direct tickets · exact Sabre fare unavailable"
           : status === "UNPRICED"
             ? "2 separate direct tickets · exact price required"
             : "2 separate direct tickets · proxy economics until exact confirmation",
     );
-    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-luna-recommendation,.issue23-exact-failure,.issue23-exact-unavailable,.issue25-confirmation-ready").forEach((element) => element.remove());
+    detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-schedule-changed,.issue23-luna-recommendation,.issue23-exact-failure,.issue23-exact-unavailable,.issue25-confirmation-ready").forEach((element) => element.remove());
 
     let control = detail.querySelector(".issue23-selection-control");
     if (!control) {
@@ -299,7 +350,10 @@
       anchor.after(schedule);
       anchor = schedule;
     }
-    if (status === "CONFIRMED") {
+    if (status === "SCHEDULE_CHANGED") {
+      const changed = scheduleChangeBlock(effective);
+      if (changed) { anchor.after(changed); anchor = changed; }
+    } else if (status === "CONFIRMED") {
       for (const block of [confirmedBlock(effective), confirmedTickets(effective)]) {
         if (!block) continue;
         anchor.after(block);
