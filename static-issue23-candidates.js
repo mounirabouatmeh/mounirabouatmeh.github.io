@@ -246,7 +246,7 @@
 
     if (!small) return;
     if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
-    else if (status === "SCHEDULE_CHANGED") small.textContent = effective.scheduleChange?.provider === "SABRE" && effective.scheduleChange?.outerOffer?.environment === "CERT"
+    else if (status === "SCHEDULE_CHANGED") small.textContent = candidate.scheduleChange?.provider === "SABRE" && candidate.scheduleChange?.outerOffer?.environment === "CERT"
       ? "Sabre CERT test times differ; the Cuberence flight schedule is unchanged. Test fare evidence only."
       : "Pricing provider returned different flight times. The selected itinerary is NOT fare-confirmed.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
