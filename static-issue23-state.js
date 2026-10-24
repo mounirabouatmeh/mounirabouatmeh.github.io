@@ -70,6 +70,7 @@
   const candidateStatus = (c) => {
     const x = s.confirmationCandidateId === c?.id ? s.confirmation : null;
     if (x?.status === "CONFIRMED") return "CONFIRMED";
+    if (x?.status === "SCHEDULE_CHANGED") return "SCHEDULE_CHANGED";
     if (x?.status === "EXACT_PRICE_UNAVAILABLE") return "EXACT_PRICE_UNAVAILABLE";
     if (x?.status === "EXACT_CHECK_FAILED") return "EXACT_CHECK_FAILED";
     if (s.phases.confirmation === "running" && s.confirmationCandidateId === c?.id) return "EXACT_CHECK_PENDING";
@@ -158,7 +159,7 @@
       s.baselineConfirmationAuthorizedPending = false;
       s.confirmation = data;
       s.confirmationCandidateId = null;
-      const usableOutcome = data.status === "CONFIRMED" || data.status === "EXACT_PRICE_UNAVAILABLE";
+      const usableOutcome = data.status === "CONFIRMED" || data.status === "SCHEDULE_CHANGED" || data.status === "EXACT_PRICE_UNAVAILABLE";
       s.phases.confirmation = usableOutcome ? "complete" : "error";
       s.phases.final = usableOutcome ? "running" : "waiting";
     } else if (tool === "baseline" || (data.baselineId && !data.discoveryId && !data.pricingId)) {
@@ -183,13 +184,13 @@
       } else {
         s.phases.pricing = data.phase === "failed" ? "error" : "running";
       }
-    } else if (tool === "confirmation" || (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && data.candidateId)) {
+    } else if (tool === "confirmation" || (["CONFIRMED", "SCHEDULE_CHANGED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && data.candidateId)) {
       s.confirmation = data;
       s.confirmationCandidateId = data.candidateId ?? s.confirmationCandidateId;
       s.confirmationAuthorizedPending = false;
       s.reviewTextSeen = false;
       s.phases.summary = "complete";
-      const usableOutcome = data.status === "CONFIRMED" || data.status === "EXACT_PRICE_UNAVAILABLE";
+      const usableOutcome = data.status === "CONFIRMED" || data.status === "SCHEDULE_CHANGED" || data.status === "EXACT_PRICE_UNAVAILABLE";
       s.phases.confirmation = usableOutcome ? "complete" : "error";
       s.phases.final = usableOutcome ? "running" : "waiting";
       if (data.status === "EXACT_CHECK_FAILED") {
@@ -214,7 +215,7 @@
       if (s.pricing?.phase === "completed" && ["waiting", "ready"].includes(s.phases.confirmation) && s.phases.summary === "running") {
         s.analysisTextSeen = true;
       }
-      if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.reviewTextSeen = true;
+      if (["CONFIRMED", "SCHEDULE_CHANGED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.reviewTextSeen = true;
     }
     if (e.type === "tool-output-error") {
       const tool = e.toolName ?? s.toolNames.get(e.toolCallId);
@@ -268,7 +269,7 @@
         s.confirmationAuthorizedPending = false;
         if (s.phases.summary === "complete") s.phases.confirmation = "ready";
       }
-      if (["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.phases.final = s.reviewTextSeen ? "complete" : "ready";
+      if (["CONFIRMED", "SCHEDULE_CHANGED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) s.phases.final = s.reviewTextSeen ? "complete" : "ready";
       globalThis.CuberenceIssue23?.releaseScrollGuard?.();
       queue();
     }
@@ -278,7 +279,7 @@
     const chat = typeof args[0] === "string" ? args[0].includes(API) : args[0]?.url?.includes(API);
     if (chat) {
       s.streamBusy = true;
-      if (!s.baselinePathSelected && s.pricing?.phase === "completed" && !s.confirmationAuthorizedPending && s.phases.confirmation !== "running" && !["CONFIRMED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) {
+      if (!s.baselinePathSelected && s.pricing?.phase === "completed" && !s.confirmationAuthorizedPending && s.phases.confirmation !== "running" && !["CONFIRMED", "SCHEDULE_CHANGED", "EXACT_PRICE_UNAVAILABLE"].includes(s.confirmation?.status)) {
         s.phases.summary = "running";
         s.analysisTextSeen = false;
       }
