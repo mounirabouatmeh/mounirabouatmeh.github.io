@@ -169,9 +169,14 @@
       ? s.confirmation.scheduleChange : undefined);
     if (!change) return null;
     const block = node("section", "issue23-schedule-changed issue23-exact-failure");
-    block.append(node("strong", null, "Schedule changed — selected itinerary NOT confirmed"));
+    const certTest = change.provider === "SABRE" && change.outerOffer?.environment === "CERT";
+    block.append(node("strong", null, certTest
+      ? "Sabre CERT test timetable differs — Cuberence schedule retained"
+      : "Pricing-provider timetable differs — selected itinerary NOT confirmed"));
     block.append(node("span", null,
-      `${change.provider ?? "Fare provider"} priced a different timetable at ${money(change.alternativePrice)}. This price applies only to the changed flights, not the itinerary you selected.`));
+      certTest
+        ? `Sabre CERT supplied test fare evidence of ${money(change.alternativePrice)} for the same flight numbers and dates, but its test times differ. Your original Cuberence flight schedule remains unchanged. This is not a live bookable quote or an exact fare for your selected times.`
+        : `${change.provider ?? "Fare provider"} priced a different timetable at ${money(change.alternativePrice)}. This price applies only to the provider-returned flights, not the itinerary you selected.`));
     const selected = candidate?.exactSchedule;
     const selectedByRole = {
       HOME_TO_HUB: selected?.outerOutbound,
@@ -241,7 +246,9 @@
 
     if (!small) return;
     if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
-    else if (status === "SCHEDULE_CHANGED") small.textContent = "Provider pricing returned changed flight times. The selected itinerary is NOT fare-confirmed.";
+    else if (status === "SCHEDULE_CHANGED") small.textContent = effective.scheduleChange?.provider === "SABRE" && effective.scheduleChange?.outerOffer?.environment === "CERT"
+      ? "Sabre CERT test times differ; the Cuberence flight schedule is unchanged. Test fare evidence only."
+      : "Pricing provider returned different flight times. The selected itinerary is NOT fare-confirmed.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
     else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
     else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
@@ -285,7 +292,8 @@
         PROXY: "Indicative price",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: "Confirmed fare",
-        SCHEDULE_CHANGED: "Schedule changed · not confirmed",
+        SCHEDULE_CHANGED: effective.scheduleChange?.provider === "SABRE" && effective.scheduleChange?.outerOffer?.environment === "CERT"
+          ? "Sabre CERT timetable difference" : "Schedule difference · not confirmed",
         EXACT_PRICE_UNAVAILABLE: "Exact fare unavailable",
         EXACT_CHECK_FAILED: "Exact check failed",
       })[status] ?? status;
@@ -293,7 +301,7 @@
       if (price) price.textContent = status === "UNPRICED"
         ? "Exact check"
         : status === "SCHEDULE_CHANGED"
-          ? "See revised fare"
+          ? "View test fare"
           : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     }
 
@@ -306,7 +314,7 @@
     const displayedPrice = status === "UNPRICED"
       ? "Exact confirmation required"
       : status === "SCHEDULE_CHANGED"
-        ? "Selected itinerary not fare-confirmed"
+        ? "Selected schedule fare not confirmed"
         : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     const priceLabel = status === "CONFIRMED" ? "Confirmed total" : status === "SCHEDULE_CHANGED" ? "Selected fare" : status === "UNPRICED" ? "Price" : "Indicative total";
     updateFact(detail, "Total", displayedPrice, priceLabel);
@@ -316,7 +324,7 @@
       status === "CONFIRMED"
         ? "2 separate tickets · exact fare confirmed"
         : status === "SCHEDULE_CHANGED"
-          ? "2 separate tickets · alternate timetable priced · selected schedule not confirmed"
+          ? "2 separate tickets · provider timetable differs · selected fare unconfirmed"
         : status === "EXACT_PRICE_UNAVAILABLE"
           ? "2 separate direct tickets · exact Sabre fare unavailable"
           : status === "UNPRICED"
