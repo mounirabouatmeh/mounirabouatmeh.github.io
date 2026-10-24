@@ -251,7 +251,12 @@
       : "Pricing provider returned different flight times. The selected itinerary is NOT fare-confirmed.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
     else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
-    else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
+    else if (status === "EXACT_CHECK_FAILED") {
+      const errorCode = String(effectiveCandidate(candidate)?.exactCheckFailure?.code ?? "");
+      small.textContent = /^(SABRE|KIWI)_EXACT_CHECK_ERROR$/.test(errorCode)
+        ? "Temporary fare-provider error. Check this box again to authorize one fresh retry."
+        : "Exact check failed its final validation. Review another candidate.";
+    }
     else if (s.phases.summary !== "complete") small.textContent = "Available after Luna finishes analysis and recommendation.";
     else if (s.streamBusy || s.confirmationAuthorizedPending) small.textContent = "Luna is processing the current selection.";
     else if (status === "UNPRICED") small.textContent = "Checking this box explicitly authorizes the exact flight/fare check for this direct schedule.";

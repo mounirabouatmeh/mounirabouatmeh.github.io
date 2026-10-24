@@ -56,7 +56,10 @@
   C.canAuthorizeConfirmation = (candidate) => {
     if (!candidate || s.streamBusy || s.confirmationAuthorizedPending) return false;
     const status = C.candidateStatus(candidate);
-    if (status !== "PROXY" && status !== "UNPRICED") return false;
+    const errorCode = C.effectiveCandidate(candidate)?.exactCheckFailure?.code;
+    const retryable = status === "EXACT_CHECK_FAILED" &&
+      /^(SABRE|KIWI)_EXACT_CHECK_ERROR$/.test(String(errorCode ?? ""));
+    if (status !== "PROXY" && status !== "UNPRICED" && !retryable) return false;
     if (s.phases.summary !== "complete") return false;
     return s.phases.confirmation !== "running";
   };

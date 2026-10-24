@@ -1,13 +1,28 @@
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
-const URL = 'https://www.cuberence.com/';
+// The marketing homepage does not load the advisor-workspace runtime.
+ // Exercise the public demo shell, which actually owns CuberenceIssue23.
+const URL = 'https://www.cuberence.com/demo/';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1200 } });
+const browserErrors = [];
+page.on('pageerror', error => browserErrors.push(error.message.slice(0, 250)));
+page.on('requestfailed', request => browserErrors.push(`${request.url().slice(0, 160)}: ${request.failure()?.errorText ?? 'request failed'}`));
 
 try {
   await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForFunction(() => Boolean(globalThis.CuberenceIssue23), null, { timeout: 60000 });
+  try {
+    await page.waitForFunction(() => Boolean(globalThis.CuberenceIssue23), null, { timeout: 60000 });
+  } catch (error) {
+    console.error('WORKSPACE_RUNTIME_DIAGNOSTICS', {
+      url: page.url(),
+      title: await page.title(),
+      scripts: await page.evaluate(() => [...document.scripts].map(x => x.src).filter(Boolean).slice(-20)),
+      errors: browserErrors.slice(0, 15),
+    });
+    throw error;
+  }
 
   const production = await page.evaluate(() => ({
     title: document.title,

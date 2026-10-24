@@ -88,3 +88,38 @@ test("the off-page candidate approval also waits for a server-issued proof", asy
   assert.equal(submitted, 1);
   assert.match(input.value, /Confirmation authorization proof: signed\.proof/);
 });
+
+test("H4: provider timeout allows a NEW checkbox approval; policy failures stay locked", () => {
+  const source = fs.readFileSync("static-issue115.js", "utf8");
+  const start = source.indexOf("  C.canAuthorizeConfirmation = (candidate) => {");
+  const end = source.indexOf("\n  };", start);
+  assert.ok(start >= 0 && end > start, "test the final candidate authorization gate");
+  const C = {
+    candidateStatus: candidate => candidate.pricingStatus,
+    effectiveCandidate: candidate => candidate,
+  };
+  const s = {
+    streamBusy: false, confirmationAuthorizedPending: false,
+    phases: { summary: "complete", confirmation: "error" },
+  };
+  const ctx = vm.createContext({
+    C, s,
+    recordFor: candidate => ({ candidateStatus: candidate.candidateStatus }),
+    STRUCTURALLY_USABLE: new Set(["VALID", "VALID_WITH_RISK"]),
+    NON_ACTIONABLE_PRICING: new Set(["EXACT_CHECK_FAILED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_PENDING", "CONFIRMED"]),
+  });
+  vm.runInContext(source.slice(start, end + 5), ctx);
+  const candidate = (status, code) => ({
+    pricingStatus: status, candidateStatus: "VALID",
+    exactCheckFailure: code ? { code, message: "failure" } : undefined,
+  });
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("PROXY")), true);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("UNPRICED")), true);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("EXACT_CHECK_FAILED", "SABRE_EXACT_CHECK_ERROR")), true);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("EXACT_CHECK_FAILED", "KIWI_EXACT_CHECK_ERROR")), true);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("EXACT_CHECK_FAILED", "DESTINATION_NIGHTS")), false);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("EXACT_PRICE_UNAVAILABLE", "SABRE_EXACT_PRICE_UNAVAILABLE")), false);
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("CONFIRMED")), false);
+  s.streamBusy = true;
+  assert.equal(ctx.C.canAuthorizeConfirmation(candidate("EXACT_CHECK_FAILED", "KIWI_EXACT_CHECK_ERROR")), false);
+});

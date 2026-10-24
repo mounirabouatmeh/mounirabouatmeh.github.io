@@ -86,7 +86,11 @@
   };
   const canAuthorizeConfirmation = (candidate) => {
     if (!candidate || s.streamBusy || s.confirmationAuthorizedPending) return false;
-    if (candidateStatus(candidate) !== "PROXY") return false;
+    const status = candidateStatus(candidate);
+    const failureCode = effectiveCandidate(candidate)?.exactCheckFailure?.code;
+    const retryableProviderError = status === "EXACT_CHECK_FAILED" &&
+      /^(SABRE|KIWI)_EXACT_CHECK_ERROR$/.test(String(failureCode ?? ""));
+    if (status !== "PROXY" && status !== "UNPRICED" && !retryableProviderError) return false;
     if (s.phases.summary !== "complete") return false;
     return s.phases.confirmation === "ready" || s.phases.confirmation === "error";
   };
