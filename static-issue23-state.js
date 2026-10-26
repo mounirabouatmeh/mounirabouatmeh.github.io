@@ -146,6 +146,76 @@
     }
   }
 
+  /** Propagate exact-confirmation state into the canonical in-memory pricing
+   * table, not just the most recently selected tile. Browser reload still
+   * relies on the server's stored pricing job as source of truth.
+   */
+  function applyConfirmedCandidate(data) {
+    const updated = data?.candidate;
+    if (!updated?.id || !s.pricing) return;
+    const candidates = s.pricing.candidates;
+    if (Array.isArray(candidates)) {
+      const index = candidates.findIndex((candidate) => candidate?.id === updated.id);
+      if (index >= 0) candidates[index] = updated;
+    }
+    const full = s.pricing.page?.fullAnalysis;
+    if (!full) return;
+    const set = (columns, row, field, value) => {
+      const index = columns?.indexOf(field) ?? -1;
+      if (index >= 0) row[index] = value ?? null;
+    };
+    const updateTable = (table, values) => {
+      if (!Array.isArray(table?.rows) || !Array.isArray(table?.columns)) return;
+      const idAt = table.columns.indexOf("candidateId");
+      const row = table.rows.find((row) => row[idAt] === updated.id);
+      if (!row) return;
+      for (const [key, value] of Object.entries(values)) set(table.columns, row, key, value);
+    };
+    const showFlight = (flight) => {
+      if (!flight) return null;
+      const carrier = String(flight.marketingCarrier ?? "").toUpperCase();
+      const number = String(flight.flightNumber ?? "").toUpperCase();
+      return number.startsWith(carrier) ? number : carrier + number;
+    };
+    const schedule = updated.exactSchedule;
+    updateTable(full.candidateUniverse, {
+      totalPrice: updated.totalPrice?.amount,
+      baselineDelta: updated.baselineDelta?.amount,
+      pricingStatus: updated.pricingStatus,
+      candidateStatus: updated.candidateStatus,
+      hubNights: updated.hubNights,
+      usableCityHours: updated.usableCityHours,
+      returnSelfConnectMinutes: updated.facts?.returnSelfConnectMinutes,
+      outboundAirportChange: updated.facts?.outboundAirportChange,
+      returnSameAirport: updated.facts?.returnSameAirport,
+      risks: updated.risks?.join("|"),
+      homeToHubFlight: showFlight(schedule?.outerOutbound),
+      hubToDestinationFlight: showFlight(schedule?.innerOutbound),
+      destinationToHubFlight: showFlight(schedule?.innerReturn),
+      hubToHomeFlight: showFlight(schedule?.outerReturn),
+      flightScheduleAuthority: schedule?.source,
+      fareEvidenceAuthority: updated.pricingStatus === "CONFIRMED" ? "EXACT_CONFIRMED" :
+        updated.kiwiLinkedPricing ? "KIWI_LINKED_VALIDATED" : "ROUTE_DATE_CARRIER_PROXY",
+    });
+    const confirmed = updated.pricingStatus === "CONFIRMED" && updated.confirmedPricing;
+    const offers = confirmed
+      ? [updated.confirmedPricing.outerOffer, updated.confirmedPricing.innerOffer]
+      : updated.offers ?? [];
+    const linkFor = (offer) => offer?.provider === "KIWI" ? offer.kiwi?.bookingUrl ?? null : null;
+    const linked = confirmed || updated.kiwiLinkedPricing;
+    updateTable(full.universalPricedItineraries, {
+      priceStatus: updated.pricingStatus,
+      totalPrice: updated.totalPrice?.amount,
+      baselineDelta: updated.baselineDelta?.amount,
+      outerTicketPrice: offers[0]?.price?.amount,
+      innerTicketPrice: offers[1]?.price?.amount,
+      outerKiwiLink: linked ? linkFor(offers[0]) : null,
+      innerKiwiLink: linked ? linkFor(offers[1]) : null,
+      evidenceBasis: confirmed ? "EXACT_CONFIRMED" : updated.kiwiLinkedPricing
+        ? "KIWI_LINKED_VALIDATED" : "ROUTE_DATE_CARRIER_PROXY",
+    });
+  }
+
   function toolOutput(tool, data) {
     if (!data) return;
     if (tool === "baselineDetails" || (data.baselineId && data.status === "DETAILS" && !data.candidateId)) {
@@ -185,6 +255,7 @@
         s.phases.pricing = data.phase === "failed" ? "error" : "running";
       }
     } else if (tool === "confirmation" || (["CONFIRMED", "SCHEDULE_CHANGED", "EXACT_PRICE_UNAVAILABLE", "EXACT_CHECK_FAILED"].includes(data.status) && data.candidateId)) {
+      applyConfirmedCandidate(data);
       s.confirmation = data;
       s.confirmationCandidateId = data.candidateId ?? s.confirmationCandidateId;
       s.confirmationAuthorizedPending = false;
