@@ -112,3 +112,18 @@ test('verified codeshare alternative shows its own actual Kiwi fares, flights an
  assert.doesNotMatch(texts,/the itinerary you selected\./);
  assert.match(texts,/advisor has not authorized/i);
 });
+
+test("Kiwi exact ticket arithmetic is shown with cents and checkout caveat", () => {
+  const quote = {
+    confirmedAt:"2026-10-26T22:16:58Z", price:{amount:1865.99,currency:"CAD"},
+    outerOffer:{...kiwi("a","https://www.kiwi.com/a"),price:{amount:768,currency:"CAD"}},
+    innerOffer:{...kiwi("b","https://www.kiwi.com/b"),price:{amount:1097.99,currency:"CAD"}}
+  };
+  const block = ctx.testViews.confirmedBlock({confirmedPricing:quote});
+  const txt=block.children.map(x=>x.text ?? "").join(" ");
+  assert.match(txt,/768/);
+  assert.match(txt,/1097.99/);
+  assert.match(txt,/1865.99/);
+  assert.match(txt,/checkout/i);
+  assert.doesNotMatch(txt,/reconciliation mismatch/i);
+});
