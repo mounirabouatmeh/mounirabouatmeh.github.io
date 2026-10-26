@@ -33,7 +33,7 @@ test('non-Kiwi or unsafe URLs do not create links', () => {
 ctx.document = { readyState: 'loading', addEventListener() {} };
 ctx.CuberenceIssue23 = { s: {}, node, money: p => p?.amount, formatDateTime: t => t, syncFns: [] };
 const candidates = fs.readFileSync('static-issue23-candidates.js', 'utf8');
-vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, scheduleBlock };\n  syncFns.push(syncCandidates);'), ctx);
+vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
 test('Kiwi-linked candidates show only their two validated returned fare links', () => {
  const block = ctx.testViews.kiwiOfferLinks({ kiwiLinkedPricing: {price:{amount:825,currency:'CAD'}}, offers: [kiwi('outer', 'https://www.kiwi.com/outer'), { provider: 'SABRE' }] });
  assert.equal(block.children.length, 1);
@@ -81,4 +81,34 @@ test('Kiwi-linked schedule block labels the displayed provider flights, not ADB'
  const block = ctx.testViews.scheduleBlock(candidate,'PROXY');
  assert.match(block.children[0].children[0].text,/Kiwi-priced flight schedule/);
  assert.match(block.children[0].children[1].text,/Actual flights/);
+});
+
+test('verified codeshare alternative shows its own actual Kiwi fares, flights and links', () => {
+ const outer = { ...kiwi('actual-outer', 'https://www.kiwi.com/codeshare-outer'), price: {amount: 890,currency:'CAD'},
+   legs:[{origin:'YUL',destination:'CDG',segments:[{
+      origin:'YUL',destination:'CDG',departure:'2026-11-09T03:00:00Z',arrival:'2026-11-09T09:00:00Z',
+      marketingCarrier:'AC',flightNumber:'AC874'}]}]};
+ const inner = { ...kiwi('actual-inner','https://www.kiwi.com/codeshare-inner'), price: {amount: 910,currency:'CAD'},
+   legs:[{origin:'CDG',destination:'BEY',segments:[{
+      origin:'CDG',destination:'BEY',departure:'2026-11-12T11:40:00Z',arrival:'2026-11-12T16:15:00Z',
+      marketingCarrier:'ME',flightNumber:'ME230'}]}]};
+ const item = {scheduleChange:{
+   provider:'KIWI',kind:'CODESHARE_MARKETING_ALTERNATIVE',
+   alternativePrice:{amount:1800,currency:'CAD'},outerOffer:outer,innerOffer:inner,
+   differences:[],marketingChanges:[{
+     role:'HUB_TO_DESTINATION',selectedFlightNumber:'AF5106',selectedMarketingCarrier:'AF',
+     kiwiFlightNumber:'ME230',kiwiMarketingCarrier:'ME',verifiedOperatingCarrier:'ME'}],
+   alternativeAssessment:{candidateStatus:'VALID',hubNights:2,usableCityHours:40,returnSelfConnectMinutes:240,risks:[]},
+ }};
+ const rendered = ctx.testViews.scheduleChangeBlock(item);
+ const texts=rendered.children.map(child=>String(child.text??'')).join(' ');
+ assert.match(texts,/verified codeshare alternative/i);
+ assert.match(texts,/AF5106/);
+ assert.match(texts,/ME230/);
+ assert.match(texts,/890/);
+ assert.match(texts,/910/);
+ const links=rendered.children.filter(c=>c.tag==='a');
+ assert.deepEqual(links.map(x=>x.href),['https://www.kiwi.com/codeshare-outer','https://www.kiwi.com/codeshare-inner']);
+ assert.doesNotMatch(texts,/the itinerary you selected\./);
+ assert.match(texts,/advisor has not authorized/i);
 });
