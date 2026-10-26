@@ -58,10 +58,14 @@
     if (!exact) return null;
     const block = node("section", "issue23-schedule-block");
     const heading = node("div", "issue23-subheading");
+    const linked = exact.source === "KIWI" && Boolean(candidate?.kiwiLinkedPricing);
     heading.append(node("strong", null, status === "CONFIRMED" ? "Confirmed flight schedule" :
-      status === "SCHEDULE_CHANGED" ? "Advisor-selected schedule (NOT fare-confirmed)" : "Cuberence flight schedule"));
+      status === "SCHEDULE_CHANGED" ? "Advisor-selected schedule (NOT fare-confirmed)" :
+      linked ? "Kiwi-priced flight schedule" : "Cuberence flight schedule"));
     if (status === "UNPRICED") heading.append(node("span", null, "Direct schedule available — exact price required"));
-    else if (status !== "CONFIRMED") heading.append(node("span", null, "Schedule truth — fare still indicative"));
+    else if (status !== "CONFIRMED") heading.append(node("span", null,
+      linked ? "Actual flights from the two linked Kiwi tickets · fare can change at checkout"
+        : "ADB schedule · displayed price is only a carrier/date estimate"));
     block.append(heading);
     [
       [exact.outerOutbound, "Home → hub"],
@@ -76,6 +80,10 @@
   }
 
   function kiwiOfferLinks(candidate, indicative = true) {
+    // Never link a route/date/carrier proxy to a *different* ADB flight schedule.
+    // Provider links are exposed only after whole-journey linked Kiwi validation,
+    // or after exact selected-flight confirmation.
+    if (indicative && !candidate?.kiwiLinkedPricing) return null;
     const block = node("div", "kiwi-ticket-links");
     const exactPricing = candidate?.confirmedPricing ??
       (candidate?.id && s.confirmation?.candidateId === candidate.id ? s.confirmation.confirmedPricing : undefined);
@@ -95,7 +103,8 @@
     const proxy = candidate?.proxyPricing;
     if (!proxy) return null;
     const block = node("div", "issue23-proxy-evidence");
-    block.append(node("strong", null, "Indicative ticket pricing"));
+    block.append(node("strong", null, candidate?.kiwiLinkedPricing
+      ? "Kiwi-linked round-trip tickets · fare may change" : "Carrier/date price estimate (not linked to selected flights)"));
     const count = Number.isFinite(proxy.outer?.proxyOfferCount) && Number.isFinite(proxy.inner?.proxyOfferCount)
       ? proxy.outer.proxyOfferCount + proxy.inner.proxyOfferCount
       : null;
@@ -104,7 +113,9 @@
       range(proxy) ? `Observed range: ${range(proxy)}` : null,
       count != null ? `Proxy offers: ${count}` : null,
     ].filter(Boolean).join(" · ");
-    block.append(node("span", null, details || "Proxy pricing evidence available."));
+    block.append(node("span", null, candidate?.kiwiLinkedPricing
+      ? "Both Kiwi tickets were checked together for connection feasibility. " + (details || "")
+      : "No validated Kiwi links for these ADB flights. Do not interpret reference prices as an exact quote. " + (details || ""));
     const links = kiwiOfferLinks(candidate);
     if (links) block.append(links);
     return block;
@@ -289,7 +300,7 @@
       }
       badge.textContent = ({
         UNPRICED: "Exact price required",
-        PROXY: "Indicative price",
+        PROXY: effective.kiwiLinkedPricing ? "Kiwi-linked price" : "Indicative price",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: "Confirmed fare",
         SCHEDULE_CHANGED: effective.scheduleChange?.provider === "SABRE" && effective.scheduleChange?.outerOffer?.environment === "CERT"
@@ -309,6 +320,13 @@
     const ticketLinks = kiwiOfferLinks(effective, status !== "CONFIRMED");
     if (ticketLinks && top) top.after(ticketLinks);
 
+    // The collapsed tile is built from the pricing snapshot. A later exact
+    // confirmation replaces its price and baseline delta, not just the badge.
+    const baselineSmall = [...card.children].find((item) =>
+      item.tagName === "SMALL" && item.textContent?.startsWith("Vs baseline:"));
+    if (baselineSmall && effective?.baselineDelta) {
+      baselineSmall.textContent = `Vs baseline: ${money(effective.baselineDelta)}`;
+    }
     const detail = card.querySelector(".candidate-detail");
     if (!detail) return;
     const displayedPrice = status === "UNPRICED"
@@ -318,6 +336,10 @@
         : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
     const priceLabel = status === "CONFIRMED" ? "Confirmed total" : status === "SCHEDULE_CHANGED" ? "Selected fare" : status === "UNPRICED" ? "Price" : "Indicative total";
     updateFact(detail, "Total", displayedPrice, priceLabel);
+    updateFact(detail, "Vs baseline", effective?.baselineDelta ? money(effective.baselineDelta) : "—");
+    updateFact(detail, "Hub stay", `${effective.hubNights ?? candidate.hubNights} nights`);
+    updateFact(detail, "Usable city time", `${effective.usableCityHours ?? candidate.usableCityHours} hours`);
+    updateFact(detail, "Destination stay", `${effective.destinationNights ?? candidate.destinationNights} nights`);
     updateFact(
       detail,
       "Ticket structure",
@@ -329,7 +351,9 @@
           ? "2 separate direct tickets · exact Sabre fare unavailable"
           : status === "UNPRICED"
             ? "2 separate direct tickets · exact price required"
-            : "2 separate direct tickets · proxy economics until exact confirmation",
+            : effective.kiwiLinkedPricing
+              ? "2 linked Kiwi round trips · schedules and connection checked · fare not locked"
+              : "2 separate tickets · carrier/date estimate, not linked to selected flights",
     );
     detail.querySelectorAll(".issue23-schedule-block,.issue23-proxy-evidence,.issue23-confirmed-evidence,.issue23-confirmed-offers,.issue23-schedule-changed,.issue23-luna-recommendation,.issue23-exact-failure,.issue23-exact-unavailable,.issue25-confirmation-ready").forEach((element) => element.remove());
 
