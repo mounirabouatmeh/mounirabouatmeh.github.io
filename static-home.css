@@ -493,3 +493,114 @@
  .hero-journey .hero-trust{font-size:11px;line-height:1.8}
 }
 @media(prefers-reduced-motion:reduce){.journey-picture,.journey-picture img{transition:none}}
+
+/* Homepage visual-system polish: consistent stage cards, spacing, type and clear analysis. */
+.hero.hero-journey{padding-top:68px;padding-bottom:64px;background:#f5f8fd}
+.hero.hero-journey .journey-shell{max-width:1280px}
+.hero.hero-journey .journey-intro{padding:0 8px;margin-bottom:32px}
+.hero.hero-journey .journey-stage,
+.hero.hero-journey .journey-stage.journey-stage-alternative,
+.hero.hero-journey .journey-stage.journey-stage-engine{
+  display:grid;
+  grid-template-columns:minmax(0, .9fr) minmax(0, 1.1fr);
+  align-items:center;
+  gap:clamp(32px,4vw,58px);
+  min-width:0;
+  padding:34px clamp(26px,3vw,44px);
+  margin:0 0 18px;
+  border:1px solid #d9e5f2;
+  border-radius:26px;
+  background:#fff;
+  box-shadow:0 11px 36px rgba(19,55,102,.055);
+  scroll-margin-top:100px;
+}
+.hero.hero-journey .journey-stage-alternative{background:#fff!important;border-color:#d9e5f2!important}
+.hero.hero-journey .journey-stage-engine{margin-bottom:0}
+.hero.hero-journey .journey-copy{width:100%;max-width:550px;min-width:0;padding:4px 0}
+.hero.hero-journey .journey-step{display:inline-block;margin:0 0 17px;padding:7px 10px;border-radius:999px;background:#ecf3ff;color:#245bb4;font-size:11px;letter-spacing:.075em;font-weight:850;line-height:1.35}
+.hero.hero-journey .journey-step span{margin:0 4px;color:#8aa9da}
+.hero.hero-journey .journey-copy h2{max-width:550px;font-size:clamp(28px,2.75vw,39px);line-height:1.18;letter-spacing:-.035em;margin:0 0 18px;color:#152b4a}
+.hero.hero-journey .journey-copy h2 em{font-style:normal;color:#1666ff}
+.hero.hero-journey .journey-copy p{max-width:535px;font-size:clamp(16px,1.29vw,18px);line-height:1.62;color:#50647e;margin:0}
+.hero.hero-journey .journey-picture-pair{gap:14px}
+.hero.hero-journey .journey-picture{height:clamp(256px,25vw,340px)}
+.hero.hero-journey .journey-stage-engine .journey-copy h2{max-width:510px}
+.hero.hero-journey .journey-stage-engine .journey-copy .engine-intro{font-size:16px;line-height:1.59}
+.prepared-list{margin-top:24px;border-top:1px solid #e0e9f4;padding-top:20px}
+.hero.hero-journey .prepared-list .prepared-heading{font-size:12px!important;line-height:1.45;font-weight:900;letter-spacing:.065em;text-transform:uppercase;color:#245bb4!important;margin:0 0 13px!important}
+.prepared-list ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.prepared-list li{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:#2d4767;font-weight:650;line-height:1.5}
+.prepared-list li>span{display:grid;place-items:center;width:22px;height:22px;min-width:22px;border-radius:50%;background:#e4f3ed;color:#12865d;font-size:14px;font-weight:850}
+.hero.hero-journey .journey-engine-figure{padding:24px 26px 20px;border-radius:23px;background:linear-gradient(153deg,#0b2442,#123967);color:#fff;box-shadow:0 24px 54px rgba(13,45,85,.19)}
+.engine-factor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:19px 0;min-width:0}
+.engine-factor{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:104px;min-width:0;padding:11px 12px;border-radius:12px;border:1px solid rgba(172,205,249,.23);background:rgba(255,255,255,.075)}
+.engine-factor .factor-icon{font-size:16px;line-height:1;color:#a1c8fd;margin-bottom:9px;font-weight:850}
+.engine-factor strong{font-size:26px;font-weight:900;letter-spacing:-.045em;line-height:1.05;color:#fff}
+.engine-factor small{font-size:11px;line-height:1.36;font-weight:700;color:#d6e4fa;margin-top:4px}
+.engine-outcome{display:grid;grid-template-columns:minmax(0,1fr) 1px minmax(0,1fr);gap:14px;align-items:center;border-top:1px solid rgba(255,255,255,.16);padding:20px 2px 16px}
+.engine-outcome-cell{display:flex;align-items:flex-start;flex-direction:column;gap:4px;min-width:0}
+.engine-outcome-cell strong{font-size:clamp(33px,3.6vw,49px);font-weight:900;color:#9bc7ff;letter-spacing:-.06em;line-height:1}
+.engine-outcome-cell span{font-size:12px;font-weight:750;line-height:1.35;color:#dce9fa}
+.engine-outcome-divider{height:56px;background:rgba(255,255,255,.17)}
+.engine-outcome-cell.engine-outcome-time strong{color:#86e1bb}
+.hero.hero-journey .journey-engine-figure figcaption{font-size:11px;line-height:1.55;color:#b8d0ef;margin-top:3px}
+.journey-close-actions{display:flex;justify-content:center;padding:23px 0 3px}
+.journey-close-actions .button{min-width:174px}
+.hero.hero-journey .hero-trust{margin-top:14px}
+.benefits-section.benefits-agency{padding:76px clamp(24px,6vw,88px) 82px;background:#fff;border-top:1px solid #e4edf7;border-bottom:1px solid #e4edf7}
+.benefits-section.benefits-agency .section-heading{margin-bottom:35px}
+.benefits-section.benefits-agency .section-heading .eyebrow{margin-bottom:13px}
+.benefits-section.benefits-agency .section-heading h2{margin:0 0 14px;font-size:clamp(31px,3.75vw,49px);max-width:860px}
+.benefits-section.benefits-agency .section-heading>p:last-child{font-size:17px;color:#64748b}
+.benefits-section.benefits-agency .benefits-grid{gap:16px;max-width:1150px}
+.benefits-section.benefits-agency .benefit-card{min-height:196px;padding:26px 27px 28px;border-radius:20px;box-shadow:0 10px 30px rgba(24,50,86,.04)}
+.benefits-section.benefits-agency .benefit-icon{width:41px;height:41px;border-radius:12px;font-size:22px;margin-bottom:18px}
+.benefits-section.benefits-agency .benefit-card h3{font-size:22px;line-height:1.18;margin:0 0 9px}
+.benefits-section.benefits-agency .benefit-card p{font-size:15px;line-height:1.55;color:#62748b}
+@media(max-width:1010px){
+ .hero.hero-journey .journey-stage,
+ .hero.hero-journey .journey-stage.journey-stage-alternative,
+ .hero.hero-journey .journey-stage.journey-stage-engine{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:26px;padding:27px}
+ .engine-factor{min-height:99px;padding:10px}
+ .engine-factor strong{font-size:24px}
+ .engine-factor small{font-size:10px}
+}
+@media(max-width:860px){
+ .hero.hero-journey .journey-stage,
+ .hero.hero-journey .journey-stage.journey-stage-alternative,
+ .hero.hero-journey .journey-stage.journey-stage-engine{grid-template-columns:1fr;gap:23px;padding:30px;max-width:740px;margin:0 auto 18px}
+ .hero.hero-journey .journey-stage-engine .journey-copy h2{max-width:660px}
+ .hero.hero-journey .journey-copy{max-width:none}
+ .hero.hero-journey .journey-copy h2,
+ .hero.hero-journey .journey-copy p{max-width:670px}
+ .hero.hero-journey .journey-picture{height:290px}
+ .hero.hero-journey .journey-engine-figure{width:100%;max-width:700px}
+ .benefits-section.benefits-agency .benefits-grid{grid-template-columns:1fr;max-width:620px}
+ .benefits-section.benefits-agency .benefit-card{min-height:unset}
+}
+@media(max-width:600px){
+ .hero.hero-journey{padding:46px 14px 48px}
+ .hero.hero-journey .journey-intro{padding:0 7px;margin-bottom:25px}
+ .hero.hero-journey .journey-stage,
+ .hero.hero-journey .journey-stage.journey-stage-alternative,
+ .hero.hero-journey .journey-stage.journey-stage-engine{padding:22px 17px;gap:19px;border-radius:19px;margin-bottom:13px}
+ .hero.hero-journey .journey-step{font-size:10px;padding:7px 9px;margin-bottom:14px}
+ .hero.hero-journey .journey-copy h2{font-size:clamp(24px,6vw,32px);margin-bottom:13px}
+ .hero.hero-journey .journey-copy p,
+ .hero.hero-journey .journey-stage-engine .journey-copy .engine-intro{font-size:15px;line-height:1.56}
+ .hero.hero-journey .journey-picture-pair{gap:8px}
+ .hero.hero-journey .journey-picture{height:205px;border-radius:13px}
+ .hero.hero-journey .journey-engine-figure{padding:18px 14px 16px;border-radius:16px}
+ .engine-factor-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .engine-factor{min-height:97px;padding:10px}
+ .engine-factor strong{font-size:23px}
+ .engine-factor small{font-size:11px}
+ .engine-outcome{gap:11px;padding-top:16px}
+ .engine-outcome-cell strong{font-size:38px}
+ .engine-outcome-cell span{font-size:11px}
+ .prepared-list li{font-size:13px;gap:9px}
+ .benefits-section.benefits-agency{padding:61px 18px 63px}
+ .benefits-section.benefits-agency .benefit-card{padding:23px 24px}
+ .journey-close-actions{padding:19px 0 3px}
+ .journey-close-actions .button{width:100%}
+}
