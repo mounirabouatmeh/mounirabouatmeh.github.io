@@ -967,3 +967,26 @@
     font-size:13px;
   }
 }
+
+/* Requested STOP tagline and red-gradient manual-effort metric. */
+.hero.hero-journey .agency-stop .agency-stop-headline{
+  display:block;
+  color:#a93d46;
+  font-size:clamp(20px,1.9vw,25px);
+  line-height:1.14;
+  letter-spacing:-.03em;
+  font-weight:900;
+}
+.hero.hero-journey .engine-outcome-cell.engine-outcome-time strong{
+  color:#ff9298;
+  background:linear-gradient(120deg,#ffd0c4 0%,#ff9297 52%,#ed656e 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+@media(max-width:600px){
+  .hero.hero-journey .agency-stop .agency-stop-headline{
+    font-size:22px;
+    line-height:1.16;
+  }
+}
