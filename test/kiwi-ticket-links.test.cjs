@@ -79,6 +79,6 @@ test('Kiwi-linked schedule block labels the displayed provider flights, not ADB'
    outerReturn:flight('BF760','ORY','YUL'),
  }};
  const block = ctx.testViews.scheduleBlock(candidate,'PROXY');
- assert.match(block.children[0].children[0].text,'Kiwi-priced flight schedule');
- assert.match(block.children[0].children[1].text,'Actual flights');
+ assert.match(block.children[0].children[0].text,/Kiwi-priced flight schedule/);
+ assert.match(block.children[0].children[1].text,/Actual flights/);
 });
