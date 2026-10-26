@@ -678,3 +678,81 @@
   .agency-outcome strong{font-size:16px}
   .agency-outcome p{font-size:13px;line-height:1.42}
 }
+
+/* Step 04: competitive pressure, differentiation and an organic demo nudge. */
+.hero.hero-journey .agency-pressure{
+  margin:18px 0 15px;
+  padding:15px 17px;
+  border-left:3px solid #1666ff;
+  border-radius:0 12px 12px 0;
+  background:#f3f7ff;
+}
+.agency-pressure-label{
+  display:block;
+  margin-bottom:8px;
+  font-size:11px;
+  line-height:1.35;
+  font-weight:850;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:#245bb4;
+}
+.hero.hero-journey .journey-copy .agency-pressure p{
+  margin:0;
+  color:#294766;
+  font-size:clamp(15px,1.17vw,17px);
+  line-height:1.55;
+  font-weight:650;
+}
+.hero.hero-journey .journey-stage-agency .journey-copy .agency-positioning{
+  margin-top:15px;
+  font-size:clamp(15px,1.17vw,17px);
+  line-height:1.58;
+}
+.hero.hero-journey .agency-urgency{
+  grid-column:1 / -1;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:20px 4px 1px;
+  margin-top:0;
+  border-top:1px solid #dce6f3;
+}
+.agency-urgency-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 39px;
+  width:39px;
+  height:39px;
+  border-radius:12px;
+  background:#e8f0ff;
+  color:#1666ff;
+  font-size:22px;
+  font-weight:850;
+}
+.hero.hero-journey .agency-urgency p{
+  margin:0;
+  color:#425b79;
+  font-size:16px;
+  line-height:1.5;
+  font-weight:600;
+}
+.hero.hero-journey .agency-urgency strong{
+  color:#17345d;
+  font-weight:850;
+}
+@media(max-width:860px){
+  .hero.hero-journey .agency-urgency{padding-top:17px}
+}
+@media(max-width:600px){
+  .hero.hero-journey .agency-pressure{margin:16px 0 12px;padding:12px 14px}
+  .agency-pressure-label{font-size:10px}
+  .hero.hero-journey .journey-copy .agency-pressure p,
+  .hero.hero-journey .journey-stage-agency .journey-copy .agency-positioning{
+    font-size:14px;
+    line-height:1.55;
+  }
+  .hero.hero-journey .agency-urgency{align-items:flex-start;gap:10px;padding-top:16px}
+  .agency-urgency-icon{flex-basis:34px;width:34px;height:34px;border-radius:10px;font-size:20px}
+  .hero.hero-journey .agency-urgency p{font-size:14px;line-height:1.5}
+}
