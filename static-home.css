@@ -604,3 +604,77 @@
  .journey-close-actions{padding:19px 0 3px}
  .journey-close-actions .button{width:100%}
 }
+
+/* Home story steps 03–04: agency inventory support and a unified fourth stage. */
+.hero.hero-journey .inventory-highlight{
+  display:flex;align-items:flex-start;gap:13px;
+  margin-top:20px;padding:17px 18px;
+  border:1px solid #b5cefa;border-left:4px solid #1666ff;
+  border-radius:13px;background:linear-gradient(110deg,#eaf3ff,#f5f9ff);
+  box-shadow:0 9px 21px rgba(22,102,255,.06)
+}
+.inventory-highlight-icon{
+  flex:0 0 37px;width:37px;height:37px;display:grid;place-items:center;
+  border-radius:11px;background:#1666ff;color:#fff;font-size:22px;line-height:1
+}
+.inventory-highlight-copy{min-width:0;display:grid;gap:5px}
+.inventory-highlight-copy>strong{color:#123e7c;font-size:16px;font-weight:900;line-height:1.32}
+.inventory-highlight-copy>span{color:#516887;font-size:13px;line-height:1.48;font-weight:650}
+.inventory-highlight-copy>span b{color:#1156b5;font-weight:850}
+.inventory-highlight-copy>span i{font-style:normal;color:#7c9ac3;padding:0 4px}
+.hero.hero-journey .journey-stage.journey-stage-agency{
+  display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  align-items:center;gap:clamp(32px,4vw,58px);
+  min-width:0;padding:34px clamp(26px,3vw,44px);
+  margin:0 0 18px;border:1px solid #d9e5f2;border-radius:26px;
+  background:#fff;box-shadow:0 11px 36px rgba(19,55,102,.055)
+}
+.hero.hero-journey .journey-stage-agency .journey-copy h2{max-width:550px}
+.agency-outcomes{display:grid;gap:12px;min-width:0}
+.agency-outcome{
+  display:grid;grid-template-columns:46px minmax(0,1fr);
+  gap:16px;align-items:center;min-width:0;
+  padding:20px 21px;background:#f7faff;
+  border:1px solid #dbe6f6;border-radius:17px
+}
+.agency-outcome-icon{
+  display:grid;place-items:center;width:46px;height:46px;border-radius:13px;
+  background:#e7f0ff;color:#1666ff;font-size:25px;font-weight:900;line-height:1
+}
+.agency-outcome>div{min-width:0}
+.agency-outcome strong{
+  display:block;color:#17345d;font-size:19px;letter-spacing:-.025em;
+  font-weight:850;line-height:1.24;margin:0 0 4px
+}
+.agency-outcome p{
+  margin:0;color:#61748c;font-size:14px;line-height:1.48
+}
+@media(max-width:1010px) and (min-width:861px){
+  .hero.hero-journey .journey-stage.journey-stage-agency{
+    grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+    gap:26px;padding:27px
+  }
+  .agency-outcome{grid-template-columns:40px minmax(0,1fr);gap:11px;padding:16px}
+  .agency-outcome-icon{width:40px;height:40px}
+  .agency-outcome strong{font-size:17px}
+}
+@media(max-width:860px){
+  .hero.hero-journey .journey-stage.journey-stage-agency{
+    grid-template-columns:1fr;gap:23px;padding:30px;
+    max-width:740px;margin:0 auto 18px
+  }
+}
+@media(max-width:600px){
+  .hero.hero-journey .inventory-highlight{padding:14px 12px;gap:10px}
+  .inventory-highlight-icon{flex-basis:32px;width:32px;height:32px;font-size:19px}
+  .inventory-highlight-copy>strong{font-size:14px}
+  .inventory-highlight-copy>span{font-size:12px}
+  .hero.hero-journey .journey-stage.journey-stage-agency{
+    padding:22px 17px;gap:19px;border-radius:19px;margin-bottom:13px
+  }
+  .agency-outcomes{gap:10px}
+  .agency-outcome{grid-template-columns:39px minmax(0,1fr);gap:12px;padding:14px 13px;border-radius:13px}
+  .agency-outcome-icon{width:39px;height:39px;font-size:21px}
+  .agency-outcome strong{font-size:16px}
+  .agency-outcome p{font-size:13px;line-height:1.42}
+}
