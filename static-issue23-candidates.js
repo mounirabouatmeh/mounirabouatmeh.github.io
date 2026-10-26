@@ -181,13 +181,32 @@
     if (!change) return null;
     const block = node("section", "issue23-schedule-changed issue23-exact-failure");
     const certTest = change.provider === "SABRE" && change.outerOffer?.environment === "CERT";
-    block.append(node("strong", null, certTest
-      ? "Sabre CERT test timetable differs — Cuberence schedule retained"
+    const codeshare = change.kind === "CODESHARE_MARKETING_ALTERNATIVE";
+    block.append(node("strong", null, codeshare
+      ? "Kiwi priced a verified codeshare alternative — original ticket NOT confirmed"
+      : certTest ? "Sabre CERT test timetable differs — Cuberence schedule retained"
       : "Pricing-provider timetable differs — selected itinerary NOT confirmed"));
-    block.append(node("span", null,
-      certTest
+    block.append(node("span", null, codeshare
+      ? `Kiwi priced an alternative marketing-carrier ticket at ${money(change.alternativePrice)}. Cuberence verified its operating flight identity and the full journey. This fare and its booking links apply ONLY to the Kiwi alternative, not your selected ticket.`
+      : certTest
         ? `Sabre CERT supplied test fare evidence of ${money(change.alternativePrice)} for the same flight numbers and dates, but its test times differ. Your original Cuberence flight schedule remains unchanged. This is not a live bookable quote or an exact fare for your selected times.`
         : `${change.provider ?? "Fare provider"} priced a different timetable at ${money(change.alternativePrice)}. This price applies only to the provider-returned flights, not the itinerary you selected.`));
+    if (codeshare) {
+      for (const difference of change.marketingChanges ?? []) {
+        block.append(node("span", null,
+          `${difference.role}: selected ${difference.selectedFlightNumber} (${difference.selectedMarketingCarrier}) → Kiwi ${difference.kiwiFlightNumber} (${difference.kiwiMarketingCarrier}), ADB-verified operating carrier ${difference.verifiedOperatingCarrier}`));
+      }
+      for (const [label, offer] of [["Outer round trip", change.outerOffer], ["Inner round trip", change.innerOffer]]) {
+        if (!offer) continue;
+        block.append(node("strong", null, `${label}: ${money(offer.price)}`));
+        const kiwiLink = globalThis.CuberenceKiwiTicketLink?.(offer, `Open this alternative ${label.toLowerCase()} on Kiwi ↗`);
+        if (kiwiLink) block.append(kiwiLink);
+        for (const leg of offer.legs ?? []) for (const segment of leg.segments ?? []) {
+          const row = flightRow(segment, `${leg.origin ?? segment.origin} → ${leg.destination ?? segment.destination}`);
+          if (row) block.append(row);
+        }
+      }
+    }
     const selected = candidate?.exactSchedule;
     const selectedByRole = {
       HOME_TO_HUB: selected?.outerOutbound,
@@ -259,7 +278,9 @@
     if (status === "CONFIRMED") small.textContent = "Exact fare is confirmed for this candidate.";
     else if (status === "SCHEDULE_CHANGED") small.textContent = candidate.scheduleChange?.provider === "SABRE" && candidate.scheduleChange?.outerOffer?.environment === "CERT"
       ? "Sabre CERT test times differ; the Cuberence flight schedule is unchanged. Test fare evidence only."
-      : "Pricing provider returned different flight times. The selected itinerary is NOT fare-confirmed.";
+      : candidate.scheduleChange?.kind === "CODESHARE_MARKETING_ALTERNATIVE"
+        ? "Kiwi has a separately priced codeshare alternative. Review its actual flights and links; your original ticket remains unconfirmed."
+        : "Pricing provider returned different flight times. The selected itinerary is NOT fare-confirmed.";
     else if (status === "EXACT_CHECK_PENDING") small.textContent = "Exact confirmation is running for this candidate.";
     else if (status === "EXACT_PRICE_UNAVAILABLE") small.textContent = "Sabre could not provide an exact fare for this valid schedule. Indicative pricing remains available.";
     else if (status === "EXACT_CHECK_FAILED") small.textContent = "This exact check failed because of a technical or validation problem. Choose another candidate if Luna recommends one.";
