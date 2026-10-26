@@ -880,3 +880,90 @@
   .engine-speed-symbol{width:34px;height:34px;flex-basis:34px}
   .engine-speed strong{font-size:17px}
 }
+/* Executive step 04: one urgent headline and a concise STOP / GAIN story. */
+.hero.hero-journey .journey-stage.journey-stage-executive{
+  align-items:center;
+}
+.hero.hero-journey .journey-stage-executive .journey-copy h2{
+  max-width:535px;
+  margin:0 0 25px;
+  font-size:clamp(32px,3.2vw,44px);
+  line-height:1.13;
+}
+.agency-command{
+  display:inline-flex;
+  align-items:center;
+  font-size:12px;
+  line-height:1.3;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+.agency-command-stop{color:#b14444}
+.agency-command-gain{color:#187a50}
+.hero.hero-journey .agency-stop{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:9px;
+  padding:20px 23px;
+  border:1px solid #f1d7d7;
+  border-left:4px solid #c56969;
+  border-radius:14px;
+  background:#fff9f9;
+}
+.hero.hero-journey .journey-stage-executive .journey-copy .agency-stop p{
+  margin:0;
+  color:#36506b;
+  font-size:clamp(17px,1.55vw,20px);
+  font-weight:650;
+  line-height:1.45;
+}
+.hero.hero-journey .agency-stop p strong{color:#213c5b;font-weight:850}
+.hero.hero-journey .agency-gain{
+  min-width:0;
+  display:grid;
+  gap:13px;
+}
+.hero.hero-journey .agency-gain>.agency-command{
+  padding:0 4px;
+}
+.hero.hero-journey .journey-stage-executive .agency-outcomes{
+  display:grid;
+  gap:12px;
+}
+.hero.hero-journey .journey-stage-executive .agency-outcome{
+  padding:17px 20px;
+  border-color:#dbe9e3;
+  background:#f8fcfa;
+}
+.hero.hero-journey .journey-stage-executive .agency-outcome-icon{
+  color:#187a50;
+  background:#e5f5ec;
+}
+.hero.hero-journey .journey-stage-executive .agency-outcome p{
+  font-size:14px;
+  line-height:1.44;
+}
+@media(max-width:860px){
+  .hero.hero-journey .journey-stage-executive .journey-copy h2{max-width:680px;margin-bottom:19px}
+}
+@media(max-width:600px){
+  .hero.hero-journey .journey-stage-executive .journey-copy h2{
+    font-size:clamp(27px,7vw,34px);
+    margin-bottom:17px;
+  }
+  .hero.hero-journey .agency-stop{
+    padding:16px 17px;
+    gap:7px;
+  }
+  .hero.hero-journey .journey-stage-executive .journey-copy .agency-stop p{
+    font-size:16px;
+    line-height:1.45;
+  }
+  .hero.hero-journey .journey-stage-executive .agency-outcome{
+    padding:14px;
+  }
+  .hero.hero-journey .journey-stage-executive .agency-outcome p{
+    font-size:13px;
+  }
+}
