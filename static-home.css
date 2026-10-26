@@ -371,3 +371,10 @@
   .story-card:hover{transform:none}
   .story-card:hover .story-photo img{transform:none}
 }
+
+/* Technical differentiator + commercial outcome in the hero */
+.hero-inner .hero-business{line-height:1.55;margin-bottom:14px}
+.hero-inner .hero-payoff{max-width:670px;margin:0 0 25px;padding:12px 15px;border-left:3px solid #1666ff;border-radius:0 12px 12px 0;background:rgba(22,102,255,.055);color:#17345d;font-weight:750;font-size:clamp(14px,1.3vw,16px);line-height:1.48}
+.hero-inner .hero-payoff span{color:#1666ff}
+.hero-inner .hero-payoff strong{color:#17345d;font-weight:850}
+@media(max-width:640px){.hero-inner .hero-business{font-size:15px;line-height:1.53}.hero-inner .hero-payoff{margin-bottom:23px;font-size:14px;padding:10px 12px}}
