@@ -859,3 +859,24 @@
     font-size:13px;
   }
 }
+
+/* Illustrative Cuberence processing-time comparison inside step 03. */
+.hero.hero-journey .engine-speed{
+  display:flex;align-items:center;gap:13px;
+  padding:15px 14px;margin:1px 0 13px;
+  background:rgba(114,221,168,.12);
+  border:1px solid rgba(114,221,168,.45);border-radius:13px;
+}
+.engine-speed-symbol{
+  display:grid;place-items:center;flex:0 0 39px;
+  width:39px;height:39px;border-radius:11px;
+  background:rgba(114,221,168,.17);color:#a0f4ca;font-size:22px;font-weight:900;
+}
+.engine-speed>div{display:grid;gap:3px;min-width:0}
+.engine-speed strong{font-size:clamp(17px,1.6vw,21px);line-height:1.23;letter-spacing:-.025em;font-weight:900;color:#a3f0ce}
+.engine-speed>div span{color:#d0e8db;font-size:11px;font-weight:700;line-height:1.4}
+@media(max-width:600px){
+  .hero.hero-journey .engine-speed{padding:12px;gap:10px;margin-bottom:11px}
+  .engine-speed-symbol{width:34px;height:34px;flex-basis:34px}
+  .engine-speed strong{font-size:17px}
+}
