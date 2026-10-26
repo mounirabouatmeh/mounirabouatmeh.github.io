@@ -33,7 +33,7 @@ test('non-Kiwi or unsafe URLs do not create links', () => {
 ctx.document = { readyState: 'loading', addEventListener() {} };
 ctx.CuberenceIssue23 = { s: {}, node, money: p => p?.amount, formatDateTime: t => t, syncFns: [] };
 const candidates = fs.readFileSync('static-issue23-candidates.js', 'utf8');
-vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, confirmedBlock, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
+vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, confirmedBlock, scheduleBlock, scheduleChangeBlock, flightPriced, proxyBlock };\n  syncFns.push(syncCandidates);'), ctx);
 test('Kiwi-linked candidates show only their two validated returned fare links', () => {
  const block = ctx.testViews.kiwiOfferLinks({ kiwiLinkedPricing: {price:{amount:825,currency:'CAD'}}, offers: [kiwi('outer', 'https://www.kiwi.com/outer'), { provider: 'SABRE' }] });
  assert.equal(block.children.length, 1);
@@ -136,4 +136,27 @@ test("provider quote with a wrong sum is flagged, not hidden", () => {
   };
   const block=ctx.testViews.confirmedBlock({confirmedPricing:quote});
   assert.match(block.children.map(x=>x.text ?? "").join(" "),/reconciliation mismatch/i);
+});
+
+test("ADB market reference CAD1770 is NOT a fare for the selected flights", () => {
+ const c = {pricingStatus:"PROXY",
+   exactSchedule:{source:"AERODATABOX"},
+   totalPrice:{amount:1770,currency:"CAD"},
+   proxyPricing:{
+    price:{amount:1770,currency:"CAD"},basis:"SAME_ROUTE_DATE_CARRIER",
+    observedRange:{min:1750,max:2010},outer:{proxyOfferCount:3},inner:{proxyOfferCount:3}
+   },offers:[kiwi("unmatched","https://www.kiwi.com/unmatched")]};
+ assert.equal(ctx.testViews.flightPriced(c,"PROXY"),false);
+ assert.equal(ctx.testViews.kiwiOfferLinks(c),null);
+ const block=ctx.testViews.proxyBlock(c);
+ const content=block.children.map(x=>x.text??"").join(" ");
+ assert.match(content,/Market reference only: 1770/);
+ assert.match(content,/NOT the price of these flights/);
+});
+test("provider-linked Kiwi itinerary remains eligible to display its validated price", () => {
+ const c={pricingStatus:"PROXY",exactSchedule:{source:"KIWI"},
+  kiwiLinkedPricing:{price:{amount:1865.99,currency:"CAD"}},
+  offers:[kiwi("out","https://www.kiwi.com/out"),kiwi("inner","https://www.kiwi.com/inner")]};
+ assert.equal(ctx.testViews.flightPriced(c,"PROXY"),true);
+ assert.equal(ctx.testViews.kiwiOfferLinks(c).children.length,2);
 });
