@@ -15,6 +15,13 @@
     syncFns,
   } = C;
 
+  function flightPriced(candidate, status) {
+    if (status === "CONFIRMED") return Boolean(candidate?.confirmedPricing?.price);
+    if (status === "PROXY") return candidate?.exactSchedule?.source === "KIWI" &&
+      Boolean(candidate?.kiwiLinkedPricing?.price) && candidate?.offers?.length === 2;
+    return false;
+  }
+
   function range(proxy) {
     const r = proxy?.observedRange;
     const cur = proxy?.price?.currency;
@@ -65,7 +72,7 @@
     if (status === "UNPRICED") heading.append(node("span", null, "Direct schedule available — exact price required"));
     else if (status !== "CONFIRMED") heading.append(node("span", null,
       linked ? "Actual flights from the two linked Kiwi tickets · fare can change at checkout"
-        : "ADB schedule · displayed price is only a carrier/date estimate"));
+        : "ADB schedule · exact fare for these flights not available; market references are NOT ticket fares"));
     block.append(heading);
     [
       [exact.outerOutbound, "Home → hub"],
@@ -104,7 +111,7 @@
     if (!proxy) return null;
     const block = node("div", "issue23-proxy-evidence");
     block.append(node("strong", null, candidate?.kiwiLinkedPricing
-      ? "Kiwi-linked round-trip tickets · fare may change" : "Carrier/date price estimate (not linked to selected flights)"));
+      ? "Kiwi-linked round-trip tickets · fare may change" : `Market reference only: ${money(proxy.price)} — NOT the price of these flights`));
     const count = Number.isFinite(proxy.outer?.proxyOfferCount) && Number.isFinite(proxy.inner?.proxyOfferCount)
       ? proxy.outer.proxyOfferCount + proxy.inner.proxyOfferCount
       : null;
@@ -269,7 +276,13 @@
   function updateFact(detail, label, value, replacementLabel) {
     for (const fact of detail?.querySelectorAll(".candidate-detail-fact") ?? []) {
       const key = fact.querySelector("span");
-      if (key?.textContent?.trim() !== label) continue;
+      const currentLabel = key?.textContent?.trim();
+      const aliases = label === "Total"
+        ? ["Total", "Indicative total", "Confirmed total", "Quoted total (at check)", "Flight fare"]
+        : label === "Vs baseline"
+          ? ["Vs baseline", "Market estimate vs baseline", "Vs baseline (flight fare only)"]
+          : [label];
+      if (!aliases.includes(currentLabel)) continue;
       if (replacementLabel) key.textContent = replacementLabel;
       const strong = fact.querySelector("strong");
       if (strong && value != null) strong.textContent = value;
@@ -328,6 +341,8 @@
     const status = candidateStatus(candidate);
     const selected = s.selectedCandidateId === candidate.id;
     const number = candidateNumber(candidate);
+    const hasFlightFare = flightPriced(effective, status);
+    const referenceOnly = status === "PROXY" && !hasFlightFare;
     card.dataset.candidateId = candidate.id;
     card.dataset.candidateNumber = number == null ? "" : String(number);
     card.dataset.pricingStatus = status;
@@ -353,7 +368,7 @@
       }
       badge.textContent = ({
         UNPRICED: "Exact price required",
-        PROXY: effective.kiwiLinkedPricing ? "Kiwi-linked price" : "Indicative price",
+        PROXY: hasFlightFare ? "Kiwi-linked fare" : "Market reference only",
         EXACT_CHECK_PENDING: "Exact check pending",
         CONFIRMED: effective.confirmedPricing?.outerOffer?.provider === "KIWI"
           ? "Kiwi fare quote" : "Confirmed fare",
@@ -363,11 +378,11 @@
         EXACT_CHECK_FAILED: "Exact check failed",
       })[status] ?? status;
       const price = top.querySelector(".candidate-price");
-      if (price) price.textContent = status === "UNPRICED"
-        ? "Exact check"
-        : status === "SCHEDULE_CHANGED"
-          ? "View test fare"
-          : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+      if (price) price.textContent = referenceOnly
+        ? "Exact fare required"
+        : status === "UNPRICED" ? "Exact check"
+        : status === "SCHEDULE_CHANGED" ? "View test fare"
+        : money(hasFlightFare ? effective.totalPrice : candidate.totalPrice);
     }
 
     card.querySelectorAll(":scope > .kiwi-ticket-links").forEach(element => element.remove());
@@ -378,20 +393,28 @@
     // confirmation replaces its price and baseline delta, not just the badge.
     const baselineSmall = [...card.children].find((item) =>
       item.tagName === "SMALL" && item.textContent?.startsWith("Vs baseline:"));
-    if (baselineSmall && effective?.baselineDelta) {
-      baselineSmall.textContent = `Vs baseline: ${money(effective.baselineDelta)}`;
+    if (baselineSmall) {
+      baselineSmall.textContent = referenceOnly
+        ? `Market reference: ${money(effective?.proxyPricing?.price ?? candidate.totalPrice)} (not flight-specific)`
+        : hasFlightFare && effective?.baselineDelta
+          ? `Vs baseline: ${money(effective.baselineDelta)}`
+          : "Vs baseline: exact flight fare required";
     }
     const detail = card.querySelector(".candidate-detail");
     if (!detail) return;
-    const displayedPrice = status === "UNPRICED"
-      ? "Exact confirmation required"
-      : status === "SCHEDULE_CHANGED"
-        ? "Selected schedule fare not confirmed"
-        : money(status === "CONFIRMED" ? effective.totalPrice : candidate.totalPrice);
+    const displayedPrice = referenceOnly
+      ? "Exact flight fare required"
+      : status === "UNPRICED" ? "Exact confirmation required"
+      : status === "SCHEDULE_CHANGED" ? "Selected schedule fare not confirmed"
+      : money(hasFlightFare ? effective.totalPrice : candidate.totalPrice);
     const priceLabel = status === "CONFIRMED"
-      ? (effective.confirmedPricing?.outerOffer?.provider === "KIWI" ? "Quoted total (at check)" : "Confirmed total") : status === "SCHEDULE_CHANGED" ? "Selected fare" : status === "UNPRICED" ? "Price" : "Indicative total";
+      ? (effective.confirmedPricing?.outerOffer?.provider === "KIWI" ? "Quoted total (at check)" : "Confirmed total")
+      : referenceOnly ? "Flight fare" : status === "SCHEDULE_CHANGED" ? "Selected fare"
+      : status === "UNPRICED" ? "Price" : "Indicative total";
     updateFact(detail, "Total", displayedPrice, priceLabel);
-    updateFact(detail, "Vs baseline", effective?.baselineDelta ? money(effective.baselineDelta) : "—");
+    updateFact(detail, "Vs baseline", hasFlightFare && effective?.baselineDelta
+      ? money(effective.baselineDelta) : "Exact flight fare required",
+      referenceOnly ? "Vs baseline (flight fare only)" : "Vs baseline");
     updateFact(detail, "Hub stay", `${effective.hubNights ?? candidate.hubNights} nights`);
     updateFact(detail, "Usable city time", `${effective.usableCityHours ?? candidate.usableCityHours} hours`);
     updateFact(detail, "Destination stay", `${effective.destinationNights ?? candidate.destinationNights} nights`);
