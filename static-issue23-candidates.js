@@ -134,7 +134,36 @@
     const pricing = candidate?.confirmedPricing ?? s.confirmation?.confirmedPricing;
     if (!pricing) return null;
     const block = node("div", "issue23-confirmed-evidence");
-    block.append(node("strong", null, `Confirmed fare ${money(pricing.price)}`));
+    block.append(node("strong", null, `Kiwi quoted total at confirmation: ${money(pricing.price)}`));
+    const outer = pricing.outerOffer?.price;
+    const inner = pricing.innerOffer?.price;
+    const total = pricing.price;
+    if (outer && inner && total) {
+      const matchingCurrency = outer.currency === inner.currency && inner.currency === total.currency;
+      const calculated = matchingCurrency
+        ? Math.round((Number(outer.amount) + Number(inner.amount)) * 100) / 100
+        : NaN;
+      const valid = matchingCurrency && [outer.amount, inner.amount, total.amount]
+        .every(value => Number.isFinite(Number(value)));
+      if (valid) {
+        block.append(node("strong", "issue23-fare-reconciliation",
+          `Outer ${money(outer)} + Inner ${money(inner)} = ${money({ amount: calculated, currency: total.currency })}`));
+        if (Math.abs(calculated - Number(total.amount)) > 0.005) {
+          block.append(node("strong", "issue23-fare-mismatch",
+            "Fare reconciliation mismatch — do not rely on this quote; recheck the provider fares."));
+        }
+      } else {
+        block.append(node("strong", "issue23-fare-mismatch",
+          "Ticket price/currency reconciliation unavailable — recheck before sharing."));
+      }
+    }
+    if (pricing.confirmedAt) {
+      block.append(node("span", null, `Kiwi fare checked: ${new Date(pricing.confirmedAt).toLocaleString("en-CA", { timeZone: "America/Toronto" })} Montréal time.`));
+    }
+    if (pricing.outerOffer?.provider === "KIWI" || pricing.innerOffer?.provider === "KIWI") {
+      block.append(node("span", null,
+        "These are prices returned by Kiwi during Cuberence's exact check, NOT locked checkout totals. Reopening either Kiwi ticket may show updated fares, baggage/ancillary choices or checkout charges. The two ticket links must be checked separately."));
+    }
     const details = [
       pricing.proxyPrice ? `Indicative was ${money(pricing.proxyPrice)}` : null,
       pricing.delta ? `Change ${money(pricing.delta)}${Number.isFinite(pricing.deltaPercent) ? ` (${pricing.deltaPercent.toFixed(1)}%)` : ""}` : null,
@@ -148,8 +177,8 @@
     if (!pricing?.outerOffer && !pricing?.innerOffer) return null;
     const block = node("section", "issue23-confirmed-offers");
     const heading = node("div", "issue23-subheading");
-    heading.append(node("strong", null, "Exact-confirmed tickets"));
-    heading.append(node("span", null, "Final fare evidence"));
+    heading.append(node("strong", null, "Kiwi tickets — quoted at exact check"));
+    heading.append(node("span", null, "Confirm current checkout prices separately; fares are not locked"));
     block.append(heading);
     [["Outer ticket", pricing.outerOffer], ["Inner ticket", pricing.innerOffer]].forEach(([label, offer]) => {
       if (!offer) return;
