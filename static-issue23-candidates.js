@@ -115,7 +115,7 @@
     ].filter(Boolean).join(" · ");
     block.append(node("span", null, candidate?.kiwiLinkedPricing
       ? "Both Kiwi tickets were checked together for connection feasibility. " + (details || "")
-      : "No validated Kiwi links for these ADB flights. Do not interpret reference prices as an exact quote. " + (details || ""));
+      : "No validated Kiwi links for these ADB flights. Do not interpret reference prices as an exact quote. " + (details || "")));
     const links = kiwiOfferLinks(candidate);
     if (links) block.append(links);
     return block;
