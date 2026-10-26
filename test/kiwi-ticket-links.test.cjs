@@ -127,3 +127,13 @@ test("Kiwi exact ticket arithmetic is shown with cents and checkout caveat", () 
   assert.match(txt,/checkout/i);
   assert.doesNotMatch(txt,/reconciliation mismatch/i);
 });
+
+test("provider quote with a wrong sum is flagged, not hidden", () => {
+  const quote = {
+    price:{amount:1867,currency:"CAD"},
+    outerOffer:{...kiwi("a","https://www.kiwi.com/a"),price:{amount:768,currency:"CAD"}},
+    innerOffer:{...kiwi("b","https://www.kiwi.com/b"),price:{amount:1097.99,currency:"CAD"}}
+  };
+  const block=ctx.testViews.confirmedBlock({confirmedPricing:quote});
+  assert.match(block.children.map(x=>x.text ?? "").join(" "),/reconciliation mismatch/i);
+});
