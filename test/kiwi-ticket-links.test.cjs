@@ -33,7 +33,7 @@ test('non-Kiwi or unsafe URLs do not create links', () => {
 ctx.document = { readyState: 'loading', addEventListener() {} };
 ctx.CuberenceIssue23 = { s: {}, node, money: p => p?.amount, formatDateTime: t => t, syncFns: [] };
 const candidates = fs.readFileSync('static-issue23-candidates.js', 'utf8');
-vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
+vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, confirmedBlock, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
 test('Kiwi-linked candidates show only their two validated returned fare links', () => {
  const block = ctx.testViews.kiwiOfferLinks({ kiwiLinkedPricing: {price:{amount:825,currency:'CAD'}}, offers: [kiwi('outer', 'https://www.kiwi.com/outer'), { provider: 'SABRE' }] });
  assert.equal(block.children.length, 1);
