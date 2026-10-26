@@ -33,7 +33,7 @@ test('non-Kiwi or unsafe URLs do not create links', () => {
 ctx.document = { readyState: 'loading', addEventListener() {} };
 ctx.CuberenceIssue23 = { s: {}, node, money: p => p?.amount, formatDateTime: t => t, syncFns: [] };
 const candidates = fs.readFileSync('static-issue23-candidates.js', 'utf8');
-vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
+vm.runInContext(candidates.replace('  syncFns.push(syncCandidates);', '  globalThis.testViews = { kiwiOfferLinks, confirmedTickets, confirmedBlock, scheduleBlock, scheduleChangeBlock };\n  syncFns.push(syncCandidates);'), ctx);
 test('Kiwi-linked candidates show only their two validated returned fare links', () => {
  const block = ctx.testViews.kiwiOfferLinks({ kiwiLinkedPricing: {price:{amount:825,currency:'CAD'}}, offers: [kiwi('outer', 'https://www.kiwi.com/outer'), { provider: 'SABRE' }] });
  assert.equal(block.children.length, 1);
@@ -111,4 +111,29 @@ test('verified codeshare alternative shows its own actual Kiwi fares, flights an
  assert.deepEqual(links.map(x=>x.href),['https://www.kiwi.com/codeshare-outer','https://www.kiwi.com/codeshare-inner']);
  assert.doesNotMatch(texts,/the itinerary you selected\./);
  assert.match(texts,/advisor has not authorized/i);
+});
+
+test("Kiwi exact ticket arithmetic is shown with cents and checkout caveat", () => {
+  const quote = {
+    confirmedAt:"2026-10-26T22:16:58Z", price:{amount:1865.99,currency:"CAD"},
+    outerOffer:{...kiwi("a","https://www.kiwi.com/a"),price:{amount:768,currency:"CAD"}},
+    innerOffer:{...kiwi("b","https://www.kiwi.com/b"),price:{amount:1097.99,currency:"CAD"}}
+  };
+  const block = ctx.testViews.confirmedBlock({confirmedPricing:quote});
+  const txt=block.children.map(x=>x.text ?? "").join(" ");
+  assert.match(txt,/768/);
+  assert.match(txt,/1097.99/);
+  assert.match(txt,/1865.99/);
+  assert.match(txt,/checkout/i);
+  assert.doesNotMatch(txt,/reconciliation mismatch/i);
+});
+
+test("provider quote with a wrong sum is flagged, not hidden", () => {
+  const quote = {
+    price:{amount:1867,currency:"CAD"},
+    outerOffer:{...kiwi("a","https://www.kiwi.com/a"),price:{amount:768,currency:"CAD"}},
+    innerOffer:{...kiwi("b","https://www.kiwi.com/b"),price:{amount:1097.99,currency:"CAD"}}
+  };
+  const block=ctx.testViews.confirmedBlock({confirmedPricing:quote});
+  assert.match(block.children.map(x=>x.text ?? "").join(" "),/reconciliation mismatch/i);
 });
