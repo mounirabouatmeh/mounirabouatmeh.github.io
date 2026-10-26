@@ -609,19 +609,19 @@
 .hero.hero-journey .inventory-highlight{
   display:flex;align-items:flex-start;gap:13px;
   margin-top:20px;padding:17px 18px;
-  border:1px solid #b5cefa;border-left:4px solid #1666ff;
-  border-radius:13px;background:linear-gradient(110deg,#eaf3ff,#f5f9ff);
-  box-shadow:0 9px 21px rgba(22,102,255,.06)
+  border:1px solid #aedcc1;border-left:4px solid #198754;
+  border-radius:13px;background:linear-gradient(110deg,#e7f7ee,#f2fbf6);
+  box-shadow:0 9px 21px rgba(22,122,72,.09)
 }
 .inventory-highlight-icon{
   flex:0 0 37px;width:37px;height:37px;display:grid;place-items:center;
-  border-radius:11px;background:#1666ff;color:#fff;font-size:22px;line-height:1
+  border-radius:11px;background:#198754;color:#fff;font-size:22px;line-height:1
 }
 .inventory-highlight-copy{min-width:0;display:grid;gap:5px}
-.inventory-highlight-copy>strong{color:#123e7c;font-size:16px;font-weight:900;line-height:1.32}
-.inventory-highlight-copy>span{color:#516887;font-size:13px;line-height:1.48;font-weight:650}
-.inventory-highlight-copy>span b{color:#1156b5;font-weight:850}
-.inventory-highlight-copy>span i{font-style:normal;color:#7c9ac3;padding:0 4px}
+.inventory-highlight-copy>strong{color:#145d3b;font-size:16px;font-weight:900;line-height:1.32}
+.inventory-highlight-copy>span{color:#466b56;font-size:13px;line-height:1.48;font-weight:650}
+.inventory-highlight-copy>span b{color:#14653e;font-weight:850}
+.inventory-highlight-copy>span i{font-style:normal;color:#77a18a;padding:0 4px}
 .hero.hero-journey .journey-stage.journey-stage-agency{
   display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
   align-items:center;gap:clamp(32px,4vw,58px);
@@ -703,6 +703,15 @@
   font-size:clamp(15px,1.17vw,17px);
   line-height:1.55;
   font-weight:650;
+}
+.hero.hero-journey .agency-pressure .same-ticket-line{
+  display:block;
+  margin-bottom:7px;
+  font-size:clamp(18px,1.48vw,21px);
+  font-weight:900;
+  letter-spacing:-.025em;
+  color:#143d76;
+  line-height:1.22;
 }
 .hero.hero-journey .journey-stage-agency .journey-copy .agency-positioning{
   margin-top:15px;
