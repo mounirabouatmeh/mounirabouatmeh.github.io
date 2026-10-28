@@ -96,7 +96,39 @@
     if (target.firstElementChild !== funnel) target.prepend(funnel);
   }
 
+  /** Engine G5 is the ONLY recommendation authority whenever supplied.
+   * The former universe recommendation categories were a different, unpriced
+   * legacy ranking and must never supplement/replace engine selected rows.
+   * WITHHELD/STALE intentionally displays no priced recommendations.
+   */
+  function engineRecommendationTable() {
+    const table = s.pricing?.recommendationTableV1;
+    if (!table || table.schemaVersion !== 1 || table.owner !== "CUBERENCE_ENGINE" ||
+        table.mode !== "EXPLANATION_ONLY" || table.definition !== "CHEAPEST_DISCOVERED_AND_VALIDATED" ||
+        table.state !== "READY" || !Array.isArray(table.rows)) return null;
+    const rows = table.rows;
+    if (rows.length > 6 || new Set(rows.map((row) => row?.candidateId)).size !== rows.length ||
+        rows.some((row) => !row?.candidateId || row.priceEvidence !== "FLIGHT_MATCHED_PROVIDER_SHOP" ||
+          !Number.isFinite(row.price?.amount) || row.price.amount <= 0 ||
+          !row.outerTicket?.offerId || !row.innerTicket?.offerId ||
+          Math.round((Number(row.outerTicket?.price?.amount) + Number(row.innerTicket?.price?.amount)) * 100) !==
+            Math.round(row.price.amount * 100))) return null;
+    return table;
+  }
+
+  function engineRowFor(candidateOrId) {
+    const id = typeof candidateOrId === "string" ? candidateOrId : candidateOrId?.id;
+    if (!id) return null;
+    return engineRecommendationTable()?.rows.find((row) => row.candidateId === id) ?? null;
+  }
+
   function recommendedIds() {
+    // The engine table is also a versioned absence-of-authority signal:
+    // never fall back to legacy picks if it is withheld, stale, or invalid.
+    if (s.pricing?.recommendationTableV1 != null) {
+      return new Set((engineRecommendationTable()?.rows ?? []).map((row) => String(row.candidateId)));
+    }
+    // Old stored jobs without any G5 table retain their legacy behavior.
     const ids = new Set();
     const categories = s.pricing?.page?.fullAnalysis?.universeRecommendationCategories ?? {};
     Object.values(categories).flat().forEach((id) => id && ids.add(String(id)));
@@ -129,7 +161,8 @@
   };
 
   function compactCandidate(record) {
-    const amount = record.totalPrice == null ? null : Number(record.totalPrice);
+    const selected = engineRowFor(String(record.candidateId));
+    const amount = selected ? selected.price.amount : record.totalPrice == null ? null : Number(record.totalPrice);
     const currency = String(universe()?.currency ?? s.pricing?.candidates?.find((candidate) => candidate?.totalPrice?.currency)?.totalPrice?.currency ?? "");
     return {
       id: String(record.candidateId),
@@ -138,7 +171,14 @@
       ...(Number.isFinite(amount) ? { totalPrice: { amount, currency } } : {}),
       candidateStatus: String(record.candidateStatus ?? "VALID"),
       pricingStatus: String(record.pricingStatus ?? (Number.isFinite(amount) ? "PROXY" : "UNPRICED")),
-      usableCityHours: Number(record.usableCityHours ?? 0),
+      usableCityHours: Number(selected?.usableCityHours ?? record.usableCityHours ?? 0),
+      ...(selected ? {
+        exactSchedule: selected.exactSchedule,
+        facts: selected.facts,
+        fareEvidenceAuthority: selected.priceEvidence,
+        engineFareBasis: selected.fareBasis ?? "EXACT_MARKETED_FLIGHTS",
+      } : {}),
+      destinationNights: Number(record.destinationNights ?? 0),
       strategy: "SPLIT",
       risks: typeof record.risks === "string" ? record.risks.split("|").filter(Boolean) : [],
       _compactUniverseCandidate: true,
@@ -299,12 +339,23 @@
       const candidate = visible[index];
       const record = recordFor(candidate);
       const valid = STRUCTURALLY_USABLE.has(String(record?.candidateStatus ?? candidate?.candidateStatus));
-      const recommended = candidate && recommendations.has(String(candidate.id)) && String(record?.pricingStatus) !== "EXACT_CHECK_FAILED";
+      const authoritative = engineRowFor(candidate);
+      const recommended = candidate && recommendations.has(String(candidate.id)) &&
+        (s.pricing?.recommendationTableV1 != null || String(record?.pricingStatus) !== "EXACT_CHECK_FAILED");
       card.hidden = !valid || (view.mode === "recommended" && !recommended);
       card.dataset.candidateId = candidate?.id ?? "";
       card.classList.toggle("issue115-recommended-card", recommended);
       let marker = card.querySelector(".issue115-luna-pick");
-      if (recommended && !marker) { marker = node("span", "issue115-luna-pick", "Luna recommendation"); card.prepend(marker); }
+      if (recommended && !marker) { marker = node("span", "issue115-luna-pick"); card.prepend(marker); }
+      if (recommended && marker) {
+        setText(marker, authoritative
+          ? authoritative.tag === "BOTH"
+            ? `Cheapest #${authoritative.cheapestRank} · Experience #${authoritative.experienceRank}`
+            : authoritative.tag === "FEASIBLE_CHEAPEST"
+              ? `💰 Cheapest #${authoritative.cheapestRank}`
+              : `✨ Best experience #${authoritative.experienceRank}`
+          : "Legacy Luna recommendation");
+      }
       if (!recommended) marker?.remove();
       if (String(record?.pricingStatus ?? C.candidateStatus(candidate)) === "EXACT_CHECK_FAILED") {
         let notice = card.querySelector(".issue115-external-pricing");
@@ -365,7 +416,7 @@
   }
 
   syncFns.unshift(queue);
-  globalThis.CuberenceIssue115 = { records, usableRecords, recommendedIds, pricingFunnelCounts, structurallyValidNights, setView };
+  globalThis.CuberenceIssue115 = { records, usableRecords, recommendedIds, engineRowFor, pricingFunnelCounts, structurallyValidNights, setView };
 
   async function loadEnvironment() {
     try {
