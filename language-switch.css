@@ -1,0 +1,10 @@
+/* EN/FR language choice for public marketing pages; shared by both locales. */
+.nav-actions{gap:clamp(10px,1.25vw,20px)}
+.language-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid #d7e2f1;border-radius:999px;background:#f8fbff;flex-shrink:0;white-space:nowrap}
+.language-switch a{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:28px;padding:3px 7px;border-radius:999px;color:#51627b;font-size:12px;font-weight:800;letter-spacing:.02em}
+.language-switch a:hover{background:#edf3ff}
+.language-switch a[aria-current="page"]{background:#e5eeff;color:#1258dc}
+.language-switch a:focus-visible,.mobile-language-choice:focus-visible{outline:3px solid #3f80ff;outline-offset:3px}
+.mobile-language-choice{display:none;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #d2dded;border-radius:11px;background:#f8fbff;color:#145cce;font-size:12px;font-weight:800;flex-shrink:0}
+@media(max-width:1120px){.mobile-language-choice{display:inline-flex}.mobile-nav{gap:7px}}
+@media(max-width:390px){.topbar .brand span{font-size:12px;letter-spacing:.09em}.mobile-demo-cta{font-size:11px;padding:8px 9px}.mobile-nav{gap:5px}.mobile-language-choice{width:34px;height:36px}.mobile-menu summary{width:36px;height:36px}}
