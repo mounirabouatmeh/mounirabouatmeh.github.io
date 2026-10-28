@@ -42,4 +42,14 @@ node --test test/*.test.cjs
 
 The G5 parity regression `test/issue258-authoritative-engine-recommendations.test.cjs` reproduces nine historical picks vs the five verified Paris rows and checks the fail-closed table behavior. Current marketing language/route examples live in `index.html` and `fr/` translations.
 
+## G7 retired UI overlay register
+
+The pre-G0–G7 browser scripts `static-issue16.js` (parallel pricing/selection state interceptor and obsolete fixed-date sample prompt) and `static-sticky-progress.js` (duplicate progress-state tracker) were **retired** after verifying **no production or demo script references** in this repo or `Cuberence-App`. The site CI now **requires both paths to remain absent**. Their previous history is preserved in Git.
+
+These replacements remain authoritative and must not be deleted:
+- `static-issue23-state.js`, `static-issue23-workflow.js`: the current advisor workflow and flight-validation state machine
+- `static-issue115.js`, `static-issue23-candidates.js`: the G5 engine-ranked recommendation IDs and complete provider-matched fare evidence
+- `static-issue95.js` and `static-issue95-guard.js`: **dynamically loaded** by `static-issue25.js` for off-page candidate details/selection; the absence of a static demo script tag does **not** imply unused code
+- `static-issue14-land.js`: geographical data used by the hub map; not a workflow duplicate
+
 **Historical note:** older `/app` public demo, Next.js agent-shell files and pre-G5 recommendation field readers remain for compatibility/developer tests. They must not be presented as the currently authenticated production advisor architecture. Do not delete them until source references and migration tests prove they are unused.

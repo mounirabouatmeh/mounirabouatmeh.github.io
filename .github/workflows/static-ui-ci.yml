@@ -29,12 +29,10 @@ on:
       - static-pricing-summary.css
       - static-flow.js
       - static-flow.css
-      - static-sticky-progress.js
       - static-sticky-progress.css
       - static-workspace-enhancements.css
       - static-issue14.js
       - static-issue14.css
-      - static-issue16.js
       - static-issue16.css
       - static-issue20.js
       - static-issue20.css
@@ -76,9 +74,7 @@ jobs:
           node --check static-markdown.js
           node --check static-pricing-summary.js
           node --check static-flow.js
-          node --check static-sticky-progress.js
           node --check static-issue14.js
-          node --check static-issue16.js
           node --check static-issue20.js
           node --check static-issue23-state.js
           node --check static-issue23-workflow.js
@@ -279,6 +275,10 @@ jobs:
           fi
 
           # The old observer-driven tracker/selection runtimes must not compete with the current flow.
+          # G7: browser overlays replaced by the canonical issue23 state flow
+          # must stay retired, not merely omitted from a demo script tag.
+          test ! -e static-sticky-progress.js
+          test ! -e static-issue16.js
           if grep -q '<script src="./static-sticky-progress.js' demo/index.html; then
             echo "Issue #23 requires static-sticky-progress.js to remain out of the live runtime"
             exit 1
