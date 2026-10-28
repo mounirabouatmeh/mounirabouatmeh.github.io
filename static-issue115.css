@@ -135,3 +135,7 @@
 .issue148-canonical-line{font-size:13px;font-weight:750;line-height:1.6;color:#173f31}
 @media(max-width:520px){.issue145-funnel-flow{gap:8px 7px}.issue154-funnel-chunk{max-width:100%}.issue148-status-breakdown{width:100%}.issue148-status-arrow{display:none}.issue148-canonical-line{font-size:12px}}
 
+
+/* Engine-owned priced shortlist; always disclose missing experience coverage. */
+.issue258-recommendation-coverage{margin:7px 0 10px;padding:8px 10px;border:1px solid #b9d6c9;border-radius:9px;background:#f4faf7;color:#224737;font-size:12px;line-height:1.45;font-weight:700}
+.issue258-engine-evidence{border-left:3px solid #19835f}
