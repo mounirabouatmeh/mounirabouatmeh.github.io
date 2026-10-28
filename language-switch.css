@@ -8,3 +8,6 @@
 .mobile-language-choice{display:none;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #d2dded;border-radius:11px;background:#f8fbff;color:#145cce;font-size:12px;font-weight:800;flex-shrink:0}
 @media(max-width:1120px){.mobile-language-choice{display:inline-flex}.mobile-nav{gap:7px}}
 @media(max-width:390px){.topbar .brand span{font-size:12px;letter-spacing:.09em}.mobile-demo-cta{font-size:11px;padding:8px 9px}.mobile-nav{gap:5px}.mobile-language-choice{width:34px;height:36px}.mobile-menu summary{width:36px;height:36px}}
+
+/* Switch to the established mobile navigation before longer bilingual labels crowd the header. */
+@media(max-width:1280px){.nav-actions{display:none}.mobile-nav{display:flex}}
