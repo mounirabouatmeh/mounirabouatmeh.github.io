@@ -4,6 +4,12 @@ on:
   pull_request:
     paths:
       - index.html
+      - about/index.html
+      - fr/index.html
+      - fr/about/index.html
+      - language-switch.js
+      - language-switch.css
+      - test/marketing-i18n.test.cjs
       - demo/index.html
       - cuberence-logo-v2.png
       - static-app.js
@@ -83,6 +89,10 @@ jobs:
           node --check static-issue95-guard.js
           node --check static-welcome-copy.js
           node --check static-intent-sync.js
+      - name: Verify marketing English/French structural parity
+        run: |
+          node --check language-switch.js
+          node --test test/marketing-i18n.test.cjs
       - name: Verify Kiwi offer booking links
         run: node --test test/kiwi-ticket-links.test.cjs
       - name: Verify staged hub status transitions
