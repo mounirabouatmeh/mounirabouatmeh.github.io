@@ -307,6 +307,27 @@
     renderPricingFunnel();
 
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
+    // Show a truthful partial shortlist, never invent the third experience
+    // recommendation or silently promote an unpriced legacy candidate.
+    const table = engineRecommendationTable();
+    const enginePresent = s.pricing?.recommendationTableV1 != null;
+    let note = document.querySelector("#pricing-content .issue258-recommendation-coverage");
+    if (enginePresent && filterRow) {
+      if (!note) {
+        note = node("p", "issue258-recommendation-coverage");
+        filterRow.before(note);
+      }
+      const cheapCount = table?.rows.filter((row) =>
+        row.tag === "FEASIBLE_CHEAPEST" || row.tag === "BOTH").length ?? 0;
+      const experienceCount = table?.rows.filter((row) =>
+        row.tag === "BEST_EXPERIENCE" || row.tag === "BOTH").length ?? 0;
+      setText(note, table
+        ? `Engine-validated: ${cheapCount}/3 cheapest · ${experienceCount}/3 best experiences. ` +
+          (experienceCount < 3 || cheapCount < 3
+            ? "Missing verified fares are not promoted as recommendations." : "All priced selections are shown.")
+        : "Cuberence recommendations are not available with verified prices for this job.");
+      note.hidden = view.mode !== "recommended";
+    }
     if (filterRow && !document.querySelector(".issue115-view-switcher")) {
       const switcher = node("div", "issue115-view-switcher");
       const all = node("button", "issue115-view-button", `Ticket-compatible itineraries (${usable.length})`);
