@@ -39,3 +39,25 @@ test("French language routes remain inside French marketing site", () => {
   assert.match(about, /href="\/fr\/" aria-label="Accueil de Cuberence"/);
   assert.match(read("language-switch.js"), /cuberence-marketing-language/);
 });
+
+test("French marketing copy uses clear travel-agent vocabulary", () => {
+  const home = read("fr/index.html");
+  const about = read("fr/about/index.html");
+  assert.match(home, /Chaque voyage peut en cacher un autre/);
+  assert.match(home, /correspondance en un séjour de 1 à 3 nuits/);
+  assert.match(home, /vendre|ventes d’hôtels/);
+  assert.match(home, /billetterie/);
+  assert.match(home, /<strong>1 000\+<\/strong>/);
+  assert.match(home, /Planifier une démo/);
+  assert.match(about, /conseillers et les agences de voyages/);
+  for (const expression of [
+    "mini-destination passionnante",
+    "vols prometteurs",
+    "Cuberence en pratique en action",
+    "Le même billet. Partout.",
+    "la flexibilité de votre client",
+    "des agences en ligne, de l’IA"
+  ]) {
+    assert.ok(!home.toLowerCase().includes(expression.toLowerCase()), "Avoid literal or clumsy wording: " + expression);
+  }
+});
