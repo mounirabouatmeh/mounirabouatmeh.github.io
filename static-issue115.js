@@ -143,7 +143,10 @@
   function engineRowFor(candidateOrId) {
     const id = typeof candidateOrId === "string" ? candidateOrId : candidateOrId?.id;
     if (!id) return null;
-    return engineRecommendationTable()?.rows.find(r => r.candidateId === id) ?? null;
+    // Step 9 owns recommendation categories; Step 8 independently owns
+    // verified prices for ALL candidates (including non-recommended ones).
+    return engineRecommendationTable()?.rows.find(r => r.candidateId === id) ??
+      C.pricedRowFor?.(id) ?? null;
   }
 
   function recommendedIds() {
@@ -236,6 +239,7 @@
       const primaryEvaluationIds = new Set(primary.evaluations.map((item) => String(item?.candidateId)));
       primary.evaluations.push(...evaluations.filter((item) => !primaryEvaluationIds.has(String(item.candidateId))));
     }
+    C.sortCandidatePages?.();
   }
 
   function setView(nextMode) {
@@ -319,6 +323,16 @@
     renderPricingFunnel();
 
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
+    let orderNote = document.querySelector("#pricing-content .issue100-price-order");
+    if (filterRow && C.pricingSortStatus?.() === "ready") {
+      if (!orderNote) {
+        orderNote = node("p", "issue100-price-order");
+        orderNote.style.cssText = "font-size:12px;color:#416a58;margin:8px 0 4px";
+        filterRow.before(orderNote);
+      }
+      setText(orderNote, "Sorted by verified flight fare: lowest to highest · unpriced last");
+    } else orderNote?.remove();
+
     // Step 9 coverage only; no historical recommendation fallback.
     const table = engineRecommendationTable();
     const rawStep9 = s.pricing?.step9Assessment;

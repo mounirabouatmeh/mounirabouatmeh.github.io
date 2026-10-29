@@ -229,6 +229,7 @@
   // This is price evidence, NOT a subjective recommendation fallback.
   C.pricedRowFor = id => matchedFares.get(String(id)) ?? null;
   C.pricingSortStatus = () => sortState;
+  C.sortCandidatePages = () => { if (sortJobId) sortLoadedCandidates(); };
 
   function compactCandidate(row, columns, currency) {
     const record = universeRecord(row, columns);
@@ -363,10 +364,11 @@
     if (!target || !universe) return;
 
     const total = Number(universe.total ?? universe.rows?.length ?? 0);
-    const loaded = sortJobId ? pageCursor : (s.pricing?.candidates?.length ?? 0);
+    const loaded = s.pricing?.candidates?.length ?? 0;
+    const cursor = sortJobId ? pageCursor : loaded;
     let control = target.querySelector(".issue100-pagination");
 
-    if (!total || loaded >= total) {
+    if (!total || cursor >= total) {
       control?.remove();
       return;
     }
@@ -398,7 +400,7 @@
       else target.append(control);
     }
 
-    const nextCount = Math.min(PAGE_SIZE, total - loaded);
+    const nextCount = Math.min(PAGE_SIZE, total - cursor);
     if (button) {
       button.textContent = `Load ${nextCount} more candidates`;
       button.setAttribute("aria-label", `Load more candidates. ${loaded} of ${total} currently shown.`);
