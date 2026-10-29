@@ -113,6 +113,23 @@ test("comparable price ties preserve canonical numbering",()=>{
   assert.equal(firstTwo[1].id,b.candidateId);
 });
 
+test("equal-price ties honor immutable Step8 final cheapest ranks without renumbering", () => {
+  const data = build(9, 3);
+  const priced = data.table.rows.filter(r => r.pricingStatus === "PRICED");
+  const [a,b] = priced;
+  b.totalPrice = a.totalPrice;
+  b.innerPrice = a.innerPrice;
+  b.baselineDelta = a.baselineDelta;
+  // Intentionally reverse display numbers versus engine-owned cheapest rank.
+  a.finalCheapestRank = 2;
+  b.finalCheapestRank = 1;
+  const { api, s } = ctx(data);
+  assert.equal(api.applyStep8PriceOrder(data.table,"abc-job"),true);
+  const order = s.pricing.candidates.map(x=>x.id);
+  assert.ok(order.indexOf(b.candidateId) < order.indexOf(a.candidateId));
+  assert.equal(data.table.rows.find(r=>r.candidateId===b.candidateId).finalCheapestRank,1);
+});
+
 test("reject contradictory fare data and stay unsorted instead of treating proxy as a fare",()=>{
   const data=build();
   const {api,s}=ctx(data);

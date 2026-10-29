@@ -94,6 +94,9 @@
     const flight = f => f ? { ...f, originTimeZone: "UTC", destinationTimeZone: "UTC" } : null;
     return {
       candidateId: String(row.candidateId),
+      finalCheapestRank: Number.isInteger(row.finalCheapestRank) &&
+        row.finalCheapestRank >= 1 && row.finalCheapestRank <= 3
+        ? row.finalCheapestRank : null,
       price: { amount: totalPrice, currency },
       outerTicket: { price: { amount: outerPrice, currency } },
       innerTicket: { price: { amount: innerPrice, currency } },
@@ -121,6 +124,13 @@
     const pricedA = Number.isFinite(priceA), pricedB = Number.isFinite(priceB);
     if (pricedA !== pricedB) return pricedA ? -1 : 1;
     if (pricedA && priceA !== priceB) return priceA - priceB;
+    // Display the engine-owned cheapest three in their existing final rank
+    // when prices tie. Do not recalculate or change those ranks.
+    if (pricedA) {
+      const rA = matchedFares.get(idA)?.finalCheapestRank ?? Infinity;
+      const rB = matchedFares.get(idB)?.finalCheapestRank ?? Infinity;
+      if (rA !== rB) return rA - rB;
+    }
     const nA = Number(a[numberAt]), nB = Number(b[numberAt]);
     return Number.isFinite(nA) && Number.isFinite(nB) && nA !== nB
       ? nA - nB : idA.localeCompare(idB);
