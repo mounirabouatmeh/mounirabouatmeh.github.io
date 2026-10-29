@@ -7,6 +7,13 @@
   const confirmationsByCandidate = new Map();
   let activePricingId = null;
   let paginationRenderQueued = false;
+  const matchedFares = new Map();
+  const originalDetails = new Map();
+  let sortJobId = null;
+  let sortRequestedId = null;
+  let sortState = "idle";
+  let pageCursor = PAGE_SIZE;
+
 
   const originalCandidateStatus = C.candidateStatus;
   const originalEffectiveCandidate = C.effectiveCandidate;
@@ -16,6 +23,12 @@
     if (pricingId && pricingId !== activePricingId) {
       activePricingId = pricingId;
       confirmationsByCandidate.clear();
+      matchedFares.clear();
+      originalDetails.clear();
+      sortJobId = null;
+      sortRequestedId = null;
+      sortState = "idle";
+      pageCursor = PAGE_SIZE;
     }
 
     const confirmation = s.confirmation;
@@ -69,6 +82,153 @@
     if (!Array.isArray(row) || !Array.isArray(columns)) return null;
     return Object.fromEntries(columns.map((column, index) => [column, row[index] ?? null]));
   }
+
+
+  /** Verified matched fares ONLY: ignore market-reference and partial prices. */
+  function matchedFare(row, currency) {
+    if (!row?.candidateId || row.pricingStatus !== "PRICED" ||
+        row.priceEvidence !== "FLIGHT_MATCHED_PROVIDER_SHOP") return null;
+    const { outerPrice, innerPrice, totalPrice } = row;
+    if (![outerPrice,innerPrice,totalPrice].every(n => Number.isFinite(n) && n > 0) ||
+        Math.round((outerPrice + innerPrice) * 100) !== Math.round(totalPrice * 100)) return null;
+    const flight = f => f ? { ...f, originTimeZone: "UTC", destinationTimeZone: "UTC" } : null;
+    return {
+      candidateId: String(row.candidateId),
+      price: { amount: totalPrice, currency },
+      outerTicket: { price: { amount: outerPrice, currency } },
+      innerTicket: { price: { amount: innerPrice, currency } },
+      baselineDelta: Number.isFinite(row.baselineDelta) ? { amount: row.baselineDelta, currency } : null,
+      fareBasis: row.reviewRequired ? "TIME_MATCH_REVIEW" : "FLIGHT_MATCHED_PROVIDER_SHOP",
+      priceEvidence: "FLIGHT_MATCHED_PROVIDER_SHOP",
+      exactSchedule: {
+        source: "Cuberence",
+        outerOutbound: flight(row.flights?.outerOutbound),
+        innerOutbound: flight(row.flights?.innerOutbound),
+        innerReturn: flight(row.flights?.innerReturn),
+        outerReturn: flight(row.flights?.outerReturn),
+      },
+      facts: { hubNights: row.hubNights, usableCityHours: row.usableCityHours,
+        returnSelfConnectMinutes: row.returnSelfConnectMinutes },
+    };
+  }
+
+  function priceOrder(a, b, columns) {
+    const idAt = columns.indexOf("candidateId");
+    const numberAt = columns.indexOf("candidateNumber");
+    const idA = String(a[idAt]), idB = String(b[idAt]);
+    const priceA = matchedFares.get(idA)?.price.amount;
+    const priceB = matchedFares.get(idB)?.price.amount;
+    const pricedA = Number.isFinite(priceA), pricedB = Number.isFinite(priceB);
+    if (pricedA !== pricedB) return pricedA ? -1 : 1;
+    if (pricedA && priceA !== priceB) return priceA - priceB;
+    const nA = Number(a[numberAt]), nB = Number(b[numberAt]);
+    return Number.isFinite(nA) && Number.isFinite(nB) && nA !== nB
+      ? nA - nB : idA.localeCompare(idB);
+  }
+
+  function recordId(row, columns) {
+    return String(row[columns.indexOf("candidateId")]);
+  }
+
+  function sortLoadedCandidates() {
+    const universe = candidateUniverse();
+    if (!universe || !Array.isArray(s.pricing?.candidates)) return;
+    const position = new Map(universe.rows.map((row, index) =>
+      [recordId(row, universe.columns), index]));
+    const sort = (a, b) => (position.get(String(a?.id)) ?? Infinity) -
+      (position.get(String(b?.id)) ?? Infinity);
+    s.pricing.candidates.sort(sort);
+    const primary = primaryPricingOutput();
+    if (primary?.candidates && primary !== s.pricing) primary.candidates.sort(sort);
+  }
+
+  function hydratedCandidate(row, columns, currency) {
+    const record = universeRecord(row, columns);
+    if (!record) return null;
+    const id = String(record.candidateId);
+    if (originalDetails.has(id)) return originalDetails.get(id);
+    const compact = compactCandidate(row, columns, currency);
+    const fare = matchedFares.get(id);
+    if (compact && fare) {
+      compact.totalPrice = fare.price;
+      compact.baselineDelta = fare.baselineDelta;
+      compact.exactSchedule = fare.exactSchedule;
+      compact.fareEvidenceAuthority = fare.priceEvidence;
+      compact.facts = { ...(compact.facts ?? {}), ...fare.facts };
+    }
+    return compact;
+  }
+
+  function applyStep8PriceOrder(table, jobId) {
+    const universe = candidateUniverse();
+    if (!Array.isArray(universe?.rows) || !Array.isArray(universe.columns) ||
+        !Array.isArray(table?.rows) || table.schemaVersion !== 2 ||
+        table.stage !== "STEP8_POST_ENRICHMENT_ANALYSIS" ||
+        table.candidateCount !== universe.rows.length) return false;
+    const idIndex = universe.columns.indexOf("candidateId");
+    if (idIndex < 0 || !universe.columns.includes("candidateNumber")) return false;
+    const ids = new Set(universe.rows.map(row => String(row[idIndex])));
+    if (ids.size !== universe.rows.length || table.rows.some(row => !ids.has(String(row?.candidateId)))) return false;
+    const currency = String(table.currency ?? universe.currency ?? "");
+    if (!/^[A-Z]{3}$/.test(currency)) return false;
+    const priced = table.rows.map(row => matchedFare(row, currency)).filter(Boolean);
+    if (priced.length !== table.fullyPricedCandidates) return false;
+    const originallyLoaded = Array.isArray(s.pricing?.candidates) ? [...s.pricing.candidates] : [];
+    for (const candidate of originallyLoaded) {
+      if (candidate?.id && !candidate._compactUniverseCandidate) {
+        originalDetails.set(String(candidate.id), candidate);
+      }
+    }
+    matchedFares.clear();
+    for (const fare of priced) matchedFares.set(fare.candidateId, fare);
+    universe.rows.sort((a,b) => priceOrder(a,b,universe.columns));
+
+    pageCursor = Math.min(universe.rows.length, Math.max(PAGE_SIZE, originallyLoaded.length));
+    const prefix = universe.rows.slice(0,pageCursor).map(row => recordId(row,universe.columns));
+    const keep = originallyLoaded.filter(candidate =>
+      candidate?.id === s.selectedCandidateId ||
+      (s.pricing.step9Assessment?.rows ?? []).some(row => row.candidateId === candidate?.id))
+      .map(candidate => String(candidate.id));
+    const sortedIds = new Set([...prefix,...keep]);
+    const recordById = new Map(universe.rows.map(row => [recordId(row,universe.columns),row]));
+    const candidates = [...sortedIds].map(id =>
+      hydratedCandidate(recordById.get(id),universe.columns,currency)).filter(Boolean);
+    s.pricing.candidates.splice(0,s.pricing.candidates.length,...candidates);
+    const primary = primaryPricingOutput();
+    if (primary && primary !== s.pricing) {
+      if (!Array.isArray(primary.candidates)) primary.candidates = [];
+      primary.candidates.splice(0,primary.candidates.length,...candidates);
+    }
+    sortJobId = jobId;
+    sortState = "ready";
+    sortLoadedCandidates();
+    try { if (typeof renderWorkspace === "function") renderWorkspace(); } catch {}
+    C.queue();
+    return true;
+  }
+
+  function ensurePriceOrdering() {
+    const jobId = String(s.pricingId ?? s.pricing?.pricingId ?? "");
+    if (s.pricing?.phase !== "completed" || !jobId || sortRequestedId === jobId) return;
+    sortRequestedId = jobId;
+    sortState = "loading";
+    fetch("/api/luna/step8-export?pricingId=" + encodeURIComponent(jobId), {
+      credentials: "same-origin", cache: "no-store",
+      headers: { Accept: "application/json" },
+    }).then(async response => {
+      if (!response.ok) throw Error("Step 8 export unavailable");
+      return response.json();
+    }).then(data => {
+      if (String(s.pricingId ?? s.pricing?.pricingId ?? "") !== jobId) return;
+      if (!applyStep8PriceOrder(data?.step8AnalysisTable,jobId)) sortState = "unavailable";
+    }).catch(() => {
+      if (String(s.pricingId ?? s.pricing?.pricingId ?? "") === jobId) sortState = "unavailable";
+    }).finally(() => C.queue());
+  }
+
+  // This is price evidence, NOT a subjective recommendation fallback.
+  C.pricedRowFor = id => matchedFares.get(String(id)) ?? null;
+  C.pricingSortStatus = () => sortState;
 
   function compactCandidate(row, columns, currency) {
     const record = universeRecord(row, columns);
@@ -160,26 +320,31 @@
     const universe = candidateUniverse();
     if (!universe?.rows?.length || !Array.isArray(universe.columns)) return;
 
-    const loaded = s.pricing?.candidates?.length ?? 0;
     const total = Number(universe.total ?? universe.rows.length);
-    if (loaded >= total) return;
+    const cursor = sortJobId ? pageCursor : (s.pricing?.candidates?.length ?? 0);
+    if (cursor >= total) return;
 
-    const nextRows = universe.rows.slice(loaded, Math.min(loaded + PAGE_SIZE, total));
+    const nextRows = universe.rows.slice(cursor, Math.min(cursor + PAGE_SIZE, total));
+    if (sortJobId) pageCursor = Math.min(cursor + PAGE_SIZE,total);
     const candidates = nextRows
-      .map((row) => compactCandidate(row, universe.columns, universe.currency))
+      .map(row => sortJobId
+        ? hydratedCandidate(row,universe.columns,universe.currency)
+        : compactCandidate(row,universe.columns,universe.currency))
       .filter(Boolean);
     const evaluations = nextRows
       .map((row) => compactEvaluation(row, universe.columns))
       .filter(Boolean);
 
     appendUnique(s.pricing.candidates, candidates);
+    if (sortJobId) sortLoadedCandidates();
     if (!Array.isArray(s.pricing.evaluations)) s.pricing.evaluations = [];
     appendEvaluations(s.pricing.evaluations, evaluations);
 
     const primary = primaryPricingOutput();
     if (primary) {
       if (!Array.isArray(primary.candidates)) primary.candidates = [];
-      appendUnique(primary.candidates, candidates.map((candidate) => ({ ...candidate })));
+      appendUnique(primary.candidates, candidates.map(candidate => ({ ...candidate })));
+      if (sortJobId) sortLoadedCandidates();
       if (!Array.isArray(primary.evaluations)) primary.evaluations = [];
       appendEvaluations(primary.evaluations, evaluations.map((evaluation) => ({ ...evaluation })));
     }
@@ -198,7 +363,7 @@
     if (!target || !universe) return;
 
     const total = Number(universe.total ?? universe.rows?.length ?? 0);
-    const loaded = s.pricing?.candidates?.length ?? 0;
+    const loaded = sortJobId ? pageCursor : (s.pricing?.candidates?.length ?? 0);
     let control = target.querySelector(".issue100-pagination");
 
     if (!total || loaded >= total) {
@@ -252,6 +417,7 @@
 
   function syncIssue100() {
     rememberCurrentConfirmation();
+    ensurePriceOrdering();
     queuePaginationControl();
   }
 
@@ -259,6 +425,7 @@
 
   const start = () => {
     rememberCurrentConfirmation();
+    ensurePriceOrdering();
     queuePaginationControl();
 
     const pricing = document.getElementById("pricing-content");
