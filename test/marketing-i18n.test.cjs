@@ -44,7 +44,7 @@ test("French marketing copy uses clear travel-agent vocabulary", () => {
   const home = read("fr/index.html");
   const about = read("fr/about/index.html");
   assert.match(home, /Chaque voyage peut en cacher un autre/);
-  assert.match(home, /correspondance en un séjour de 1 à 3 nuits/);
+  assert.match(home, /création de séjours de 1 à 3 nuits à partir des escales de vos clients/);
   assert.match(home, /vendre|ventes d’hôtels/);
   assert.match(home, /billetterie/);
   assert.match(home, /<strong>1 000\+<\/strong>/);
