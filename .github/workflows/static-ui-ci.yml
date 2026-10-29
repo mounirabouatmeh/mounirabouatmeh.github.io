@@ -49,6 +49,8 @@ on:
       - static-issue141.css
       - static-issue115.css
       - static-issue115.js
+      - static-issue100.js
+      - test/issue100-global-price-order.test.cjs
       - static-issue95.js
       - static-issue95-guard.js
       - static-welcome-copy.js
@@ -77,6 +79,8 @@ jobs:
           node --check static-issue14.js
           node --check static-issue20.js
           node --check static-issue23-state.js
+          node --check static-issue100.js
+          node --check static-issue115.js
           node --check static-issue23-workflow.js
           node --check static-issue23-candidates.js
           node --check static-issue23-selection.js
@@ -101,6 +105,8 @@ jobs:
         run: node --test test/kiwi-baseline-timezone.test.cjs
       - name: Verify canonical trip-combination funnel
         run: node --test test/issue154-canonical-trip-funnel.test.cjs
+      - name: Verify full-universe candidate price sorting and pagination
+        run: node --test test/issue100-global-price-order.test.cjs
       - name: Verify confirmation checkbox authorization proof
         run: node --test test/issue180-confirmation-ui.test.cjs
       - name: Verify engine-authoritative five recommendations
