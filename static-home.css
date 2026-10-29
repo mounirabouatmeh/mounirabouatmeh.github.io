@@ -780,6 +780,9 @@
   font-weight:600;
   letter-spacing:-.009em;
 }
+.hero-commercial-line p{margin:0;}
+.hero-commercial-line .hero-inventory-emphasis{color:#245bb4;font-weight:800;}
+.hero-commercial-line .hero-agency-benefits{margin-top:15px;font-weight:750;color:#173d69;}
 .hero.hero-journey .journey-intro .journey-intro-cta{
   display:inline-flex;
   margin-top:23px;
