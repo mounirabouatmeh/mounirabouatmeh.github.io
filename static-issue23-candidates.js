@@ -279,7 +279,7 @@
 
   function engineEvidenceBlock(row) {
     const block = node("div", "issue23-proxy-evidence issue258-engine-evidence");
-    block.append(node("strong", null, `Engine-validated fare: ${money(row.price)} · not locked or issued`));
+    block.append(node("strong", null, `Step 9 matched indicative fare: ${money(row.price)} · not locked or issued`));
     block.append(node("span", null,
       `Outer RT ${money(row.outerTicket.price)} + Inner RT ${money(row.innerTicket.price)}. ` +
       (row.fareBasis === "ADB_VERIFIED_CODESHARE"
@@ -374,7 +374,7 @@
     const selected = s.selectedCandidateId === candidate.id;
     const number = candidateNumber(candidate);
     const selectedEngineRow = globalThis.CuberenceIssue115?.engineRowFor?.(candidate.id) ?? null;
-    // A final advisor-authorized confirmation supersedes G5's earlier indicative quote.
+    // Advisor-authorized confirmation supersedes Step 9's indicative fare.
     const engineFare = (status === "PROXY" || status === "UNPRICED") ? selectedEngineRow : null;
     const hasFlightFare = Boolean(engineFare) || flightPriced(effective, status);
     const referenceOnly = status === "PROXY" && !hasFlightFare;
@@ -446,7 +446,7 @@
       : money(hasFlightFare ? effective.totalPrice : candidate.totalPrice);
     const priceLabel = status === "CONFIRMED"
       ? (effective.confirmedPricing?.outerOffer?.provider === "KIWI" ? "Quoted total (at check)" : "Confirmed total")
-      : engineFare ? "Engine-validated fare"
+      : engineFare ? "Step 9 indicative fare"
       : referenceOnly ? "Flight fare" : status === "SCHEDULE_CHANGED" ? "Selected fare"
       : status === "UNPRICED" ? "Price" : "Indicative total";
     updateFact(detail, "Total", displayedPrice, priceLabel);

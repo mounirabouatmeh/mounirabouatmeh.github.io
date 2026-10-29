@@ -96,47 +96,59 @@
     if (target.firstElementChild !== funnel) target.prepend(funnel);
   }
 
-  /** Engine G5 is the ONLY recommendation authority whenever supplied.
-   * The former universe recommendation categories were a different, unpriced
-   * legacy ranking and must never supplement/replace engine selected rows.
-   * WITHHELD/STALE intentionally displays no priced recommendations.
+  /** Step 9 is the sole recommendation authority; old rankers are disabled.
+   * The legacy card renderer expects a compact matched-fare evidence shape,
+   * which is projected here from immutable Step 9/Step 8 facts.
    */
   function engineRecommendationTable() {
-    const table = s.pricing?.recommendationTableV1;
-    if (!table || table.schemaVersion !== 1 || table.owner !== "CUBERENCE_ENGINE" ||
-        table.mode !== "EXPLANATION_ONLY" || table.definition !== "CHEAPEST_DISCOVERED_AND_VALIDATED" ||
-        table.state !== "READY" || !Array.isArray(table.rows)) return null;
-    const rows = table.rows;
-    if (rows.length > 6 || new Set(rows.map((row) => row?.candidateId)).size !== rows.length ||
-        rows.some((row) => !row?.candidateId || row.priceEvidence !== "FLIGHT_MATCHED_PROVIDER_SHOP" ||
-          !Number.isFinite(row.price?.amount) || row.price.amount <= 0 ||
-          !row.outerTicket?.offerId || !row.innerTicket?.offerId ||
-          Math.round((Number(row.outerTicket?.price?.amount) + Number(row.innerTicket?.price?.amount)) * 100) !==
-            Math.round(row.price.amount * 100))) return null;
-    return table;
+    const t = s.pricing?.step9Assessment;
+    if (!t || t.schemaVersion !== 1 || t.stage !== "STEP9_LUNA_INDEPENDENT_ASSESSMENT" ||
+        t.owner !== "LUNA_ANALYSIS_CUBERENCE_VALIDATED" || t.state !== "READY" ||
+        !Array.isArray(t.rows) || t.rows.length > 9) return null;
+    const rows = t.rows.map(r => {
+      if (!r?.candidateId || !Array.isArray(r.categories) || !r.categories.length ||
+          r.categories.some(x => !["CHEAPEST","BEST_EXPERIENCE","OVERALL_VALUE"].includes(x)) ||
+          !Number.isFinite(r.totalPrice) || r.totalPrice <= 0 ||
+          !Number.isFinite(r.outerPrice) || !Number.isFinite(r.innerPrice) ||
+          Math.round((r.outerPrice + r.innerPrice)*100) !== Math.round(r.totalPrice*100)) return null;
+      const price = { amount: r.totalPrice, currency: t.currency };
+      // Step 8 stores UTC instants, not guessed airport-local clock times.
+      const utc = f => f ? { ...f, originTimeZone: "UTC", destinationTimeZone: "UTC" } : null;
+      return {
+        ...r,
+        price,
+        outerTicket: { price: { amount: r.outerPrice, currency: t.currency } },
+        innerTicket: { price: { amount: r.innerPrice, currency: t.currency } },
+        baselineDelta: Number.isFinite(r.baselineDelta)
+          ? { amount: r.baselineDelta, currency: t.currency } : null,
+        priceEvidence: "FLIGHT_MATCHED_PROVIDER_SHOP",
+        fareBasis: r.reviewRequired ? "TIME_MATCH_REVIEW" : "FLIGHT_MATCHED_PROVIDER_SHOP",
+        exactSchedule: {
+          source: "Cuberence",
+          outerOutbound: utc(r.flights?.outerOutbound),
+          innerOutbound: utc(r.flights?.innerOutbound),
+          innerReturn: utc(r.flights?.innerReturn),
+          outerReturn: utc(r.flights?.outerReturn),
+        },
+        facts: { hubNights: r.hubNights, usableCityHours: r.usableCityHours },
+      };
+    });
+    if (rows.some(r => !r) || new Set(rows.map(r => r.candidateId)).size !== rows.length ||
+        ![t.cheapestIds,t.experienceIds,t.overallValueIds].every(ids =>
+          Array.isArray(ids) && ids.length === 3 &&
+          ids.every(id => rows.some(r => r.candidateId === id)))) return null;
+    return { ...t, rows };
   }
 
   function engineRowFor(candidateOrId) {
     const id = typeof candidateOrId === "string" ? candidateOrId : candidateOrId?.id;
     if (!id) return null;
-    return engineRecommendationTable()?.rows.find((row) => row.candidateId === id) ?? null;
+    return engineRecommendationTable()?.rows.find(r => r.candidateId === id) ?? null;
   }
 
   function recommendedIds() {
-    // The engine table is also a versioned absence-of-authority signal:
-    // never fall back to legacy picks if it is withheld, stale, or invalid.
-    if (s.pricing?.recommendationTableV1 != null) {
-      return new Set((engineRecommendationTable()?.rows ?? []).map((row) => String(row.candidateId)));
-    }
-    // Old stored jobs without any G5 table retain their legacy behavior.
-    const ids = new Set();
-    const categories = s.pricing?.page?.fullAnalysis?.universeRecommendationCategories ?? {};
-    Object.values(categories).flat().forEach((id) => id && ids.add(String(id)));
-    for (const record of usableRecords()) {
-      if (String(record.recommendation) === "RECOMMENDED") ids.add(String(record.candidateId));
-      if (String(record.pricingStatus) === "EXACT_CHECK_FAILED") ids.delete(String(record.candidateId));
-    }
-    return ids;
+    // Never substitute old ranking heuristics on Step 9 failure / absence.
+    return new Set((engineRecommendationTable()?.rows ?? []).map(r => String(r.candidateId)));
   }
 
   function recordFor(candidateOrId) {
@@ -307,25 +319,24 @@
     renderPricingFunnel();
 
     const filterRow = document.querySelector("#pricing-content .pricing-filters");
-    // Show a truthful partial shortlist, never invent the third experience
-    // recommendation or silently promote an unpriced legacy candidate.
+    // Step 9 coverage only; no historical recommendation fallback.
     const table = engineRecommendationTable();
-    const enginePresent = s.pricing?.recommendationTableV1 != null;
+    const rawStep9 = s.pricing?.step9Assessment;
     let note = document.querySelector("#pricing-content .issue258-recommendation-coverage");
-    if (enginePresent && filterRow) {
+    if (filterRow && s.pricing?.page?.fullAnalysis) {
       if (!note) {
         note = node("p", "issue258-recommendation-coverage");
         filterRow.before(note);
       }
-      const cheapCount = table?.rows.filter((row) =>
-        row.tag === "FEASIBLE_CHEAPEST" || row.tag === "BOTH").length ?? 0;
-      const experienceCount = table?.rows.filter((row) =>
-        row.tag === "BEST_EXPERIENCE" || row.tag === "BOTH").length ?? 0;
+      const n = category => table?.rows.filter(row => row.categories.includes(category)).length ?? 0;
       setText(note, table
-        ? `Engine-validated: ${cheapCount}/3 cheapest · ${experienceCount}/3 best experiences. ` +
-          (experienceCount < 3 || cheapCount < 3
-            ? "Missing verified fares are not promoted as recommendations." : "All priced selections are shown.")
-        : "Cuberence recommendations are not available with verified prices for this job.");
+        ? "Step 9 · Cuberence " + n("CHEAPEST") + "/3 cheapest · Luna " +
+          n("BEST_EXPERIENCE") + "/3 best experiences · Luna " +
+          n("OVERALL_VALUE") + "/3 best overall values. All are indicative, flight-matched fares."
+        : rawStep9?.state === "WITHHELD"
+          ? "Step 9 unavailable (" + (rawStep9.limitations ?? []).join(", ") +
+            "). No Luna experience or value recommendations are shown; there is no G5 fallback."
+          : "Step 9 not generated for this pricing job. No older recommendation fallback is shown.");
       note.hidden = view.mode !== "recommended";
     }
     if (filterRow && !document.querySelector(".issue115-view-switcher")) {
@@ -362,7 +373,7 @@
       const valid = STRUCTURALLY_USABLE.has(String(record?.candidateStatus ?? candidate?.candidateStatus));
       const authoritative = engineRowFor(candidate);
       const recommended = candidate && recommendations.has(String(candidate.id)) &&
-        (s.pricing?.recommendationTableV1 != null || String(record?.pricingStatus) !== "EXACT_CHECK_FAILED");
+        String(record?.pricingStatus) !== "EXACT_CHECK_FAILED";
       card.hidden = !valid || (view.mode === "recommended" && !recommended);
       card.dataset.candidateId = candidate?.id ?? "";
       card.classList.toggle("issue115-recommended-card", recommended);
@@ -370,14 +381,28 @@
       if (recommended && !marker) { marker = node("span", "issue115-luna-pick"); card.prepend(marker); }
       if (recommended && marker) {
         setText(marker, authoritative
-          ? authoritative.tag === "BOTH"
-            ? `Cheapest #${authoritative.cheapestRank} · Experience #${authoritative.experienceRank}`
-            : authoritative.tag === "FEASIBLE_CHEAPEST"
-              ? `💰 Cheapest #${authoritative.cheapestRank}`
-              : `✨ Best experience #${authoritative.experienceRank}`
-          : "Legacy Luna recommendation");
+          ? [
+              authoritative.cheapestRank ? "Cuberence · Cheapest #" + authoritative.cheapestRank : null,
+              authoritative.experienceRank ? "Luna · Experience #" + authoritative.experienceRank : null,
+              authoritative.valueRank ? "Luna · Overall value #" + authoritative.valueRank : null,
+            ].filter(Boolean).join(" · ")
+          : "Step 9 not available");
       }
       if (!recommended) marker?.remove();
+      // Render independent model reasoning directly on the selected card.
+      let why = card.querySelector(".step9-candidate-reasons");
+      if (recommended && authoritative && (authoritative.experienceReason || authoritative.valueReason)) {
+        if (!why) {
+          why = node("div", "step9-candidate-reasons");
+          why.style.cssText = "padding:9px 10px;margin:7px 0;border:1px solid #c7d6e2;border-radius:8px;background:#f5faff;font-size:12px;line-height:1.5";
+          const detail = card.querySelector(".candidate-detail");
+          if (detail) detail.prepend(why); else card.append(why);
+        }
+        setText(why, [
+          authoritative.experienceReason ? "✨ Experience: " + authoritative.experienceReason : null,
+          authoritative.valueReason ? "⭐ Overall value: " + authoritative.valueReason : null,
+        ].filter(Boolean).join("  ·  "));
+      } else why?.remove();
       if (String(record?.pricingStatus ?? C.candidateStatus(candidate)) === "EXACT_CHECK_FAILED") {
         let notice = card.querySelector(".issue115-external-pricing");
         if (!notice) { notice = node("p", "issue115-external-pricing", "Exact check failed — price externally. This itinerary remains visible but cannot be confirmed or recommended."); card.append(notice); }
