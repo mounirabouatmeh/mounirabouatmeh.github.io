@@ -312,7 +312,8 @@ jobs:
           grep -q '/static-issue23-selection.js?v=6' demo/index.html
 
           # Issue #115 owns full-universe validity, recommendations, and environment display.
-          grep -q "universeRecommendationCategories" static-issue115.js
+          grep -q "step9Assessment" static-issue115.js
+          ! grep -q "recommendationTableV1" static-issue115.js
           grep -q "VALID_WITH_RISK" static-issue115.js
           grep -q "EXACT_CHECK_FAILED" static-issue115.js
           grep -q "candidateNumber" static-issue115.js
